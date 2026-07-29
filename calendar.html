@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#7c3aed"><title>RaySmart · 입고 캘린더</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon-192.png"><style>
+:root{--brand:#7c3aed;--ink:#172b4d;--muted:#667085;--line:#dce6f5;--bg:#f4f7fb}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(180deg,#f3efff,#f7f9fc 280px);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:var(--ink)}button,input,select,label{font:inherit}.app{max-width:760px;margin:auto;min-height:100dvh;padding-bottom:calc(28px + env(safe-area-inset-bottom))}.adminOpen{margin-left:auto;border:0;border-radius:12px;background:#fff;color:var(--brand);padding:10px 12px;font-weight:950;box-shadow:0 6px 18px #173b6b12}.adminPanel{display:none}.adminPanel.show{display:block}.top{padding:calc(15px + env(safe-area-inset-top)) 15px 13px;display:flex;align-items:center;gap:12px}.back{width:42px;height:42px;border:0;border-radius:13px;background:#fff;color:var(--brand);font-size:27px;font-weight:900;box-shadow:0 6px 18px #173b6b12}.title{font-size:23px;font-weight:1000;letter-spacing:-.8px}.sub{font-size:12px;color:var(--muted);margin-top:2px}.panel{margin:0 12px 12px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 9px 26px rgba(23,59,107,.07)}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sum{padding:12px 7px;border-radius:15px;background:#f5f8fc;text-align:center}.sum b{display:block;font-size:20px}.sum span{font-size:10px;color:var(--muted);font-weight:800}.nav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;margin-top:14px}.nav button{height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--brand);font-size:22px;font-weight:950}.month{text-align:center;font-size:20px;font-weight:1000}.filters{display:flex;gap:7px;overflow-x:auto;padding:12px 1px 3px}.filter{white-space:nowrap;border:1px solid var(--line);border-radius:999px;background:#fff;color:#526174;padding:8px 11px;font-size:12px;font-weight:900}.filter.active{background:var(--brand);border-color:var(--brand);color:#fff}.board{overflow:hidden;border:1px solid var(--line);border-radius:16px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week{background:#f3efff;text-align:center;font-size:11px;font-weight:950;color:#52719d}.week span{padding:9px 2px}.week span:first-child{color:#e24b4b}.week span:last-child{color:#3478d4}.day{position:relative;min-height:84px;padding:6px 4px;border-top:1px solid #edf1f6;border-right:1px solid #edf1f6;background:#fff;overflow:hidden}.day:nth-child(7n){border-right:0}.day.other{background:#f8fafc}.day.today{box-shadow:inset 0 0 0 2px #f2c94c;background:#fffbe6}.date{font-size:12px;font-weight:950;color:#526174}.day:nth-child(7n+1) .date{color:#e24b4b}.day:nth-child(7n) .date{color:#3478d4}.events{display:flex;flex-direction:column;gap:3px;margin-top:5px}.event{border:0;width:100%;border-radius:6px;padding:4px 3px;font-size:8px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.event.done{text-decoration:line-through;opacity:.55}.v0{background:#e8f7ee;color:#14743d}.v1{background:#e9f2ff;color:#1769e0}.v2{background:#fff3df;color:#b15c00}.v3{background:#f3eaff;color:#7e22ce}.state{text-align:center;margin-top:10px;color:#7a879d;font-size:11px;font-weight:800}.adminTitle{font-size:16px;font-weight:1000}.adminNote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px}.adminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.btn,label.btn{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:12px;padding:10px;text-align:center;font-weight:950;font-size:13px}.primary{background:var(--brand);color:#fff}.soft{background:#f1edff;color:var(--brand)}#file{display:none}.add{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:9px}.add select,.add input{min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.add button{border:0;border-radius:10px;padding:0 13px;background:#172b4d;color:#fff;font-weight:950}.modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;background:#0f172a77;padding:12px}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:75vh;overflow:auto;margin:auto;background:#fff;border-radius:22px;padding:17px}.sheetHead{display:flex;justify-content:space-between;align-items:center}.sheetTitle{font-size:19px;font-weight:1000}.close{border:0;border-radius:10px;background:#f1edff;color:#5b21b6;padding:8px 11px;font-weight:900}.list{display:flex;flex-direction:column;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px}.vendor{font-weight:950}.row small{display:block;color:var(--muted);margin-top:3px}.toggle{border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px;font-size:11px;font-weight:900}.toggle.on{background:#eaf8ef;color:#14743d}.empty{padding:20px;text-align:center;color:var(--muted)}@media(max-width:430px){.day{min-height:77px;padding:5px 3px}.event{font-size:7.5px}.add{grid-template-columns:1fr}.add button{min-height:42px}}
+
+.poBlock{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.poTitle{font-size:14px;font-weight:1000}
+.poNote{font-size:10.5px;color:var(--muted);line-height:1.55;margin:4px 0 10px}
+.poActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#purchaseFiles{display:none}
+.selectedFiles{display:none;margin-top:10px;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.selectedFiles.show{display:block}
+.selectedHead{padding:9px 11px;background:#f7f5ff;font-size:11px;font-weight:950}
+.selectedItem{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;padding:9px 11px;border-top:1px solid #edf1f6;font-size:10px}
+.selectedName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.selectedState{font-weight:900;color:#667085;white-space:nowrap}
+.selectedItem.ok .selectedState{color:#14743d}
+.selectedItem.bad .selectedState{color:#d92d20}
+.adminStatus{margin-top:10px;padding:10px 11px;border-radius:11px;background:#f5f7fb;color:#667085;font-size:10.5px;font-weight:800;line-height:1.5;white-space:pre-line}
+.adminStatus.ok{background:#ebf8ef;color:#14743d}
+.adminStatus.error{background:#fff0f0;color:#c92a2a}
+
+</style></head><body><div class="app"><header class="top"><button class="back" onclick="location.href='./index.html'">‹</button><div><div class="title">입고 캘린더</div><div class="sub">업체별 입고 예정일과 완료 상태</div></div><button class="adminOpen" id="adminOpen" type="button">🔒 관리자</button></header><section class="panel"><div class="summary"><div class="sum"><b id="todayCount">0</b><span>오늘 입고</span></div><div class="sum"><b id="monthCount">0</b><span>이번 달</span></div><div class="sum"><b id="doneCount">0</b><span>완료</span></div></div><div class="nav"><button id="prev">‹</button><div class="month" id="month"></div><button id="next">›</button></div><div class="filters" id="filters"></div><div class="board"><div class="week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div class="days" id="days"></div></div><div class="state" id="state">Calendar.xlsx를 불러오고 있습니다.</div></section><section class="panel adminPanel" id="adminPanel">
+<div class="adminTitle">일정 관리</div>
+<div class="adminNote">기존 Calendar.xlsx를 불러오거나 일정을 직접 추가할 수 있습니다. 아래 발주서 자동변환에서는 여러 파일을 한꺼번에 선택해 하나의 Calendar.xlsx로 합칩니다.</div>
+
+<div class="poBlock">
+  <div class="poTitle">발주서 자동 변환</div>
+  <div class="poNote">세진팩과 오지인터팩코리아 발주서를 여러 개 동시에 선택하면 업체를 자동 판별하고, 입고일만 추출해 기존 일정과 합칩니다. 중복 날짜는 자동 제외합니다.</div>
+  <div class="poActions">
+    <label class="btn soft" for="purchaseFiles">발주서 여러 개 선택</label>
+    <button class="btn primary" id="download" type="button">통합 Calendar.xlsx 저장</button>
+  </div>
+  <input id="purchaseFiles" type="file" accept=".xlsx,.xls" multiple>
+  <div class="selectedFiles" id="selectedFiles">
+    <div class="selectedHead" id="selectedHead">선택된 발주서</div>
+    <div id="selectedList"></div>
+  </div>
+  <div class="adminStatus" id="adminStatus">GitHub의 기존 Calendar.xlsx를 먼저 불러온 뒤 발주서를 선택하면 새 일정만 추가됩니다.</div>
+</div>
+
+<div class="poBlock">
+  <div class="poTitle">Calendar.xlsx 직접 관리</div>
+  <div class="adminActions">
+    <label class="btn soft" for="file">Calendar.xlsx 불러오기</label>
+    <button class="btn primary" id="downloadDirect" type="button">현재 일정 저장</button>
+  </div>
+  <input id="file" type="file" accept=".xlsx,.xls">
+  <div class="add">
+    <select id="vendor"></select>
+    <input id="date" type="date">
+    <button id="add">일정 추가</button>
+  </div>
+</div>
+</section></div><div class="modal" id="modal"><div class="sheet"><div class="sheetHead"><div class="sheetTitle" id="sheetTitle"></div><button class="close" id="close">닫기</button></div><div class="list" id="list"></div></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><script>
+const vendors=['세진팩','오지인터팩코리아','일신포장산업','동진물류포장'];
+let events=[],view=new Date(),filter='전체';
+view.setDate(1);
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const validDate=d=>d instanceof Date&&!Number.isNaN(d.getTime());
+const isWorkday=d=>validDate(d)&&d.getDay()!==0&&d.getDay()!==6;
+
+function parse(v,fallbackYear=new Date().getFullYear()){
+  if(validDate(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  if(typeof v==='number'&&v>20000&&v<80000){
+    const p=XLSX.SSF.parse_date_code(v);
+    if(p) return new Date(p.y,p.m-1,p.d);
+  }
+  const text=String(v??'').trim();
+  if(!text) return null;
+  const ko=text.match(/(?:(20\d{2})\s*년\s*)?(1[0-2]|[1-9])\s*월\s*(3[01]|[12]\d|[1-9])\s*일?/);
+  if(ko) return new Date(ko[1]?Number(ko[1]):fallbackYear,Number(ko[2])-1,Number(ko[3]));
+  const d=new Date(text.replace(/\./g,'-').replace(/\//g,'-'));
+  return validDate(d)?new Date(d.getFullYear(),d.getMonth(),d.getDate()):null;
+}
+function sourceYear(fileName=''){
+  const m=String(fileName).match(/(20\d{2})/);
+  return m?Number(m[1]):new Date().getFullYear();
+}
+function sourceMonth(fileName=''){
+  const text=String(fileName??'').normalize('NFKC');
+  const m=text.match(/(?:^|[^0-9])(1[0-2]|[1-9])\s*월(?:\s*발주(?:서)?)?/);
+  return m?Number(m[1]):null;
+}
+function withSourceYear(value,fileName=''){
+  const d=parse(value,sourceYear(fileName));
+  if(!d) return null;
+  const t=String(value??'').trim();
+  const explicit=/(20\d{2})\s*년|^20\d{2}[-./]/.test(t);
+  return explicit?d:new Date(sourceYear(fileName),d.getMonth(),d.getDate());
+}
+function normalizeVendor(value){
+  const n=String(value??'').replace(/\s/g,'').replace(/[㈜()（）]/g,'').replace(/주식회사/g,'').toLowerCase();
+  if(n.includes('세진')) return '세진팩';
+  if(n.includes('오지')||n.includes('ojinterpack')) return '오지인터팩코리아';
+  if(n.includes('일신')) return '일신포장산업';
+  if(n.includes('동진')) return '동진물류포장';
+  return '';
+}
+function detectVendor(fileName){
+  return normalizeVendor(fileName);
+}
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function setAdminStatus(msg,type=''){
+  const el=$('adminStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.className='adminStatus'+(type?' '+type:'');
+}
+function dedupe(){
+  const m=new Map();
+  events.forEach(e=>{
+    const vendor=normalizeVendor(e.vendor)||e.vendor;
+    const k=`${vendor}|${key(e.date)}`;
+    const prev=m.get(k);
+    if(!prev || e.done) m.set(k,{...e,vendor});
+  });
+  events=[...m.values()].sort((a,b)=>a.date-b.date||a.vendor.localeCompare(b.vendor,'ko'));
+}
+function loadBook(buf){
+  const b=XLSX.read(buf,{type:'array',cellDates:true});
+  events=[];
+  b.SheetNames.forEach((n,vi)=>{
+    const sheetVendor=normalizeVendor(n);
+    const rows=XLSX.utils.sheet_to_json(b.Sheets[n],{header:1,defval:'',raw:true,cellDates:true});
+    if(!rows.length) return;
+    const headers=rows[0].map(v=>String(v??'').trim());
+    const vendorCol=headers.indexOf('업체명');
+    const dateCols=[
+      headers.indexOf('표시입고일'),
+      headers.indexOf('변경입고일'),
+      headers.findIndex(v=>v==='예정입고일'||v==='입고일')
+    ].filter(i=>i>=0);
+    const statusCol=headers.findIndex(v=>v==='상태'||v==='완료');
+    if(dateCols.length){
+      rows.slice(1).forEach((r,i)=>{
+        const vendor=normalizeVendor(vendorCol>=0?r[vendorCol]:'')||sheetVendor;
+        const raw=dateCols.map(c=>r[c]).find(v=>String(v??'').trim()!=='');
+        const d=parse(raw);
+        if(vendor&&d&&isWorkday(d)){
+          const state=statusCol>=0?String(r[statusCol]??''):'';
+          events.push({id:`${n}-${i}-${Date.now()}`,vendor,date:d,done:/완료|정상|true|yes|^1$/i.test(state)});
+        }
+      });
+    }else{
+      rows.slice(1).forEach((r,i)=>{
+        const rowVendor=normalizeVendor(r[0]);
+        const vendor=rowVendor||sheetVendor;
+        const d=parse(r[1]??(rowVendor?r[1]:r[0]));
+        if(vendor&&d&&isWorkday(d)) events.push({id:`${n}-${i}-${Date.now()}`,vendor,date:d,done:/완료|true|yes|^1$/i.test(String(r[2]??''))});
+      });
+    }
+  });
+  dedupe();
+  render();
+  $('state').textContent=`총 ${events.length}건의 일정을 불러왔습니다.`;
+  setAdminStatus(`✅ 기존 Calendar.xlsx ${events.length}건을 불러왔습니다. 이제 발주서를 여러 개 선택할 수 있습니다.`,'ok');
+}
+async function auto(){
+  try{
+    const r=await fetch('./Calendar.xlsx?ts='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    loadBook(await r.arrayBuffer());
+  }catch(e){
+    $('state').textContent='Calendar.xlsx를 찾지 못했습니다. 관리자 모드에서 파일을 불러와 주세요.';
+    setAdminStatus('Calendar.xlsx 자동 연결에 실패했습니다. 기존 파일을 직접 불러오거나 새 발주서를 변환할 수 있습니다.','error');
+    render();
+  }
+}
+function color(v){
+  const i=Math.max(0,vendors.indexOf(v));
+  return 'v'+(i%4);
+}
+function render(){
+  renderFilters();
+  $('month').textContent=`${view.getFullYear()}년 ${view.getMonth()+1}월`;
+  const first=new Date(view.getFullYear(),view.getMonth(),1),start=new Date(first);
+  start.setDate(1-first.getDay());
+  let html='';
+  const today=key(new Date());
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const arr=events.filter(e=>key(e.date)===key(d)&&(filter==='전체'||e.vendor===filter));
+    html+=`<div class="day ${d.getMonth()!==view.getMonth()?'other':''} ${key(d)===today?'today':''}" data-date="${key(d)}">
+      <div class="date">${d.getDate()}</div>
+      <div class="events">${arr.slice(0,3).map(e=>`<button class="event ${color(e.vendor)} ${e.done?'done':''}" data-id="${e.id}">${e.vendor.replace('오지인터팩코리아','오지인터팩')}</button>`).join('')}${arr.length>3?`<button class="event">+${arr.length-3}</button>`:''}</div>
+    </div>`;
+  }
+  $('days').innerHTML=html;
+  document.querySelectorAll('.day').forEach(x=>x.onclick=()=>openDay(x.dataset.date));
+  const monthEvents=events.filter(e=>e.date.getFullYear()===view.getFullYear()&&e.date.getMonth()===view.getMonth());
+  $('monthCount').textContent=monthEvents.length;
+  $('doneCount').textContent=monthEvents.filter(e=>e.done).length;
+  $('todayCount').textContent=events.filter(e=>key(e.date)===today).length;
+}
+function renderFilters(){
+  $('filters').innerHTML=['전체',...vendors].map(v=>`<button class="filter ${filter===v?'active':''}" data-v="${v}">${v==='오지인터팩코리아'?'오지인터팩':v}</button>`).join('');
+  document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{filter=b.dataset.v;render()});
+}
+function openDay(k){
+  const arr=events.filter(e=>key(e.date)===k&&(filter==='전체'||e.vendor===filter));
+  $('sheetTitle').textContent=k;
+  $('list').innerHTML=arr.length?arr.map(e=>`<div class="row"><div><div class="vendor">${e.vendor}</div><small>${e.done?'입고 완료':'입고 예정'}</small></div><button class="toggle ${e.done?'on':''}" data-id="${e.id}">${e.done?'완료':'완료 처리'}</button></div>`).join(''):'<div class="empty">등록된 일정이 없습니다.</div>';
+  $('modal').classList.add('show');
+  document.querySelectorAll('.toggle').forEach(b=>b.onclick=()=>{
+    const e=events.find(x=>x.id===b.dataset.id);
+    e.done=!e.done;openDay(k);render();
+  });
+}
+function sejinSheetMonth(sheetName=''){
+  const m=String(sheetName).normalize('NFKC').match(/(?:^|\D)(1[0-2]|[1-9])\s*월\s*발주/);
+  return m?Number(m[1]):null;
+}
+function sejinOrderSheets(book,fileName=''){
+  const monthly=book.SheetNames.filter(n=>sejinSheetMonth(n)&&!/금액|예상/.test(String(n)));
+  const targetMonth=sourceMonth(fileName);
+  if(targetMonth){
+    const exact=monthly.filter(n=>sejinSheetMonth(n)===targetMonth);
+    if(exact.length) return [exact[0]];
+    throw new Error(`${targetMonth}월 발주 시트를 찾지 못했습니다.`);
+  }
+  if(monthly.length===1) return monthly;
+  const current=monthly.find(n=>sejinSheetMonth(n)===new Date().getMonth()+1);
+  if(current) return [current];
+  throw new Error('파일명에 대상 월을 넣어 주세요. 예: 7월 발주서_세진팩.xlsx');
+}
+function extractSejinDates(book,fileName){
+  const found=new Map();
+  let readableSheets=0;
+  sejinOrderSheets(book,fileName).forEach(sheetName=>{
+    const ws=book.Sheets[sheetName];
+    if(!ws) return;
+    const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,cellDates:true});
+    const hi=a.findIndex(row=>row.some(v=>String(v).trim()==='품명단가')&&row.some(v=>String(v).trim()==='품명'));
+    if(hi<0) return;
+    const h=a[hi],nc=h.findIndex(v=>String(v).trim()==='품명'),dc=[];
+    for(let c=nc+1;c<h.length;c++){
+      const label=String(h[c]??'').trim();
+      if(/총합계|총\s*발주|금액|MOQ/i.test(label)) break;
+      const d=withSourceYear(h[c],fileName);
+      if(d) dc.push({c,d});
+    }
+    if(!dc.length) return;
+    readableSheets++;
+    for(let r=hi+1;r<a.length;r++){
+      if(!String(a[r]?.[2]??'').trim()&&!String(a[r]?.[nc]??'').trim()) continue;
+      dc.forEach(({c,d})=>{
+        const q=Number(String(a[r]?.[c]??'').replace(/,/g,''));
+        if(Number.isFinite(q)&&q>0){
+          found.set(key(d),d);
+        }
+      });
+    }
+  });
+  if(!readableSheets) throw new Error('세진팩 발주 시트를 찾지 못했습니다.');
+  const targetMonth=sourceMonth(fileName);
+  const dates=[...found.values()]
+    .filter(d=>(!targetMonth||d.getMonth()+1===targetMonth)&&isWorkday(d))
+    .sort((x,y)=>x-y);
+  if(!dates.length) throw new Error(targetMonth?`${targetMonth}월 평일 입고 일정을 찾지 못했습니다.`:'0보다 큰 평일 입고 수량을 찾지 못했습니다.');
+  return dates;
+}
+function extractOjiDates(book,fileName){
+  const sheetName=book.SheetNames.find(n=>String(n).replace(/\s/g,'').includes('발주목록'))||book.SheetNames[0],ws=book.Sheets[sheetName];
+  if(!ws) throw new Error('오지인터팩 발주목록 시트를 찾지 못했습니다.');
+  const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,cellDates:true});
+  const hi=a.findIndex(row=>row.some(v=>String(v).trim()==='NAME')&&row.some(v=>String(v).trim()==='단가'));
+  if(hi<0) throw new Error('오지인터팩 제목 행을 찾지 못했습니다.');
+  const h=a[hi],nc=h.findIndex(v=>String(v).trim()==='NAME'),dc=[];
+  for(let c=nc+1;c<h.length;c++){
+    const label=String(h[c]??'').trim();
+    if(/합계|발주\s*금액|총액|금액/i.test(label)) break;
+    const d=withSourceYear(h[c],fileName);
+    if(d) dc.push({c,d});
+  }
+  const found=new Map();
+  for(let r=hi+1;r<a.length;r++){
+    if(!String(a[r]?.[nc]??'').trim()) continue;
+    dc.forEach(({c,d})=>{
+      const q=Number(String(a[r]?.[c]??'').replace(/,/g,''));
+      if(Number.isFinite(q)&&q>0) found.set(key(d),d);
+    });
+  }
+  const targetMonth=sourceMonth(fileName);
+  const dates=[...found.values()]
+    .filter(d=>(!targetMonth||d.getMonth()+1===targetMonth)&&isWorkday(d))
+    .sort((x,y)=>x-y);
+  if(!dates.length) throw new Error(targetMonth?`${targetMonth}월 평일 입고 일정을 찾지 못했습니다.`:'0보다 큰 평일 입고 수량을 찾지 못했습니다.');
+  return dates;
+}
+
+function replaceVendorMonths(vendor,dates){
+  const months=new Set(dates.map(d=>`${d.getFullYear()}-${d.getMonth()}`));
+  if(!months.size) return 0;
+  const before=events.length;
+  events=events.filter(e=>!(e.vendor===vendor&&months.has(`${e.date.getFullYear()}-${e.date.getMonth()}`)));
+  return before-events.length;
+}
+
+function addVendorDates(vendor,dates){
+  let added=0,duplicate=0;
+  dates.forEach(d=>{
+    if(events.some(e=>e.vendor===vendor&&key(e.date)===key(d))){duplicate++;return;}
+    events.push({id:`po-${Date.now()}-${Math.random()}`,vendor,date:d,done:false});
+    added++;
+  });
+  dedupe();
+  return {added,duplicate};
+}
+function saveCalendar(){
+  dedupe();
+  const b=XLSX.utils.book_new();
+  vendors.forEach(v=>{
+    const rows=[['업체명','입고일','완료'],...events.filter(e=>e.vendor===v).sort((a,b)=>a.date-b.date).map(e=>[e.vendor,e.date,e.done?'완료':''])];
+    const ws=XLSX.utils.aoa_to_sheet(rows,{cellDates:true});
+    ws['!cols']=[{wch:20},{wch:14},{wch:10}];
+    for(let r=2;r<=rows.length;r++) if(ws['B'+r]) ws['B'+r].z='yyyy-mm-dd';
+    XLSX.utils.book_append_sheet(b,ws,v);
+  });
+  XLSX.writeFile(b,'Calendar.xlsx',{compression:true,cellDates:true});
+  setAdminStatus(`✅ Calendar.xlsx 저장 완료 · 총 ${events.length}건입니다. GitHub의 기존 파일과 교체해 주세요.`,'ok');
+}
+
+const adminPanel=$('adminPanel'),adminOpen=$('adminOpen');
+function unlockAdmin(){
+  sessionStorage.setItem('rayAdminLoggedIn','1');
+  adminPanel.classList.add('show');
+  adminOpen.textContent='🔓 관리자 종료';
+  setTimeout(()=>adminPanel.scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+function lockAdmin(){
+  sessionStorage.removeItem('rayAdminLoggedIn');
+  adminPanel.classList.remove('show');
+  adminOpen.textContent='🔒 관리자';
+}
+adminOpen.onclick=()=>{
+  if(adminPanel.classList.contains('show')){lockAdmin();return;}
+  const pw=prompt('관리자 비밀번호를 입력해 주세요.');
+  if(pw===null) return;
+  if(pw==='1234') unlockAdmin(); else alert('비밀번호가 올바르지 않습니다.');
+};
+const adminRequested=new URLSearchParams(location.search).get('admin')==='1';
+if(sessionStorage.getItem('rayAdminLoggedIn')==='1') unlockAdmin();
+else if(adminRequested){
+  const pw=prompt('관리자 비밀번호를 입력해 주세요.');
+  if(pw==='1234') unlockAdmin(); else history.replaceState(null,'','calendar.html');
+}
+
+$('purchaseFiles').onchange=async e=>{
+  const files=[...(e.target.files||[])];
+  if(!files.length) return;
+  $('selectedFiles').classList.add('show');
+  $('selectedHead').textContent=`선택된 발주서 ${files.length}개`;
+  $('selectedList').innerHTML=files.map((f,i)=>`<div class="selectedItem" data-i="${i}"><span>📄</span><span class="selectedName">${esc(f.name)}</span><span class="selectedState">확인 중</span></div>`).join('');
+  let processed=0,totalAdded=0,totalDuplicate=0;
+  const details=[];
+  for(let i=0;i<files.length;i++){
+    const f=files[i],item=document.querySelector(`.selectedItem[data-i="${i}"]`),state=item.querySelector('.selectedState');
+    const vendor=detectVendor(f.name);
+    if(!['세진팩','오지인터팩코리아'].includes(vendor)){
+      item.classList.add('bad');state.textContent='지원 안 됨';
+      details.push(`${f.name}: 지원하지 않는 업체`);
+      continue;
+    }
+    try{
+      const book=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+      const dates=vendor==='세진팩'?extractSejinDates(book,f.name):extractOjiDates(book,f.name);
+      const replaced=replaceVendorMonths(vendor,dates);
+      const result=addVendorDates(vendor,dates);
+      processed++;totalAdded+=result.added;totalDuplicate+=result.duplicate;
+      item.classList.add('ok');
+      state.textContent=`${vendor.replace('오지인터팩코리아','오지인터팩')} · +${result.added} / 중복 ${result.duplicate}`;
+      details.push(`${vendor} ${result.added}건 추가 · 중복 ${result.duplicate}건${replaced?` · 기존 ${replaced}건 교체`:''}`);
+      if(dates.length){
+        const last=dates[dates.length-1];
+        view=new Date(last.getFullYear(),last.getMonth(),1);
+      }
+    }catch(err){
+      item.classList.add('bad');state.textContent='읽기 실패';
+      details.push(`${f.name}: ${err.message}`);
+    }
+  }
+  filter='전체';render();
+  if(processed){
+    $('state').textContent=`발주서 변환 완료 · 새 일정 ${totalAdded}건 · 중복 제외 ${totalDuplicate}건`;
+    setAdminStatus(`✅ 발주서 ${processed}개 처리 완료 · 새 일정 ${totalAdded}건 · 중복 제외 ${totalDuplicate}건\n${details.join(' / ')}`,'ok');
+  }else{
+    setAdminStatus(`처리 가능한 발주서가 없습니다.\n${details.join(' / ')}`,'error');
+  }
+  e.target.value='';
+};
+
+$('close').onclick=()=>$('modal').classList.remove('show');
+$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').classList.remove('show')};
+$('prev').onclick=()=>{view.setMonth(view.getMonth()-1);render()};
+$('next').onclick=()=>{view.setMonth(view.getMonth()+1);render()};
+$('vendor').innerHTML=vendors.map(v=>`<option>${v}</option>`).join('');
+$('date').value=key(new Date());
+$('add').onclick=()=>{
+  if(!$('date').value) return;
+  const d=parse($('date').value+'T00:00:00');
+  const vendor=$('vendor').value;
+  if(!isWorkday(d)) return alert('토요일과 일요일에는 입고 일정을 등록할 수 없습니다.');
+  if(events.some(e=>e.vendor===vendor&&key(e.date)===key(d))) return alert('같은 업체의 일정이 이미 등록되어 있습니다.');
+  events.push({id:'m-'+Date.now(),vendor,date:d,done:false});
+  view=new Date(d.getFullYear(),d.getMonth(),1);
+  dedupe();render();
+  $('state').textContent='일정이 추가되었습니다. 저장 버튼으로 Calendar.xlsx를 내려받으세요.';
+  setAdminStatus(`✅ ${vendor} ${key(d)} 일정이 추가되었습니다.`,'ok');
+};
+$('file').onchange=async e=>{if(e.target.files[0]) loadBook(await e.target.files[0].arrayBuffer())};
+$('download').onclick=saveCalendar;
+$('downloadDirect').onclick=saveCalendar;
+
+auto();
+if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+</script></body></html>
