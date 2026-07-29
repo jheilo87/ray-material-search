@@ -2368,7 +2368,26 @@ window.addEventListener('blur',markOcrScreenInterrupted);
  function ensureBook(){if(calendarBook)return calendarBook;calendarBook=XLSX.utils.book_new();SUPPLIERS.forEach(name=>XLSX.utils.book_append_sheet(calendarBook,XLSX.utils.aoa_to_sheet([['업체명','입고일','완료']]),name));return calendarBook;}
  function rowsFromBook(book){
    const out=[];
-   book.SheetNames.forEach(sheetName=>{const sheetVendor=normalizeVendorName(sheetName),ws=book.Sheets[sheetName];if(!ws)return;const all=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
+   book.SheetNames.forEach(sheetName=>{
+     const sheetVendor=normalizeVendorName(sheetName),ws=book.Sheets[sheetName];if(!ws)return;
+     const all=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,cellDates:true});
+     if(!all.length)return;
+     const headers=all[0].map(v=>String(v??'').trim());
+     const vendorCol=headers.findIndex(v=>v==='업체명');
+     const displayDateCol=headers.findIndex(v=>v==='표시입고일');
+     const changedDateCol=headers.findIndex(v=>v==='변경입고일');
+     const scheduledDateCol=headers.findIndex(v=>v==='예정입고일'||v==='입고일');
+     const statusCol=headers.findIndex(v=>v==='상태'||v==='완료');
+     if(vendorCol>=0 && (displayDateCol>=0 || changedDateCol>=0 || scheduledDateCol>=0)){
+       all.slice(1).forEach(r=>{
+         const vendor=normalizeVendorName(r[vendorCol])||sheetVendor;if(!vendor)return;
+         const rawDate=(displayDateCol>=0?r[displayDateCol]:null)||(changedDateCol>=0?r[changedDateCol]:null)||(scheduledDateCol>=0?r[scheduledDateCol]:null);
+         const d=cellDate(rawDate);if(!d)return;
+         const state=statusCol>=0?String(r[statusCol]??''):'';
+         out.push({vendor,date:d,key:dateKey(d),completed:boolValue(state)||/완료|정상/.test(state)});
+       });
+       return;
+     }
      all.slice(1).forEach(r=>{const rowVendor=normalizeVendorName(r[0]),vendor=rowVendor||sheetVendor;if(!vendor)return;const d=cellDate(r[1]??(rowVendor?r[1]:r[0]));if(d)out.push({vendor,date:d,key:dateKey(d),completed:boolValue(r[2])});});
    });
    const unique=new Map();out.forEach(r=>unique.set(`${r.vendor}|${r.key}`,r));return [...unique.values()].sort((a,b)=>a.date-b.date||a.vendor.localeCompare(b.vendor,'ko'));
@@ -2399,7 +2418,26 @@ window.addEventListener('blur',markOcrScreenInterrupted);
  function openDay(key){selectedDayKey=key;renderDayModal();openModal('calendarDayModal');}
  function renderDayModal(){const rows=calendarRows.filter(r=>r.key===selectedDayKey),d=cellDate(selectedDayKey);byId('calendarDayModalTitle').textContent=d?`${d.getMonth()+1}/${d.getDate()} 입고 ${rows.length}건`:'입고 일정';byId('calendarDayModalList').innerHTML=rows.map((r,i)=>`<div class="calendarModalItem"><div class="calendarModalVendor">${r.completed?'✅ ':''}${r.vendor}</div><div class="calendarModalActions"><button class="completeBtn${r.completed?' on':''}" data-action="complete" data-vendor="${r.vendor}">${r.completed?'완료 취소':'입고 완료'}</button><button data-action="edit" data-vendor="${r.vendor}">날짜 수정</button><button class="deleteBtn" data-action="delete" data-vendor="${r.vendor}">삭제</button></div></div>`).join('')||'<div class="calendarEmpty">일정이 없습니다.</div>';byId('calendarDayModalList').querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>handleDayAction(btn.dataset.action,btn.dataset.vendor)));}
  function handleDayAction(action,vendor){const idx=calendarRows.findIndex(r=>r.key===selectedDayKey&&r.vendor===vendor);if(idx<0)return;if(action==='complete'){calendarRows[idx].completed=!calendarRows[idx].completed;markChanged(`${vendor} 완료 상태를 변경했습니다.`);}else if(action==='edit'){const next=prompt(`${vendor}의 변경할 날짜를 입력하세요. (YYYY-MM-DD)`,selectedDayKey);if(!next)return;const d=cellDate(next);if(!d)return alert('날짜 형식이 올바르지 않습니다.');calendarRows[idx].date=d;calendarRows[idx].key=dateKey(d);selectedDayKey=dateKey(d);markChanged(`${vendor} 일정을 ${selectedDayKey}로 수정했습니다.`);}else if(action==='delete'){if(confirm(`${vendor}의 ${selectedDayKey} 일정을 삭제할까요?`)){calendarRows.splice(idx,1);markChanged(`${vendor} 일정을 삭제했습니다.`);if(!calendarRows.some(r=>r.key===selectedDayKey))closeModal('calendarDayModal');}}}
- async function loadRemoteCalendar(){try{const res=await fetch(`./Calendar.xlsx?t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error('not found');calendarBook=XLSX.read(await res.arrayBuffer(),{type:'array',cellDates:true});const migrated=migrateLegacyTestYear(calendarBook);if(!migrated)calendarRows=rowsFromBook(calendarBook);if(calendarRows.length){const future=calendarRows.find(r=>r.date>=today)||calendarRows[calendarRows.length-1];viewDate=new Date(future.date.getFullYear(),future.date.getMonth(),1);}renderAll();byId('calendarDataState').textContent=calendarRows.length?`GitHub Calendar.xlsx 연결 완료 · 전체 ${calendarRows.length}건`:'Calendar.xlsx 연결 완료 · 아직 일정 없음';updateTodaySummary(true);}catch(_){ensureBook();renderAll();byId('calendarDataState').textContent='Calendar.xlsx가 아직 없습니다. 첫 일정을 등록하면 새 파일을 만들 수 있습니다.';}}
+ async function loadRemoteCalendar(){
+   const candidates=['Calendar.xlsx','calendar.xlsx','Calendar_통합문서_1단계.xlsx'];
+   let lastError='';
+   for(const fileName of candidates){
+     try{
+       const res=await fetch(`./${encodeURIComponent(fileName)}?t=${Date.now()}`,{cache:'no-store'});
+       if(!res.ok){lastError=`${fileName} (${res.status})`;continue;}
+       calendarBook=XLSX.read(await res.arrayBuffer(),{type:'array',cellDates:true});
+       const migrated=migrateLegacyTestYear(calendarBook);if(!migrated)calendarRows=rowsFromBook(calendarBook);
+       if(calendarRows.length){const future=calendarRows.find(r=>r.date>=today)||calendarRows[calendarRows.length-1];viewDate=new Date(future.date.getFullYear(),future.date.getMonth(),1);}
+       renderAll();
+       byId('calendarDataState').textContent=calendarRows.length?`GitHub ${fileName} 연결 완료 · 전체 ${calendarRows.length}건`:`GitHub ${fileName} 연결 완료 · 아직 일정 없음`;
+       setAdminStatus(`✅ GitHub ${fileName} 자동 연결 완료 · 기존 일정 ${calendarRows.length}건`,'ok');
+       updateTodaySummary(true);return;
+     }catch(err){lastError=err?.message||String(err);}
+   }
+   ensureBook();renderAll();
+   byId('calendarDataState').textContent='GitHub에서 Calendar.xlsx를 찾지 못했습니다. index.html과 같은 폴더에 올려 주세요.';
+   setAdminStatus(`Calendar.xlsx 자동 연결 실패 · 파일명과 위치를 확인해 주세요. (${lastError})`,'error');
+ }
  byId('calendarAdminToggle')?.addEventListener('click',()=>{const panel=byId('calendarAdmin'),btn=byId('calendarAdminToggle');if(!panel)return;const opened=panel.classList.toggle('show');if(btn)btn.textContent=opened?'관리자 닫기':'관리자 모드';if(opened)setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}),80);});
  byId('calendarPrev')?.addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()-1,1);renderCalendar();});byId('calendarNext')?.addEventListener('click',()=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,1);renderCalendar();});
  byId('calendarSourceFile')?.addEventListener('change',async e=>{const files=[...(e.target.files||[])];if(!files.length)return;let totalAdded=0,totalDuplicate=0,processed=0;const details=[];try{for(const file of files){const vendor=detectVendor(file.name);if(!['세진팩','오지인터팩코리아'].includes(vendor)){details.push(`${file.name}: 지원하지 않는 업체`);continue;}try{const source=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});const result=vendor==='세진팩'?extractSejinDates(source,file.name):extractOjiDates(source,file.name);const count=addVendorDates(vendor,result.dates);totalAdded+=count.added;totalDuplicate+=count.duplicate;processed++;details.push(`${vendor} ${count.added}건 추가 · 중복 ${count.duplicate}건`);if(result.dates.length){const last=result.dates[result.dates.length-1];viewDate=new Date(last.getFullYear(),last.getMonth(),1);}}catch(err){details.push(`${file.name}: ${err.message}`);}}if(!processed)throw new Error(details.join(' / ')||'처리 가능한 발주서가 없습니다.');activeVendor='전체';byId('calendarSaveBtn').disabled=false;renderAll();setAdminStatus(`✅ 발주서 ${processed}개 처리 완료 · 새 일정 ${totalAdded}건 · 중복 제외 ${totalDuplicate}건
