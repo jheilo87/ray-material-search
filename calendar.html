@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="theme-color" content="#7c3aed"><title>RaySmart · 입고 캘린더</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon-192.png"><style>
+:root{--brand:#7c3aed;--ink:#172b4d;--muted:#667085;--line:#dce6f5;--bg:#f4f7fb}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:linear-gradient(180deg,#f3efff,#f7f9fc 280px);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:var(--ink)}button,input,select,label{font:inherit}.app{max-width:760px;margin:auto;min-height:100dvh;padding-bottom:calc(28px + env(safe-area-inset-bottom))}.adminPanel{display:none}.adminPanel.show{display:block}.top{padding:calc(15px + env(safe-area-inset-top)) 15px 13px;display:flex;align-items:center;gap:12px}.back{width:42px;height:42px;border:0;border-radius:13px;background:#fff;color:var(--brand);font-size:27px;font-weight:900;box-shadow:0 6px 18px #173b6b12}.title{font-size:23px;font-weight:1000;letter-spacing:-.8px}.sub{font-size:12px;color:var(--muted);margin-top:2px}.panel{margin:0 12px 12px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 9px 26px rgba(23,59,107,.07)}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sum{padding:12px 7px;border-radius:15px;background:#f5f8fc;text-align:center}.sum b{display:block;font-size:20px}.sum span{font-size:10px;color:var(--muted);font-weight:800}.nav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;margin-top:14px}.nav button{height:42px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--brand);font-size:22px;font-weight:950}.month{text-align:center;font-size:20px;font-weight:1000}.filters{display:flex;gap:7px;overflow-x:auto;padding:12px 1px 3px}.filter{white-space:nowrap;border:1px solid var(--line);border-radius:999px;background:#fff;color:#526174;padding:8px 11px;font-size:12px;font-weight:900}.filter.active{background:var(--brand);border-color:var(--brand);color:#fff}.board{overflow:hidden;border:1px solid var(--line);border-radius:16px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week{background:#f3efff;text-align:center;font-size:11px;font-weight:950;color:#52719d}.week span{padding:9px 2px}.week span:first-child{color:#e24b4b}.week span:last-child{color:#3478d4}.day{position:relative;min-height:84px;padding:6px 4px;border-top:1px solid #edf1f6;border-right:1px solid #edf1f6;background:#fff;overflow:hidden}.day:nth-child(7n){border-right:0}.day.other{background:#f8fafc}.day.today{box-shadow:inset 0 0 0 2px #f2c94c;background:#fffbe6}.date{font-size:12px;font-weight:950;color:#526174}.day:nth-child(7n+1) .date{color:#e24b4b}.day:nth-child(7n) .date{color:#3478d4}.events{display:flex;flex-direction:column;gap:3px;margin-top:5px}.event{border:0;width:100%;border-radius:6px;padding:4px 3px;font-size:8px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.event.done{text-decoration:line-through;opacity:.55}.v0{background:#e8f7ee;color:#14743d}.v1{background:#e9f2ff;color:#1769e0}.v2{background:#fff3df;color:#b15c00}.v3{background:#f3eaff;color:#7e22ce}.state{text-align:center;margin-top:10px;color:#7a879d;font-size:11px;font-weight:800}.adminTitle{font-size:16px;font-weight:1000}.adminNote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px}.adminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.btn,label.btn{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:12px;padding:10px;text-align:center;font-weight:950;font-size:13px}.primary{background:var(--brand);color:#fff}.soft{background:#f1edff;color:var(--brand)}#file{display:none}.add{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:9px}.add select,.add input{min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.add button{border:0;border-radius:10px;padding:0 13px;background:#172b4d;color:#fff;font-weight:950}.modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;background:#0f172a77;padding:12px}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:75vh;overflow:auto;margin:auto;background:#fff;border-radius:22px;padding:17px}.sheetHead{display:flex;justify-content:space-between;align-items:center}.sheetTitle{font-size:19px;font-weight:1000}.close{border:0;border-radius:10px;background:#f1edff;color:#5b21b6;padding:8px 11px;font-weight:900}.list{display:flex;flex-direction:column;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px}.vendor{font-weight:950}.row small{display:block;color:var(--muted);margin-top:3px}.toggle{border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px;font-size:11px;font-weight:900}.toggle.on{background:#eaf8ef;color:#14743d}.empty{padding:20px;text-align:center;color:var(--muted)}@media(max-width:430px){.day{min-height:77px;padding:5px 3px}.event{font-size:7.5px}.add{grid-template-columns:1fr}.add button{min-height:42px}}
+
+.poBlock{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.poTitle{font-size:14px;font-weight:1000}
+.poNote{font-size:10.5px;color:var(--muted);line-height:1.55;margin:4px 0 10px}
+.poActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#purchaseFiles{display:none}
+.selectedFiles{display:none;margin-top:10px;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.selectedFiles.show{display:block}
+.selectedHead{padding:9px 11px;background:#f7f5ff;font-size:11px;font-weight:950}
+.selectedItem{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;padding:9px 11px;border-top:1px solid #edf1f6;font-size:10px}
+.selectedName{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.selectedState{font-weight:900;color:#667085;white-space:nowrap}
+.selectedItem.ok .selectedState{color:#14743d}
+.selectedItem.bad .selectedState{color:#d92d20}
+.adminStatus{margin-top:10px;padding:10px 11px;border-radius:11px;background:#f5f7fb;color:#667085;font-size:10.5px;font-weight:800;line-height:1.5;white-space:pre-line}
+.adminStatus.ok{background:#ebf8ef;color:#14743d}
+.adminStatus.error{background:#fff0f0;color:#c92a2a}
+
+.targetBox{margin:10px 0;padding:11px;border:1px solid var(--line);border-radius:13px;background:#faf9ff}
+.targetTitle{font-size:12px;font-weight:1000;margin-bottom:7px}
+.targetRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.targetRow select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;font-weight:900;color:var(--ink)}
+.danger{background:#fff0f0;color:#c92a2a}
+
+.appDialog{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;background:#0f172a88;backdrop-filter:blur(2px)}
+.appDialog.show{display:flex}
+.appDialogBox{width:min(420px,100%);background:#fff;border-radius:22px;padding:20px;box-shadow:0 24px 70px #0f172a55}
+.appDialogIcon{font-size:34px;text-align:center;margin-bottom:8px}
+.appDialogTitle{text-align:center;font-size:19px;font-weight:1000;letter-spacing:-.4px}
+.appDialogMessage{margin-top:10px;text-align:center;color:#596579;font-size:13px;line-height:1.65;white-space:pre-line}
+.appDialogActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+.appDialogActions.one{grid-template-columns:1fr}
+.appDialogBtn{min-height:46px;border:0;border-radius:13px;font-weight:950}
+.appDialogCancel{background:#f2f4f7;color:#596579}
+.appDialogOk{background:var(--brand);color:#fff}
+
+
+/* RaySmart 공통 소형 헤더 */
+.rsHeader{position:relative;margin:8px 8px 0;padding:24px 18px 18px;background:#fff;border:1px solid #edf1f5;border-radius:28px 28px 20px 20px;box-shadow:0 8px 28px #23395d0b;text-align:center}
+.rsHeaderBrand{padding:0 52px;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rsBrand{font-size:32px;font-weight:1000;font-style:italic;letter-spacing:-2px;line-height:1.05;background:linear-gradient(110deg,#05a7e1 15%,#0b87db 48%,#2aa965 72%);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.rsBrand small{font-size:13px;letter-spacing:0;font-style:normal}
+.rsPageTitle{margin-top:3px;font-size:18px;font-weight:950;color:var(--brand);letter-spacing:-.4px}
+.rsPageSub{margin-top:6px;font-size:11px;font-weight:850;color:#748095}
+.rsNavBtn{position:absolute;top:25px;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:13px;background:#f1f6fa;color:#1d7fa9;text-decoration:none;font-size:22px;font-weight:900;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 1px 5px rgba(35,57,93,.06);transition:transform .12s ease,background .12s ease,box-shadow .12s ease}
+.rsBack{left:15px}.rsHome{right:15px;font-size:19px}.rsNavBtn:active{transform:scale(.90);background:#e3f0f8;box-shadow:0 1px 3px rgba(35,57,93,.05)}
+@media(max-width:430px){.rsHeader{padding:22px 14px 16px}.rsBrand{font-size:30px}.rsNavBtn{top:23px;width:37px;height:37px}.rsBack{left:13px}.rsHome{right:13px}}
+
+
+/* RaySmart 공통 하단 관리자 버튼 */
+.adminFooter{display:none;padding:4px 16px 18px;text-align:center}body.adminUnlocked .adminFooter{display:block}
+.adminOpenBtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  width:min(280px,calc(100% - 16px));min-height:48px;
+  border:1px solid #d5e1f0;border-radius:15px;background:#fff;
+  color:#64748b;padding:10px 18px;font-size:13px;font-weight:950;
+  box-shadow:0 6px 18px rgba(23,59,107,.08);
+  transition:transform .12s ease,background .12s ease
+}
+.adminOpenBtn:active{transform:scale(.98);background:#f8fafc}
+
+
+/* 일정 직접 추가 팝업 */
+.modalOverlay{
+  position:fixed; inset:0; z-index:1100;
+  display:none; align-items:center; justify-content:center;
+  padding:20px; background:rgba(15,23,42,.48);
+  backdrop-filter:blur(2px);
+}
+.modalOverlay.show{display:flex}
+.scheduleModal{
+  width:min(92vw,420px);
+  background:#fff; border-radius:22px;
+  box-shadow:0 24px 70px rgba(15,23,42,.25);
+  overflow:hidden; animation:modalIn .18s ease-out;
+}
+@keyframes modalIn{
+  from{opacity:0; transform:translateY(12px) scale(.98)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.scheduleModalHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px 12px;
+}
+.scheduleModalHeader h3{margin:0; font-size:20px; color:#0f172a}
+.modalClose{
+  border:0; background:#f1f5f9; width:36px; height:36px;
+  border-radius:50%; font-size:22px; line-height:1; color:#475569;
+}
+.scheduleModalBody{padding:8px 20px 20px}
+.scheduleModalBody label{
+  display:block; margin:12px 0 6px;
+  font-size:13px; font-weight:800; color:#475569;
+}
+.scheduleModalBody select,
+.scheduleModalBody input,
+.scheduleModalBody textarea{
+  width:100%; box-sizing:border-box;
+  border:1px solid #cbd5e1; border-radius:12px;
+  padding:12px 13px; font:inherit; background:#fff;
+}
+.scheduleModalBody textarea{min-height:84px; resize:vertical}
+.scheduleModalActions{
+  display:flex; gap:10px; justify-content:flex-end;
+  padding:0 20px 20px;
+}
+.scheduleModalActions button{
+  min-width:92px; border:0; border-radius:12px;
+  padding:12px 16px; font-weight:800;
+}
+.modalCancel{background:#e2e8f0; color:#334155}
+.modalSave{background:#2563eb; color:#fff}
+
+/* 저장·수정·삭제 완료 토스트 */
+.appToast{
+  position:fixed; left:50%; bottom:28px; z-index:1200;
+  transform:translate(-50%,18px);
+  max-width:calc(100vw - 36px);
+  padding:13px 18px; border-radius:999px;
+  background:#0f172a; color:#fff; font-weight:800;
+  box-shadow:0 14px 40px rgba(15,23,42,.28);
+  opacity:0; pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+  text-align:center;
+}
+.appToast.show{opacity:1; transform:translate(-50%,0)}
+.appToast.success{background:#166534}
+.appToast.delete{background:#991b1b}
+
+
+.popupAddLauncher select,
+.popupAddLauncher input{
+  display:none !important;
+}
+.popupAddLauncher{
+  display:block !important;
+}
+.popupAddLauncher #add{
+  width:100%;
+  min-height:58px;
+  border:0;
+  border-radius:15px;
+  background:#19345f;
+  color:#fff;
+  font-size:18px;
+  font-weight:900;
+}
+
+
+/* 관리자 모드: 페이지 확장 대신 팝업 창 */
+.adminPanel{
+  position:fixed !important;
+  inset:0;
+  z-index:900;
+  display:none;
+  margin:0 !important;
+  padding:18px;
+  background:rgba(15,23,42,.52);
+  backdrop-filter:blur(3px);
+  align-items:center;
+  justify-content:center;
+}
+.adminPanel.show{display:flex !important}
+.adminModalCard{
+  width:min(720px,100%);
+  max-height:calc(100dvh - 36px);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:0 28px 80px rgba(15,23,42,.28);
+  animation:adminModalIn .18s ease-out;
+}
+@keyframes adminModalIn{
+  from{opacity:0;transform:translateY(14px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.adminModalHeader{
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:17px 18px 14px;
+  border-bottom:1px solid var(--line);
+  background:#fff;
+}
+.adminModalHeader .adminTitle{font-size:19px}
+.adminModalSub{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:750;
+}
+.adminModalClose{
+  flex:none;
+  width:40px;
+  height:40px;
+  border:0;
+  border-radius:50%;
+  background:#f1edff;
+  color:#6d28d9;
+  font-size:25px;
+  line-height:1;
+  font-weight:900;
+}
+.adminModalBody{
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:18px;
+}
+.adminModalBody > .adminTitle,
+.adminModalBody > .adminNote{
+  display:none;
+}
+body.adminModalOpen{overflow:hidden}
+@media(max-width:600px){
+  .adminPanel{
+    padding:10px;
+    align-items:flex-end;
+  }
+  .adminModalCard{
+    width:100%;
+    max-height:92dvh;
+    border-radius:24px 24px 16px 16px;
+  }
+  .adminModalBody{padding:15px}
+}
+
+
+/* 관리자 팝업 최종 정리 */
+.popupAddLauncher #add{
+  background:linear-gradient(135deg,#7c3aed,#9333ea) !important;
+  color:#fff !important;
+}
+#appToast.success{
+  background:#166534;
+}
+.adminModalBody .status.ok{
+  font-size:14px;
+  line-height:1.55;
+}
+
+
+/* Calendar DB 상태 카드 */
+.calendarDbWrap{margin-top:12px}
+.calendarDbCard{
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+  padding:13px 14px;border:1px solid var(--line);border-radius:15px;background:#fff;
+  box-shadow:0 5px 15px rgba(23,59,107,.04)
+}
+.calendarDbTitle{font-size:13px;font-weight:1000;color:var(--ink)}
+.calendarDbSub{margin-top:2px;font-size:10.5px;font-weight:750;color:var(--muted)}
+.calendarDbReload{
+  border:0;background:transparent;color:#1769e0;font-weight:950;font-size:12px;
+  padding:8px 4px;white-space:nowrap
+}
+.calendarDbReload:disabled{opacity:.45}
+.calendarDbMeta{
+  margin:7px 1px 0;padding:0 1px;color:#667085;font-size:10.5px;font-weight:800;
+  line-height:1.45
+}
+.calendarDbMeta.ok{color:#14743d}
+.calendarDbMeta.error{color:#c92a2a}
+
+</style></head><body><div class="app"><header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">입고 캘린더</div><div class="rsPageSub">업체별 입고 예정일과 완료 상태</div></div></header><section class="panel"><div class="summary"><div class="sum"><b id="todayCount">0</b><span>오늘 입고</span></div><div class="sum"><b id="monthCount">0</b><span>이번 달</span></div><div class="sum"><b id="doneCount">0</b><span>완료</span></div></div>
+<div class="calendarDbWrap">
+  <div class="calendarDbCard">
+    <div>
+      <div class="calendarDbTitle">Calendar 상태</div>
+      <div class="calendarDbSub">GitHub 최신 Calendar.xlsx</div>
+    </div>
+    <button class="calendarDbReload" id="calendarDbReload" type="button">다시 불러오기</button>
+  </div>
+  <div class="calendarDbMeta" id="calendarDbMeta">Calendar.xlsx 연결 상태를 확인하고 있습니다.</div>
+</div>
+<div class="nav"><button id="prev">‹</button><div class="month" id="month"></div><button id="next">›</button></div><div class="filters" id="filters"></div><div class="board"><div class="week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div class="days" id="days"></div></div><div class="state" id="state">Calendar.xlsx를 불러오고 있습니다.</div></section><div class="adminFooter"><button class="adminOpenBtn" id="adminOpen" type="button">⚙️ 관리자 일정 관리</button></div><section class="adminPanel" id="adminPanel" aria-hidden="true">
+  <div class="adminModalCard" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <div class="adminModalHeader">
+      <div>
+        <div class="adminTitle" id="adminModalTitle">🔐 관리자 모드</div>
+        <div class="adminModalSub">발주서 업데이트 · 일정 추가 · 삭제</div>
+      </div>
+      <button class="adminModalClose" id="adminModalClose" type="button" aria-label="관리자 창 닫기">×</button>
+    </div>
+    <div class="adminModalBody">
+<div class="adminTitle">일정 관리</div>
+<div class="adminNote">기존 Calendar.xlsx를 불러오거나 일정을 직접 추가할 수 있습니다. 아래 발주서 자동변환에서는 여러 파일을 한꺼번에 선택해 하나의 Calendar.xlsx로 합칩니다.</div>
+
+<div class="poBlock">
+  <div class="poTitle">발주서 일정 업데이트</div>
+  <div class="poNote">업로드할 연도와 월을 지정한 뒤 발주서를 선택하세요. 같은 업체·같은 월의 발주서 일정만 교체되며, 직접 입력한 일정은 그대로 유지됩니다.</div>
+  <div class="targetBox">
+    <div class="targetTitle">업로드 대상 연월</div>
+    <div class="targetRow">
+      <select id="targetYear" aria-label="업로드 대상 연도"></select>
+      <select id="targetMonth" aria-label="업로드 대상 월"></select>
+    </div>
+  </div>
+  <div class="poActions">
+    <button class="btn danger" id="resetAll" type="button" style="display:none">새 통합 시작</button>
+    <label class="btn soft" for="purchaseFiles">발주서 선택</label>
+  </div>
+  <div class="poActions" style="margin-top:8px">
+    <button class="btn primary" id="download" type="button" style="display:none">통합 Calendar.xlsx 저장</button>
+    <button class="btn soft" id="setViewMonth" type="button">선택 월로 이동</button>
+  </div>
+  <input id="purchaseFiles" type="file" accept=".xlsx,.xls" multiple>
+  <div class="selectedFiles" id="selectedFiles">
+    <div class="selectedHead" id="selectedHead">선택된 발주서</div>
+    <div id="selectedList"></div>
+  </div>
+  <div class="adminStatus" id="adminStatus">처음부터 다시 만들려면 ‘새 통합 시작’을 누른 뒤 연월을 선택하고 발주서를 올려 주세요.</div>
+</div>
+
+<div class="poBlock">
+  <div class="poTitle">Calendar.xlsx 직접 관리</div>
+  <div class="adminActions">
+    <label class="btn soft" for="file">Calendar.xlsx 불러오기</label>
+    <button class="btn primary" id="downloadDirect" type="button">현재 일정 저장</button>
+  </div>
+  <input id="file" type="file" accept=".xlsx,.xls">
+  <div class="add popupAddLauncher">
+    <select id="vendor" aria-hidden="true"></select>
+    <input id="date" type="date" aria-hidden="true">
+    <button id="add" type="button">➕ 일정 직접 추가</button>
+  </div>
+</div>
+    </div>
+  </div>
+</section></div><div class="modal" id="modal"><div class="sheet"><div class="sheetHead"><div class="sheetTitle" id="sheetTitle"></div><button class="close" id="close">닫기</button></div><div class="list" id="list"></div></div></div>
+<div class="appDialog" id="appDialog" role="dialog" aria-modal="true">
+  <div class="appDialogBox">
+    <div class="appDialogIcon" id="appDialogIcon">✅</div>
+    <div class="appDialogTitle" id="appDialogTitle">완료</div>
+    <div class="appDialogMessage" id="appDialogMessage"></div>
+    <div class="appDialogActions" id="appDialogActions">
+      <button class="appDialogBtn appDialogCancel" id="appDialogCancel" type="button">취소</button>
+      <button class="appDialogBtn appDialogOk" id="appDialogOk" type="button">확인</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><script>
+const vendors=['세진팩','오지인터팩코리아','일신포장산업','동진물류포장'];
+let events=[],view=new Date(),filter='전체';
+view.setDate(1);
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const validDate=d=>d instanceof Date&&!Number.isNaN(d.getTime());
+
+function parse(v,fallbackYear=new Date().getFullYear()){
+  if(validDate(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  if(typeof v==='number'&&v>20000&&v<80000){
+    const p=XLSX.SSF.parse_date_code(v);
+    if(p) return new Date(p.y,p.m-1,p.d);
+  }
+  const text=String(v??'').trim();
+  if(!text) return null;
+  const ko=text.match(/(?:(20\d{2})\s*년\s*)?(1[0-2]|[1-9])\s*월\s*(3[01]|[12]\d|[1-9])\s*일?/);
+  if(ko) return new Date(ko[1]?Number(ko[1]):fallbackYear,Number(ko[2])-1,Number(ko[3]));
+
+  // 날짜만 있는 문자열은 new Date('YYYY-MM-DD')로 읽지 않습니다.
+  // 일부 브라우저/SheetJS 환경에서 UTC로 해석되어 하루가 달라지는 문제를 막습니다.
+  const ymd=text.match(/^(20\d{2})[-./](1[0-2]|0?[1-9])[-./](3[01]|[12]\d|0?[1-9])(?:\s.*)?$/);
+  if(ymd) return new Date(Number(ymd[1]),Number(ymd[2])-1,Number(ymd[3]));
+
+  const d=new Date(text);
+  return validDate(d)?new Date(d.getFullYear(),d.getMonth(),d.getDate()):null;
+}
+function sourceYear(fileName=''){
+  const m=String(fileName).match(/(20\d{2})/);
+  return m?Number(m[1]):new Date().getFullYear();
+}
+function withSourceYear(value,fileName=''){
+  const d=parse(value,sourceYear(fileName));
+  if(!d) return null;
+  const t=String(value??'').trim();
+  const explicit=/(20\d{2})\s*년|^20\d{2}[-./]/.test(t);
+  return explicit?d:new Date(sourceYear(fileName),d.getMonth(),d.getDate());
+}
+function normalizeVendor(value){
+  const n=String(value??'').replace(/\s/g,'').replace(/[㈜()（）]/g,'').replace(/주식회사/g,'').toLowerCase();
+  if(n.includes('세진')) return '세진팩';
+  if(n.includes('오지')||n.includes('ojinterpack')) return '오지인터팩코리아';
+  if(n.includes('일신')) return '일신포장산업';
+  if(n.includes('동진')) return '동진물류포장';
+  return '';
+}
+function detectVendor(fileName){
+  return normalizeVendor(fileName);
+}
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function setAdminStatus(msg,type=''){
+  const el=$('adminStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.className='adminStatus'+(type?' '+type:'');
+}
+
+let dialogResolve=null;
+function closeAppDialog(result){
+  $('appDialog').classList.remove('show');
+  const resolve=dialogResolve; dialogResolve=null;
+  if(resolve) resolve(result);
+}
+function appDialog({title='알림',message='',icon='✅',confirmText='확인',cancelText='',danger=false}={}){
+  $('appDialogTitle').textContent=title;
+  $('appDialogMessage').textContent=message;
+  $('appDialogIcon').textContent=icon;
+  $('appDialogOk').textContent=confirmText;
+  $('appDialogCancel').textContent=cancelText||'취소';
+  $('appDialogActions').style.display='grid';
+  $('appDialogCancel').style.display=cancelText?'block':'none';
+  $('appDialogActions').classList.toggle('one',!cancelText);
+  $('appDialogOk').style.background=danger?'#d92d20':'var(--brand)';
+  $('appDialog').classList.add('show');
+  return new Promise(resolve=>{dialogResolve=resolve});
+}
+function showBusyDialog({title='처리 중',message='잠시만 기다려 주세요.',icon='⏳'}={}){
+  dialogResolve=null;
+  $('appDialogTitle').textContent=title;
+  $('appDialogMessage').textContent=message;
+  $('appDialogIcon').textContent=icon;
+  $('appDialogActions').style.display='none';
+  $('appDialog').classList.add('show');
+}
+$('appDialogOk').onclick=()=>closeAppDialog(true);
+$('appDialogCancel').onclick=()=>closeAppDialog(false);
+$('appDialog').onclick=e=>{if(e.target===$('appDialog')&&$('appDialogCancel').style.display!=='none') closeAppDialog(false)};
+function dedupe(){
+  const m=new Map();
+  events.forEach(e=>{
+    const vendor=normalizeVendor(e.vendor)||e.vendor;
+    const k=`${vendor}|${key(e.date)}`;
+    const prev=m.get(k);
+    if(!prev || e.done) m.set(k,{...e,vendor});
+  });
+  events=[...m.values()].sort((a,b)=>a.date-b.date||a.vendor.localeCompare(b.vendor,'ko'));
+}
+
+function formatLoadTime(d=new Date()){
+  const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());
+  const hh=pad(d.getHours()),mm=pad(d.getMinutes()),ss=pad(d.getSeconds());
+  return `${y}. ${m}. ${day}. ${hh}:${mm}:${ss}`;
+}
+function setCalendarDbStatus(message,type=''){
+  const el=$('calendarDbMeta');
+  if(!el) return;
+  el.textContent=message;
+  el.className='calendarDbMeta'+(type?' '+type:'');
+}
+
+function loadBook(buf){
+  const b=XLSX.read(buf,{type:'array',cellDates:true});
+  events=[];
+  let legacyMigrated=0;
+  b.SheetNames.forEach((n,vi)=>{
+    const sheetVendor=normalizeVendor(n);
+    const rows=XLSX.utils.sheet_to_json(b.Sheets[n],{header:1,defval:'',raw:true,cellDates:true});
+    if(!rows.length) return;
+    const headers=rows[0].map(v=>String(v??'').trim());
+    const vendorCol=headers.indexOf('업체명');
+    const dateCols=[
+      headers.indexOf('표시입고일'),
+      headers.indexOf('변경입고일'),
+      headers.findIndex(v=>v==='예정입고일'||v==='입고일')
+    ].filter(i=>i>=0);
+    const statusCol=headers.findIndex(v=>v==='상태'||v==='완료');
+    const sourceCol=headers.findIndex(v=>v==='출처'||v==='등록방식');
+    if(dateCols.length){
+      rows.slice(1).forEach((r,i)=>{
+        const vendor=normalizeVendor(vendorCol>=0?r[vendorCol]:'')||sheetVendor;
+        const raw=dateCols.map(c=>r[c]).find(v=>String(v??'').trim()!=='');
+        const d=parse(raw);
+        if(vendor&&d){
+          const state=statusCol>=0?String(r[statusCol]??''):'';
+          const rawSource=sourceCol>=0?String(r[sourceCol]??'').toUpperCase():'';
+          // 구버전 Calendar.xlsx에는 출처 열이 없으므로
+          // 자동 변환 지원 업체(세진팩·오지)는 발주서, 나머지는 직접 입력으로 보호합니다.
+          let source;
+          if(/MANUAL|직접/.test(rawSource)) source='manual';
+          else if(/PO|발주/.test(rawSource)) source='po';
+          else{
+            // 기존 Calendar.xlsx처럼 출처 열이 없는 파일은 자동 변환합니다.
+            source=['세진팩','오지인터팩코리아'].includes(vendor)?'po':'manual';
+            legacyMigrated++;
+          }
+          events.push({id:`${n}-${i}-${Date.now()}`,vendor,date:d,done:/완료|정상|true|yes|^1$/i.test(state),source});
+        }
+      });
+    }else{
+      rows.slice(1).forEach((r,i)=>{
+        const rowVendor=normalizeVendor(r[0]);
+        const vendor=rowVendor||sheetVendor;
+        const d=parse(r[1]??(rowVendor?r[1]:r[0]));
+        if(vendor&&d){
+          const source=['세진팩','오지인터팩코리아'].includes(vendor)?'po':'manual';
+          legacyMigrated++;
+          events.push({id:`${n}-${i}-${Date.now()}`,vendor,date:d,done:/완료|true|yes|^1$/i.test(String(r[2]??'')),source});
+        }
+      });
+    }
+  });
+  dedupe();
+  render();
+  $('state').textContent=`총 ${events.length}건의 일정을 불러왔습니다.`;
+  setCalendarDbStatus(`✅ 최신 일정 적용 완료 · ${events.length}건 · ${formatLoadTime()}`,'ok');
+  const migrationText=legacyMigrated
+    ? `\n🔄 기존 일정 ${legacyMigrated}건을 자동 분류했습니다. 세진팩·오지는 발주서, 일신·동진은 직접 입력으로 보호됩니다.`
+    : '';
+  setAdminStatus(`✅ Calendar.xlsx ${events.length}건을 불러왔습니다.${migrationText}\n현재 일정 저장을 누르면 반영됩니다.`,'ok');
+}
+async function auto(){
+  const reloadBtn=$('calendarDbReload');
+  if(reloadBtn) reloadBtn.disabled=true;
+  setCalendarDbStatus('Calendar.xlsx를 다시 불러오고 있습니다.');
+  try{
+    const r=await fetch('./Calendar.xlsx?ts='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    loadBook(await r.arrayBuffer());
+  }catch(e){
+    $('state').textContent='Calendar.xlsx를 찾지 못했습니다. 관리자 모드에서 파일을 불러와 주세요.';
+    setCalendarDbStatus('❌ Calendar.xlsx 연결 실패 · 다시 불러오기를 눌러 주세요.','error');
+    setAdminStatus('Calendar.xlsx 자동 연결에 실패했습니다. 기존 파일을 직접 불러오거나 새 발주서를 변환할 수 있습니다.','error');
+    render();
+  }finally{
+    if(reloadBtn) reloadBtn.disabled=false;
+  }
+}
+function color(v){
+  const i=Math.max(0,vendors.indexOf(v));
+  return 'v'+(i%4);
+}
+function render(){
+  renderFilters();
+  $('month').textContent=`${view.getFullYear()}년 ${view.getMonth()+1}월`;
+  const first=new Date(view.getFullYear(),view.getMonth(),1),start=new Date(first);
+  start.setDate(1-first.getDay());
+  let html='';
+  const today=key(new Date());
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const arr=events.filter(e=>key(e.date)===key(d)&&(filter==='전체'||e.vendor===filter));
+    html+=`<div class="day ${d.getMonth()!==view.getMonth()?'other':''} ${key(d)===today?'today':''}" data-date="${key(d)}">
+      <div class="date">${d.getDate()}</div>
+      <div class="events">${arr.slice(0,3).map(e=>`<button class="event ${color(e.vendor)} ${e.done?'done':''}" data-id="${e.id}">${e.vendor.replace('오지인터팩코리아','오지인터팩')}</button>`).join('')}${arr.length>3?`<button class="event">+${arr.length-3}</button>`:''}</div>
+    </div>`;
+  }
+  $('days').innerHTML=html;
+  document.querySelectorAll('.day').forEach(x=>x.onclick=()=>openDay(x.dataset.date));
+  const monthEvents=events.filter(e=>e.date.getFullYear()===view.getFullYear()&&e.date.getMonth()===view.getMonth());
+  $('monthCount').textContent=monthEvents.length;
+  $('doneCount').textContent=monthEvents.filter(e=>e.done).length;
+  $('todayCount').textContent=events.filter(e=>key(e.date)===today).length;
+}
+function renderFilters(){
+  $('filters').innerHTML=['전체',...vendors].map(v=>`<button class="filter ${filter===v?'active':''}" data-v="${v}">${v==='오지인터팩코리아'?'오지인터팩':v}</button>`).join('');
+  document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{filter=b.dataset.v;render()});
+}
+function openDay(k){
+  const arr=events.filter(e=>key(e.date)===k&&(filter==='전체'||e.vendor===filter));
+  $('sheetTitle').textContent=k;
+  $('list').innerHTML=arr.length?arr.map(e=>`<div class="row"><div><div class="vendor">${e.vendor}</div><small>${e.done?'입고 완료':'입고 예정'}</small></div><button class="toggle ${e.done?'on':''}" data-id="${e.id}">${e.done?'완료':'완료 처리'}</button></div>`).join(''):'<div class="empty">등록된 일정이 없습니다.</div>';
+  $('modal').classList.add('show');
+  document.querySelectorAll('.toggle').forEach(b=>b.onclick=()=>{
+    const e=events.find(x=>x.id===b.dataset.id);
+    e.done=!e.done;openDay(k);render();
+  });
+}
+
+function targetYM(){
+  return {year:Number($('targetYear').value),month:Number($('targetMonth').value)};
+}
+function monthFromName(text){
+  const m=String(text||'').match(/(?:^|\D)(1[0-2]|[1-9])\s*월/);
+  return m?Number(m[1]):null;
+}
+function exactTargetSheets(book,targetMonth){
+  const exact=book.SheetNames.filter(n=>{
+    const sn=String(n).replace(/\s/g,'');
+    return monthFromName(sn)===targetMonth && /발주/.test(sn) && !/금액|예상/.test(sn);
+  });
+  if(exact.length) return exact;
+  return book.SheetNames.filter(n=>/발주/.test(String(n))&&!/금액|예상/.test(String(n)));
+}
+function targetDate(value,year,month){
+  const d=parse(value,year);
+  if(!d) return null;
+  const forced=new Date(year,d.getMonth(),d.getDate());
+  return forced.getMonth()+1===month?forced:null;
+}
+function extractSejinDates(book,fileName,year,month){
+  const found=new Map();
+  let readableSheets=0,weekendSkipped=0;
+  const sheets=exactTargetSheets(book,month);
+  sheets.forEach(sheetName=>{
+    // 월 이름이 붙은 시트라면 선택 월과 정확히 같은 시트만 허용
+    const namedMonth=monthFromName(sheetName);
+    if(namedMonth && namedMonth!==month) return;
+    const ws=book.Sheets[sheetName];
+    if(!ws) return;
+    const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,cellDates:false});
+    const hi=a.findIndex(row=>row.some(v=>String(v).trim()==='품명단가')&&row.some(v=>String(v).trim()==='품명'));
+    if(hi<0) return;
+    const h=a[hi],nc=h.findIndex(v=>String(v).trim()==='품명'),dc=[];
+    for(let c=nc+1;c<h.length;c++){
+      const label=String(h[c]??'').trim();
+      if(/총합계|총\s*발주|금액|MOQ/i.test(label)) break;
+      const d=targetDate(h[c],year,month);
+      if(d) dc.push({c,d});
+    }
+    if(!dc.length) return;
+    readableSheets++;
+    for(let r=hi+1;r<a.length;r++){
+      if(!String(a[r]?.[2]??'').trim()&&!String(a[r]?.[nc]??'').trim()) continue;
+      dc.forEach(({c,d})=>{
+        const q=Number(String(a[r]?.[c]??'').replace(/,/g,''));
+        if(Number.isFinite(q)&&q>0){
+          if(d.getDay()===0||d.getDay()===6){weekendSkipped++;return;}
+          found.set(key(d),d);
+        }
+      });
+    }
+  });
+  if(!readableSheets) throw new Error(`${month}월 세진팩 발주 시트 또는 날짜 열을 찾지 못했습니다.`);
+  const dates=[...found.values()].sort((x,y)=>x-y);
+  if(!dates.length) throw new Error(`${month}월의 0보다 큰 평일 입고 수량을 찾지 못했습니다.`);
+  dates.weekendSkipped=weekendSkipped;
+  return dates;
+}
+function extractOjiDates(book,fileName,year,month){
+  const sheetName=book.SheetNames.find(n=>String(n).replace(/\s/g,'').includes('발주목록'))||book.SheetNames[0],ws=book.Sheets[sheetName];
+  if(!ws) throw new Error('오지인터팩 발주목록 시트를 찾지 못했습니다.');
+  const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,cellDates:false});
+  const hi=a.findIndex(row=>row.some(v=>String(v).trim()==='NAME')&&row.some(v=>String(v).trim()==='단가'));
+  if(hi<0) throw new Error('오지인터팩 제목 행을 찾지 못했습니다.');
+  const h=a[hi],nc=h.findIndex(v=>String(v).trim()==='NAME'),dc=[];
+  for(let c=nc+1;c<h.length;c++){
+    const label=String(h[c]??'').trim();
+    if(/합계|발주\s*금액|총액|금액/i.test(label)) break;
+    const d=targetDate(h[c],year,month);
+    if(d) dc.push({c,d});
+  }
+  const found=new Map();
+  for(let r=hi+1;r<a.length;r++){
+    if(!String(a[r]?.[nc]??'').trim()) continue;
+    dc.forEach(({c,d})=>{
+      const q=Number(String(a[r]?.[c]??'').replace(/,/g,''));
+      if(Number.isFinite(q)&&q>0) found.set(key(d),d);
+    });
+  }
+  const dates=[...found.values()].sort((x,y)=>x-y);
+  if(!dates.length) throw new Error(`${month}월의 0보다 큰 입고 수량을 찾지 못했습니다.`);
+  return dates;
+}
+
+function replaceVendorMonth(vendor,year,month){
+  const before=events.length;
+  // 직접 입력한 일정(source='manual')은 절대 삭제하지 않고
+  // 같은 업체·같은 월의 발주서 일정(source='po')만 교체합니다.
+  events=events.filter(e=>!(e.vendor===vendor&&e.date.getFullYear()===year&&e.date.getMonth()+1===month&&e.source!=='manual'));
+  return before-events.length;
+}
+
+function addVendorDates(vendor,dates){
+  let added=0,duplicate=0;
+  dates.forEach(d=>{
+    if(events.some(e=>e.vendor===vendor&&key(e.date)===key(d))){duplicate++;return;}
+    events.push({id:`po-${Date.now()}-${Math.random()}`,vendor,date:d,done:false,source:'po'});
+    added++;
+  });
+  dedupe();
+  return {added,duplicate};
+}
+async function saveCalendar(){
+  if(!events.length){await appDialog({title:'저장할 일정 없음',message:'현재 저장할 입고 일정이 없습니다.',icon:'⚠️'});return;}
+  const ok=await appDialog({title:'Calendar.xlsx 저장',message:`현재 일정 ${events.length}건을 Calendar.xlsx로 저장할까요?`,icon:'💾',confirmText:'저장',cancelText:'취소'});
+  if(!ok) return;
+
+  showBusyDialog({title:'저장 중입니다',message:'Calendar.xlsx를 만들고 있습니다.\n잠시만 기다려 주세요.',icon:'💾'});
+  await new Promise(resolve=>setTimeout(resolve,120));
+
+  try{
+    dedupe();
+    const b=XLSX.utils.book_new();
+    vendors.forEach(v=>{
+      // JS Date 객체를 그대로 저장하면 기기 시간대에 따라 하루가 앞당겨질 수 있어
+      // 입고일은 YYYY-MM-DD 문자열로 저장합니다.
+      const rows=[['업체명','입고일','완료','출처'],...events.filter(e=>e.vendor===v).sort((a,b)=>a.date-b.date).map(e=>[
+        e.vendor,
+        key(e.date),
+        e.done?'완료':'',
+        e.source==='manual'?'직접 입력':'발주서'
+      ])];
+      const ws=XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols']=[{wch:20},{wch:14},{wch:10},{wch:12}];
+      XLSX.utils.book_append_sheet(b,ws,v);
+    });
+    XLSX.writeFile(b,'Calendar.xlsx',{compression:true});
+    $('appDialog').classList.remove('show');
+    setAdminStatus(`✅ Calendar.xlsx 저장 완료 · 총 ${events.length}건입니다. GitHub의 기존 파일과 교체해 주세요.`,'ok');
+    await appDialog({title:'저장 완료',message:`Calendar.xlsx 저장이 완료되었습니다.\n총 ${events.length}건\n\nGitHub의 기존 Calendar.xlsx와 교체해 주세요.`,icon:'✅'});
+  }catch(err){
+    $('appDialog').classList.remove('show');
+    setAdminStatus(`Calendar.xlsx 저장 실패: ${err.message||err}`,'error');
+    await appDialog({title:'저장 실패',message:err.message||'Calendar.xlsx를 저장하지 못했습니다.',icon:'❌'});
+  }
+}
+
+function initTargetControls(){
+  const now=new Date();
+  const years=[];
+  for(let y=now.getFullYear()-1;y<=now.getFullYear()+3;y++) years.push(y);
+  $('targetYear').innerHTML=years.map(y=>`<option value="${y}">${y}년</option>`).join('');
+  $('targetMonth').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${i+1}월</option>`).join('');
+  $('targetYear').value=String(view.getFullYear());
+  $('targetMonth').value=String(view.getMonth()+1);
+}
+initTargetControls();
+
+const adminPanel=$('adminPanel'),adminOpen=$('adminOpen'),adminModalClose=$('adminModalClose');
+let adminMode=localStorage.getItem('rayAdminLoggedIn')==='1';
+function syncAdminAccess(){
+  adminMode=localStorage.getItem('rayAdminLoggedIn')==='1';
+  document.body.classList.toggle('adminUnlocked',adminMode);
+  if(!adminMode) closeAdminPanel();
+}
+function openAdminPanel(){
+  if(!adminMode){alert('메인 화면에서 관리자 로그인 후 이용해 주세요.');return;}
+  adminPanel.classList.add('show');
+  adminPanel.setAttribute('aria-hidden','false');
+  document.body.classList.add('adminModalOpen');
+  adminOpen.textContent='⚙️ 관리자 일정 관리';
+  setTimeout(()=>adminModalClose?.focus(),60);
+}
+function closeAdminPanel(){
+  adminPanel.classList.remove('show');
+  adminPanel.setAttribute('aria-hidden','true');
+  document.body.classList.remove('adminModalOpen');
+  if(adminOpen) adminOpen.textContent='⚙️ 관리자 일정 관리';
+}
+adminOpen.onclick=openAdminPanel;
+adminModalClose?.addEventListener('click',closeAdminPanel);
+adminPanel?.addEventListener('click',e=>{if(e.target===adminPanel) closeAdminPanel();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&adminPanel?.classList.contains('show')) closeAdminPanel();});
+window.addEventListener('storage',e=>{if(e.key==='rayAdminLoggedIn')syncAdminAccess();});
+window.addEventListener('pageshow',syncAdminAccess);
+syncAdminAccess();
+
+$('purchaseFiles').onchange=async e=>{
+  const files=[...(e.target.files||[])];
+  if(!files.length) return;
+  const {year,month}=targetYM();
+  const proceed=await appDialog({title:'발주서 업로드',message:`${year}년 ${month}월 발주서 ${files.length}개를 업로드할까요?\n같은 업체·같은 월의 기존 일정은 새 내용으로 교체됩니다.`,icon:'📤',confirmText:'업로드',cancelText:'취소'});
+  if(!proceed){e.target.value='';return;}
+  $('selectedFiles').classList.add('show');
+  $('selectedHead').textContent=`선택된 발주서 ${files.length}개`;
+  $('selectedList').innerHTML=files.map((f,i)=>`<div class="selectedItem" data-i="${i}"><span>📄</span><span class="selectedName">${esc(f.name)}</span><span class="selectedState">확인 중</span></div>`).join('');
+  let processed=0,totalAdded=0,totalDuplicate=0;
+  const details=[];
+  for(let i=0;i<files.length;i++){
+    const f=files[i],item=document.querySelector(`.selectedItem[data-i="${i}"]`),state=item.querySelector('.selectedState');
+    const vendor=detectVendor(f.name);
+    if(!['세진팩','오지인터팩코리아'].includes(vendor)){
+      item.classList.add('bad');state.textContent='지원 안 됨';
+      details.push(`${f.name}: 지원하지 않는 업체`);
+      continue;
+    }
+    try{
+      const {year,month}=targetYM();
+      const book=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:false});
+      const dates=vendor==='세진팩'
+        ?extractSejinDates(book,f.name,year,month)
+        :extractOjiDates(book,f.name,year,month);
+      const replaced=replaceVendorMonth(vendor,year,month);
+      const result=addVendorDates(vendor,dates);
+      processed++;totalAdded+=result.added;totalDuplicate+=result.duplicate;
+      item.classList.add('ok');
+      state.textContent=`${vendor.replace('오지인터팩코리아','오지인터팩')} · +${result.added} / 중복 ${result.duplicate}`;
+      const skipped=Number(dates.weekendSkipped||0); details.push(`${vendor} ${result.added}건 추가 · 중복 ${result.duplicate}건${replaced?` · 기존 ${replaced}건 교체`:''}${skipped?` · 주말 제외 ${skipped}건`:''}`);
+      if(dates.length){
+        const last=dates[dates.length-1];
+        view=new Date(last.getFullYear(),last.getMonth(),1);
+      }
+    }catch(err){
+      item.classList.add('bad');state.textContent='읽기 실패';
+      details.push(`${f.name}: ${err.message}`);
+    }
+  }
+  filter='전체';render();
+  if(processed){
+    $('state').textContent=`발주서 변환 완료 · 새 일정 ${totalAdded}건 · 중복 제외 ${totalDuplicate}건`;
+    setAdminStatus(`✅ 발주서 ${processed}개 처리 완료 · 새 일정 ${totalAdded}건 · 중복 제외 ${totalDuplicate}건\n${details.join(' / ')}`,'ok');
+  }else{
+    setAdminStatus(`처리 가능한 발주서가 없습니다.\n${details.join(' / ')}`,'error');
+  }
+  e.target.value='';
+};
+
+$('close').onclick=()=>$('modal').classList.remove('show');
+$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').classList.remove('show')};
+$('prev').onclick=()=>{view.setMonth(view.getMonth()-1);render()};
+$('next').onclick=()=>{view.setMonth(view.getMonth()+1);render()};
+$('vendor').innerHTML=vendors.map(v=>`<option>${v}</option>`).join('');
+$('date').value=key(new Date());
+$('add').onclick=async()=>{
+  if(!$('date').value) return;
+  const d=parse($('date').value+'T00:00:00');
+  const vendor=$('vendor').value;
+  if(events.some(e=>e.vendor===vendor&&key(e.date)===key(d))){await appDialog({title:'중복 일정',message:'같은 업체의 일정이 이미 등록되어 있습니다.',icon:'⚠️'});return;}
+  const ok=await appDialog({title:'일정 추가',message:`${vendor}\n${key(d)} 일정을 추가할까요?`,icon:'➕',confirmText:'추가',cancelText:'취소'});
+  if(!ok) return;
+  events.push({id:'m-'+Date.now(),vendor,date:d,done:false,source:'manual'});
+  view=new Date(d.getFullYear(),d.getMonth(),1);
+  dedupe();render();
+  $('state').textContent='일정이 추가되었습니다. 저장 버튼으로 Calendar.xlsx를 내려받으세요.';
+  setAdminStatus(`✅ ${vendor} ${key(d)} 일정이 추가되었습니다.`,'ok');
+  await appDialog({title:'일정 추가 완료',message:`${vendor}\n${key(d)} 일정이 추가되었습니다.`,icon:'✅'});
+};
+
+$('resetAll').onclick=async()=>{
+  const ok=await appDialog({title:'새 통합 시작',message:`현재 불러온 일정 ${events.length}건을 모두 비우고 새 통합 Calendar를 시작할까요?`,icon:'🗑️',confirmText:'모두 비우기',cancelText:'취소',danger:true});
+  if(!ok) return;
+  events=[];
+  render();
+  $('state').textContent='새 통합을 시작했습니다. 연월을 선택하고 발주서를 올려 주세요.';
+  setAdminStatus('✅ 기존 통합 데이터를 모두 비웠습니다. 이제 연월별로 발주서를 올리면 됩니다.','ok');
+  await appDialog({title:'새 통합 시작 완료',message:`기존 일정을 모두 비웠습니다.\n연도와 월을 선택한 뒤 발주서를 올려 주세요.`,icon:'✅'});
+};
+$('setViewMonth').onclick=async()=>{
+  const {year,month}=targetYM();
+  view=new Date(year,month-1,1);
+  render();
+  closeAdminPanel();
+  await new Promise(resolve=>setTimeout(resolve,120));
+  await appDialog({
+    title:'이동 완료',
+    message:`${year}년 ${month}월 캘린더로 이동했습니다.\n선택한 월의 일정이 화면에 표시됩니다.`,
+    icon:'📅'
+  });
+};
+$('file').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const ok=await appDialog({title:'Calendar.xlsx 불러오기',message:`${f.name} 파일을 불러올까요?\n현재 화면의 일정은 불러온 파일 내용으로 교체됩니다.`,icon:'📂',confirmText:'불러오기',cancelText:'취소'});
+  if(!ok){e.target.value='';return;}
+  try{
+    loadBook(await f.arrayBuffer());
+    await appDialog({title:'불러오기 완료',message:`Calendar.xlsx에서 총 ${events.length}건의 일정을 불러왔습니다.`,icon:'✅'});
+  }catch(err){
+    setAdminStatus(`Calendar.xlsx 불러오기 실패: ${err.message}`,'error');
+    await appDialog({title:'불러오기 실패',message:err.message||'파일을 읽지 못했습니다.',icon:'❌'});
+  }
+  e.target.value='';
+};
+$('download').onclick=saveCalendar;
+$('downloadDirect').onclick=saveCalendar;
+
+$('calendarDbReload')?.addEventListener('click',async()=>{
+  await auto();
+  if($('calendarDbMeta')?.classList.contains('ok')){
+    await appDialog({
+      title:'다시 불러오기 완료',
+      message:`GitHub의 최신 Calendar.xlsx를 불러왔습니다.\n총 ${events.length}건의 일정이 적용되었습니다.`,
+      icon:'✅'
+    });
+  }
+});
+
+auto();
+if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+</script>
+<script>
+(function(){
+  const backBtn=document.getElementById('rsBackBtn');
+  if(!backBtn) return;
+  backBtn.addEventListener('click',()=>{
+    if(window.history.length>1 && document.referrer){window.history.back();}
+    else{window.location.href='index.html';}
+  });
+})();
+
+(function(){
+  const overlay=document.getElementById('scheduleModalOverlay');
+  const openBtn=document.getElementById('add');
+  const closeBtn=document.getElementById('scheduleModalClose');
+  const cancelBtn=document.getElementById('scheduleModalCancel');
+  const saveBtn=document.getElementById('scheduleModalSave');
+  const vendorEl=document.getElementById('modalVendor');
+  const dateEl=document.getElementById('modalDate');
+  const memoEl=document.getElementById('modalMemo');
+  const toastEl=document.getElementById('appToast');
+  let toastTimer=null;
+
+  window.showAppToast=function(message,type='success'){
+    if(!toastEl) return;
+    toastEl.textContent=message;
+    toastEl.className='appToast '+type+' show';
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>toastEl.classList.remove('show'),1800);
+  };
+
+  function localToday(){
+    const d=new Date();
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function openModal(prefillDate){
+    if(!overlay) return;
+    if(prefillDate) dateEl.value=prefillDate;
+    else if(!dateEl.value) dateEl.value=localToday();
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden','false');
+    overlay.style.zIndex='1100';
+    setTimeout(()=>vendorEl.focus(),30);
+  }
+  function closeModal(){
+    if(!overlay) return;
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden','true');
+  }
+
+  if(openBtn){
+    openBtn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(typeof adminMode!=='undefined' && !adminMode){
+        window.showAppToast('🔒 관리자 모드에서만 사용할 수 있습니다.','delete');
+        return;
+      }
+      openModal();
+    },true);
+  }
+  closeBtn?.addEventListener('click',closeModal);
+  cancelBtn?.addEventListener('click',closeModal);
+  overlay?.addEventListener('click',e=>{if(e.target===overlay) closeModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay?.classList.contains('show')) closeModal();});
+
+  saveBtn?.addEventListener('click',function(){
+    const vendor=vendorEl.value;
+    const dateText=dateEl.value;
+    const memo=memoEl.value.trim();
+    if(!vendor){ alert('업체를 선택해주세요.'); return; }
+    if(!dateText){ alert('날짜를 선택해주세요.'); return; }
+
+    const parts=dateText.split('-').map(Number);
+    const d=new Date(parts[0],parts[1]-1,parts[2]);
+    if(Number.isNaN(d.getTime())){ alert('날짜를 다시 확인해주세요.'); return; }
+
+    // 기존 일정 배열에 직접 입력 일정으로 저장
+    if(typeof events!=='undefined'){
+      events.push({
+        id:'m-'+Date.now(),
+        vendor,
+        date:d,
+        done:false,
+        source:'manual',
+        memo
+      });
+    }
+
+    // 기존 렌더/저장 함수가 있으면 즉시 반영
+    try{ if(typeof render==='function') render(); }catch(e){}
+    try{ if(typeof renderCalendar==='function') renderCalendar(); }catch(e){}
+    try{ if(typeof drawCalendar==='function') drawCalendar(); }catch(e){}
+    try{ if(typeof saveLocal==='function') saveLocal(); }catch(e){}
+
+    closeModal();
+    memoEl.value='';
+    window.showAppToast('✅ 일정이 저장되었습니다.','success');
+  });
+
+  // 날짜 칸에 data-date가 있으면 관리자 모드에서 클릭 시 해당 날짜로 팝업 열기
+  document.addEventListener('click',function(e){
+    const cell=e.target.closest('[data-date]');
+    if(!cell || e.target.closest('button,a,input,select,textarea')) return;
+    const date=cell.getAttribute('data-date');
+    if(date && typeof adminMode!=='undefined' && adminMode) openModal(date);
+  });
+
+  // 기존 삭제 확인창 뒤에 완료 토스트가 나오도록 전역 confirm을 건드리지 않고,
+  // 삭제 버튼 클릭 후 렌더링이 끝나는 시점에 안내합니다.
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('[data-delete],.deleteBtn,.btn-delete');
+    if(!btn) return;
+    setTimeout(()=>window.showAppToast('🗑️ 일정이 삭제되었습니다.','delete'),80);
+  });
+})();
+
+</script>
+
+
+<div class="modalOverlay" id="scheduleModalOverlay" aria-hidden="true">
+  <div class="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle">
+    <div class="scheduleModalHeader">
+      <h3 id="scheduleModalTitle">📅 일정 직접 추가</h3>
+      <button class="modalClose" id="scheduleModalClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="scheduleModalBody">
+      <label for="modalVendor">업체</label>
+      <select id="modalVendor">
+<option value="세진팩">세진팩</option>
+<option value="오지인터팩코리아">오지인터팩코리아</option>
+<option value="일신포장산업">일신포장산업</option>
+<option value="동진물류포장">동진물류포장</option>
+</select>
+      <label for="modalDate">날짜</label>
+      <input id="modalDate" type="date">
+      <label for="modalMemo">메모 <span style="font-weight:500;color:#94a3b8">(선택)</span></label>
+      <textarea id="modalMemo" placeholder="예: 오후 입고 예정"></textarea>
+    </div>
+    <div class="scheduleModalActions">
+      <button class="modalCancel" id="scheduleModalCancel" type="button">취소</button>
+      <button class="modalSave" id="scheduleModalSave" type="button">일정 저장</button>
+    </div>
+  </div>
+</div>
+<div class="appToast" id="appToast" role="status" aria-live="polite"></div>
+
+</body></html>
