@@ -46,6 +46,34 @@ box-shadow:0 8px 18px rgba(40,183,121,.35);
 .progress{display:none}.progress.show{display:block}.progressTop{display:flex;align-items:center;justify-content:space-between;gap:10px}.progressText{font-size:14px;font-weight:900;color:#294d7f}.count{padding:5px 9px;border-radius:999px;background:#eaf3ff;color:var(--brand);font-size:12px;font-weight:900}.bar{height:10px;margin-top:10px;background:#e8eef8;border-radius:999px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--brand),#58a8ff);transition:width .2s}
 .resultHead{display:flex;align-items:center;justify-content:space-between}.empty{text-align:center;padding:24px 10px;color:#8a94a6;font-size:13px}.list{display:flex;flex-direction:column;gap:8px;margin-top:11px}.row{display:grid;grid-template-columns:34px minmax(0,1fr) auto 38px;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fbfdff}.no{text-align:center;color:#8a94a6;font-size:11px}.value{width:100%;min-width:0;border:0;background:transparent;color:#183c71;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.value.edited{color:#b15c00}.value.invalid{color:#b42318}.saveEdit{min-width:48px;height:34px;border:0;border-radius:9px;padding:0 10px;background:#eaf8ef;color:#137a43;font-size:11px;font-weight:950}.saveEdit:disabled{opacity:.4}.del{width:34px;height:34px;border:0;border-radius:9px;background:#eef2f7;color:#64748b;font-weight:950}.formatHelp{grid-column:2/-1;margin-top:-2px;color:#7a879d;font-size:9px;font-weight:800;line-height:1.35}.formatHelp.ok{color:#137a43}.formatHelp.bad{color:#b42318}@media(max-width:430px){.row{grid-template-columns:34px minmax(0,1fr) 44px 36px;gap:5px;padding:7px}.saveEdit{min-width:44px;padding:0 7px}.value{font-size:14px}}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action{border:0;border-radius:13px;padding:13px 8px;font-size:15px;font-weight:950}.copy{background:#eaf3ff;color:var(--brand)}.share{background:#1769e0;color:#fff}.clear{background:#eef2f7;color:#526174}.resetAll{grid-column:1/-1;background:#fff1f1;color:#b42318;border:1px solid #ffd4d4}
+.catalogSyncCard{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  align-items:center;
+  gap:11px;
+  min-height:66px;
+  padding:11px 13px;
+  border:1px solid #cfe7dc;
+  border-radius:15px;
+  background:linear-gradient(180deg,#f8fffb,#eefaf4);
+  box-shadow:0 4px 12px rgba(25,120,82,.06)
+}
+.catalogSyncIcon{
+  width:42px;height:42px;display:grid;place-items:center;
+  border-radius:13px;background:#dff5e9;color:#159765;
+  font-size:22px;font-weight:1000
+}
+.catalogSyncCopy{min-width:0}
+.catalogSyncTitle{font-size:12px;font-weight:1000;color:#255f4a;margin-bottom:3px}
+.catalogSyncState{font-size:11px;font-weight:850;line-height:1.45;color:#617267;word-break:keep-all}
+.catalogSyncCard.ok{border-color:#b9e3cf;background:linear-gradient(180deg,#f8fffb,#eaf8f1)}
+.catalogSyncCard.ok .catalogSyncIcon{background:#d8f3e5;color:#128553}
+.catalogSyncCard.ok .catalogSyncState{color:#17734d}
+.catalogSyncCard.warn{border-color:#f0d9ae;background:linear-gradient(180deg,#fffdf7,#fff7e8)}
+.catalogSyncCard.warn .catalogSyncIcon{background:#fff0ca;color:#a86700}
+.catalogSyncCard.warn .catalogSyncState{color:#8a610e}
+
 .status{margin-top:10px;padding:10px 11px;border-radius:11px;background:#f5f7fa;color:#526174;font-size:12px;font-weight:850;line-height:1.5}.status.ok{background:#eaf8ef;color:var(--ok)}.status.bad{background:#fff0f0;color:var(--bad)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;pointer-events:none;background:#15243d;color:#fff;padding:11px 16px;border-radius:999px;font-size:13px;font-weight:850;transition:.2s;z-index:12000}.toast.show{opacity:1;transform:translate(-50%,0)}
 
@@ -555,7 +583,6 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   <input class="hiddenInput" id="captureInput" type="file" accept="image/*" capture="environment">
   <input class="hiddenInput" id="imageInput" type="file" accept="image/*" multiple>
   <div class="note">※ 앨범선택은 자동인식으로 동작합니다. 여러 업체 사진을 함께 선택할 수 있으며, 연속촬영 후에도 기존 S/N 목록은 유지됩니다.</div>
-  <div class="catalogSyncState" id="catalogSyncState">material.xlsx 품목목록 불러오는 중…</div>
 
   <div class="cameraPanel" id="cameraPanel">
     <div class="videoWrap">
@@ -585,6 +612,13 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
     <button class="action copy" id="copyBtn">전체 복사</button>
     <button class="action share" id="shareBtn">Teams로 보내기</button>
     <button class="action clear" id="clearBtn">목록 비우기</button>
+    <div class="catalogSyncCard" id="catalogSyncCard" aria-live="polite">
+      <div class="catalogSyncIcon" id="catalogSyncIcon">↻</div>
+      <div class="catalogSyncCopy">
+        <div class="catalogSyncTitle">자재 DB 연동 상태</div>
+        <div class="catalogSyncState" id="catalogSyncState">material.xlsx 품목목록 불러오는 중…</div>
+      </div>
+    </div>
     <button class="action resetAll" id="resetAllBtn">전체 초기화</button>
   </div>
   <div class="status" id="status">자동 인식 또는 업체를 선택하고 촬영을 시작하세요.</div>
@@ -1189,9 +1223,15 @@ function normalizeProductCatalogFromRows(rows){
 
 function updateCatalogSyncState(message,type=''){
   const el=$('catalogSyncState');
+  const card=$('catalogSyncCard');
+  const icon=$('catalogSyncIcon');
   if(!el)return;
   el.textContent=message;
-  el.className='catalogSyncState'+(type?' '+type:'');
+  el.className='catalogSyncState';
+  if(card) card.className='catalogSyncCard'+(type?' '+type:'');
+  if(icon){
+    icon.textContent=type==='ok'?'✓':type==='warn'?'!':'↻';
+  }
 }
 
 function sheetRowsFromWorkbook(workbook){
