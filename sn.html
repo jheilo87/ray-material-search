@@ -489,6 +489,11 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 }
 </style>
 
+
+<style id="album-date-check-style">
+.albumDateSummary{margin:10px 0;padding:11px 12px;border-radius:13px;background:#fff7e8;color:#7a5310;font-size:13px;font-weight:900;line-height:1.55}
+.albumDateList{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:42vh;overflow:auto}.albumDateItem{display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px;align-items:center;padding:8px;border:1px solid #f0dfbd;border-radius:12px;background:#fff}.albumDateItem img{width:58px;height:58px;object-fit:cover;border-radius:9px;background:#eef2f6}.albumDateMeta{font-size:12px;font-weight:900;color:#5d4a2a;line-height:1.5;word-break:break-all}.albumDateMeta small{display:block;color:#8a795e;font-size:10px;font-weight:800}.albumDateNotice{margin-top:8px;color:#7a8792;font-size:10px;font-weight:800;line-height:1.45}
+</style>
 </head>
 <body>
 <div class="app">
@@ -681,6 +686,17 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
     <div class="rsModalText" id="itemDeleteText" style="text-align:center"></div>
     <div class="rsModalActions"><button class="rsModalBtn cancel" id="itemDeleteCancel" type="button">취소</button><button class="rsModalBtn danger" id="itemDeleteConfirm" type="button">함께 삭제</button></div>
   </div>
+</div>
+
+<div class="rsModal" id="albumDateModal" role="dialog" aria-modal="true" aria-labelledby="albumDateTitle">
+ <div class="rsModalBox">
+  <div class="rsModalIcon">🕒</div><div class="rsModalTitle" id="albumDateTitle">다른 날짜의 사진이 있어요</div>
+  <div class="albumDateSummary" id="albumDateSummary"></div>
+  <div class="rsModalText">선택한 사진 중 대부분과 날짜가 다른 사진을 찾았습니다. 아래 사진을 확인한 뒤 계속 진행할지 선택하세요.</div>
+  <div class="albumDateList" id="albumDateList"></div>
+  <div class="albumDateNotice">※ 사진의 EXIF 촬영시간을 우선 사용하고, 없으면 파일 저장/수정시간을 사용합니다.</div>
+  <div class="rsModalActions"><button class="rsModalBtn cancel" id="albumDateCancel" type="button">선택 취소</button><button class="rsModalBtn primary" id="albumDateContinue" type="button">그래도 계속 추출</button></div>
+ </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -1641,6 +1657,33 @@ async function captureAndExtract(){
   finally{busy=false;$('captureBtn').disabled=false}
 }
 
+let pendingAlbumDateResolve=null;let albumDatePreviewUrls=[];
+function pad2(n){return String(n).padStart(2,'0')}
+function dateKey(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
+function dateText(d){return `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`}
+async function readExifDate(file){
+  if(!/jpe?g/i.test(file.type||file.name||''))return null;
+  try{
+    const buf=await file.slice(0,262144).arrayBuffer(),v=new DataView(buf);if(v.getUint16(0)!==0xFFD8)return null;let off=2;
+    while(off+4<v.byteLength){if(v.getUint8(off)!==0xFF){off++;continue}const marker=v.getUint8(off+1),len=v.getUint16(off+2);if(marker===0xE1&&off+2+len<=v.byteLength){
+      const start=off+4;if(v.getUint32(start)!==0x45786966)return null;const t=start+6,little=v.getUint16(t)===0x4949;const u16=o=>v.getUint16(o,little),u32=o=>v.getUint32(o,little);const ifd0=t+u32(t+4);let exif=0;
+      for(let i=0,n=u16(ifd0);i<n;i++){const e=ifd0+2+i*12;if(u16(e)===0x8769){exif=t+u32(e+8);break}}if(!exif)return null;
+      for(let i=0,n=u16(exif);i<n;i++){const e=exif+2+i*12,tag=u16(e);if(tag===0x9003||tag===0x9004){const count=u32(e+4),ptr=count<=4?e+8:t+u32(e+8);let str='';for(let j=0;j<count&&ptr+j<v.byteLength;j++){const c=v.getUint8(ptr+j);if(!c)break;str+=String.fromCharCode(c)}const m=str.match(/(\d{4}):(\d{2}):(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6])}}
+    }if(marker===0xDA||marker===0xD9)break;off+=2+len}
+  }catch{}return null;
+}
+async function albumFileDateInfo(file){const exif=await readExifDate(file);const fallback=file.lastModified?new Date(file.lastModified):null;return {file,date:exif||fallback,source:exif?'촬영시간(EXIF)':'파일 저장/수정시간'}}
+function clearAlbumDatePreviews(){albumDatePreviewUrls.forEach(u=>URL.revokeObjectURL(u));albumDatePreviewUrls=[]}
+async function checkAlbumDateOutliers(files){
+  if(files.length<2)return true;const infos=await Promise.all(files.map(albumFileDateInfo));const valid=infos.filter(x=>x.date&&!isNaN(x.date));if(valid.length<2)return true;
+  const counts={};valid.forEach(x=>counts[dateKey(x.date)]=(counts[dateKey(x.date)]||0)+1);const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);if(entries.length<2)return true;
+  const [mainKey,mainCount]=entries[0];const outliers=valid.filter(x=>dateKey(x.date)!==mainKey);if(!outliers.length)return true;
+  clearAlbumDatePreviews();$('albumDateSummary').textContent=`${mainKey} 사진 ${mainCount}장 · 다른 날짜 ${outliers.length}장`;$('albumDateList').innerHTML='';
+  outliers.forEach(x=>{const u=URL.createObjectURL(x.file);albumDatePreviewUrls.push(u);const row=document.createElement('div');row.className='albumDateItem';row.innerHTML=`<img src="${u}" alt="다른 날짜 사진"><div class="albumDateMeta">${dateText(x.date)}<small>${x.source} · ${x.file.name||'사진'}</small></div>`;$('albumDateList').appendChild(row)});
+  openModal('albumDateModal');return await new Promise(resolve=>{pendingAlbumDateResolve=resolve});
+}
+function finishAlbumDateCheck(go){closeModal('albumDateModal');clearAlbumDatePreviews();const r=pendingAlbumDateResolve;pendingAlbumDateResolve=null;if(r)r(go)}
+
 async function processFiles(files){
   if(!files.length)return;
   $('progressCard').classList.add('show');resetFailedImages();
@@ -1767,7 +1810,9 @@ $('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checke
 $('captureBtn').addEventListener('click',captureAndExtract);
 $('finishBtn').addEventListener('click',()=>{stopCamera();$('cameraPanel').classList.remove('show');setStatus('촬영을 종료했습니다. 결과를 확인하세요.','ok')});
 captureInput.addEventListener('change',async()=>{const file=captureInput.files?.[0];captureInput.value='';if(!file)return;setStatus('기본 카메라 사진에서 S/N을 추출하고 있습니다…');await processFiles([file]);if(results.length)setStatus(`현재 ${results.length}건 저장됨 · 다음 박스는 연속촬영을 다시 눌러주세요.`,'ok')});
-imageInput.addEventListener('change',async()=>{const files=[...(imageInput.files||[])];imageInput.value='';const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
+imageInput.addEventListener('change',async()=>{const files=[...(imageInput.files||[])];imageInput.value='';if(!files.length)return;setStatus('선택한 사진의 촬영/저장 날짜를 확인하고 있습니다…');const go=await checkAlbumDateOutliers(files);if(!go){setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');return;}const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
+$('albumDateCancel').addEventListener('click',()=>finishAlbumDateCheck(false));
+$('albumDateContinue').addEventListener('click',()=>finishAlbumDateCheck(true));
 $('copyBtn').addEventListener('click',copyAll);
 $('shareBtn').addEventListener('click',async()=>{
   if(!results.length)return toast('보낼 S/N이 없어요');
