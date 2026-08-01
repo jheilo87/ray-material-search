@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#28b779">
-<title>RaySmart · S/N 추출</title>
+<title>RaySmart · S/N 추출 · material.xlsx 연동 TEST</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.23.0/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{--brand:#1769e0;--ink:#14213a;--muted:#667085;--line:#dce6f5;--bg:#f3f7ff;--ok:#137a43;--bad:#b42318}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -459,10 +460,39 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 .legacyVendorAssign button{min-height:44px;border:0;border-radius:11px;padding:0 15px;background:linear-gradient(135deg,#28b779,#1e9d67);color:#fff;font-size:13px;font-weight:950;white-space:nowrap}
 .legacyVendorAssignHelp{grid-column:1/-1;color:#718096;font-size:10px;font-weight:800;line-height:1.45}
 </style>
+
+<style id="dispatch-product-select-style">
+/* 추출 완료 후 출고 품목 선택 */
+.productSelectBox{
+  margin:0 0 9px;padding:11px 12px;border:1px solid #cfe7dc;border-radius:14px;
+  background:linear-gradient(180deg,#f8fffb,#f1fbf6)
+}
+.productSelectTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.productSelectTitle{font-size:12px;font-weight:1000;color:#226f52}
+.productSelectState{font-size:10px;font-weight:900;color:#7b8792}
+.productSelectState.ok{color:#16895b}
+.productSelect{
+  width:100%;min-height:46px;border:1px solid #b8dccc;border-radius:12px;background:#fff;
+  color:#17324b;padding:0 11px;font-size:13px;font-weight:900;outline:none
+}
+.productSelect:focus{border-color:#28b779;box-shadow:0 0 0 3px rgba(40,183,121,.10)}
+.productPicked{
+  margin-top:7px;padding:8px 10px;border-radius:10px;background:#eaf8f1;color:#25684f;
+  font-size:11px;font-weight:900;line-height:1.45
+}
+.productHint{
+  margin:9px 2px 0;color:#748095;font-size:10px;font-weight:800;line-height:1.45
+}
+@media(max-width:430px){
+  .productSelectBox{padding:10px}
+  .productSelect{font-size:12px}
+}
+</style>
+
 </head>
 <body>
 <div class="app">
-<header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">S/N 추출</div><div class="rsPageSub">QR·바코드 촬영 및 추출</div></div></header>
+<header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">S/N 추출 <small style="font-size:10px;color:#8592a3">GitHub 연동 TEST</small></div><div class="rsPageSub">QR·바코드 촬영 및 추출</div></div></header>
 <main>
 <section class="card">
   <div class="cardTitle">1. 인식 방식 선택</div>
@@ -520,6 +550,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   <input class="hiddenInput" id="captureInput" type="file" accept="image/*" capture="environment">
   <input class="hiddenInput" id="imageInput" type="file" accept="image/*" multiple>
   <div class="note">※ 앨범선택은 자동인식으로 동작합니다. 여러 업체 사진을 함께 선택할 수 있으며, 연속촬영 후에도 기존 S/N 목록은 유지됩니다.</div>
+  <div class="catalogSyncState" id="catalogSyncState">material.xlsx 품목목록 불러오는 중…</div>
 
   <div class="cameraPanel" id="cameraPanel">
     <div class="videoWrap">
@@ -669,6 +700,13 @@ let pendingDeletePhotoId=null;
 let nextPhotoId=1;
 let shareResetTimer=null;
 let shareResetRemaining=0;
+
+/* GitHub/동일 폴더의 sn_products.json에서 자동 불러옵니다.
+   연결 실패 시 마지막 성공 목록(localStorage)을 사용합니다. */
+let productCatalog={iRay:[],Dell:[],Vieworks:[],i3system:[]};
+let productCatalogVersion='';
+let productCatalogSource='준비 중';
+let selectedProducts={};
 const collapsedVendorGroups=new Set();
 const $=id=>document.getElementById(id);
 const video=$('video'), canvas=$('captureCanvas'), captureInput=$('captureInput'), imageInput=$('imageInput');
@@ -1096,6 +1134,199 @@ function assignLegacyVendor(vendor,entries){
   setStatus(`기존 목록 ${codes.length}개를 ${vendorLabel(vendor)}로 지정했습니다.`,'ok');
 }
 
+
+
+const MATERIAL_XLSX_URL='./material.xlsx';
+const PRODUCT_CATALOG_CACHE_KEY='raySnProductCatalogCacheV2';
+
+function classifyVendorFromRow(partNo,name,location){
+  const n=String(name||'').trim().toUpperCase();
+
+  if(/\bI[-\s]?RAY\b|\bIRAY\b/.test(n)) return 'iRay';
+  if(/\bVIEWORKS\b/.test(n)) return 'Vieworks';
+  if(/\bDELL\b/.test(n)) return 'Dell';
+  if(/\bXID[-\s]?[A-Z0-9]/.test(n)) return 'i3system';
+
+  return '';
+}
+
+function normalizeProductCatalogFromRows(rows){
+  const normalized={iRay:[],Dell:[],Vieworks:[],i3system:[]};
+  const seen=new Set();
+
+  rows.forEach(row=>{
+    const partNo=String(row.partNo||'').trim();
+    const name=String(row.name||'').trim();
+    const location=String(row.location||'').trim();
+    if(!partNo||!name)return;
+    const vendor=classifyVendorFromRow(partNo,name,location);
+    if(!vendor)return;
+    const key=`${vendor}||${partNo}||${name}`;
+    if(seen.has(key))return;
+    seen.add(key);
+    normalized[vendor].push({partNo,name});
+  });
+
+  Object.values(normalized).forEach(arr=>arr.sort((a,b)=>a.name.localeCompare(b.name,'ko')));
+  return normalized;
+}
+
+function updateCatalogSyncState(message,type=''){
+  const el=$('catalogSyncState');
+  if(!el)return;
+  el.textContent=message;
+  el.className='catalogSyncState'+(type?' '+type:'');
+}
+
+function sheetRowsFromWorkbook(workbook){
+  const sheetName=workbook.SheetNames.find(x=>String(x).trim()==='위치') || workbook.SheetNames[0];
+  const ws=workbook.Sheets[sheetName];
+  if(!ws)throw new Error('위치 시트를 찾지 못했습니다.');
+
+  const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  if(!data.length)throw new Error('시트 데이터가 없습니다.');
+
+  let headerRow=-1, partCol=-1, nameCol=-1, locCol=-1;
+  for(let r=0;r<Math.min(data.length,30);r++){
+    const row=data[r].map(v=>String(v||'').trim());
+    const p=row.findIndex(v=>/품번|자재코드|PART/i.test(v));
+    const n=row.findIndex(v=>/품명|자재.*내역|자재명|DESCRIPTION/i.test(v));
+    const l=row.findIndex(v=>/위치|LOCATION/i.test(v));
+    if(p>=0 && n>=0){
+      headerRow=r; partCol=p; nameCol=n; locCol=l; break;
+    }
+  }
+
+  if(headerRow<0){
+    headerRow=0; partCol=1; nameCol=2; locCol=3;
+  }
+
+  const rows=[];
+  for(let r=headerRow+1;r<data.length;r++){
+    const row=data[r];
+    const partNo=String(row[partCol]??'').trim();
+    const name=String(row[nameCol]??'').trim();
+    const location=locCol>=0?String(row[locCol]??'').trim():'';
+    if(!partNo&&!name)continue;
+    rows.push({partNo,name,location});
+  }
+  return rows;
+}
+
+async function loadProductCatalog(){
+  updateCatalogSyncState('GitHub material.xlsx 확인 중…');
+  try{
+    if(typeof XLSX==='undefined')throw new Error('엑셀 라이브러리를 불러오지 못했습니다.');
+    const sep=MATERIAL_XLSX_URL.includes('?')?'&':'?';
+    const res=await fetch(`${MATERIAL_XLSX_URL}${sep}v=${Date.now()}`,{cache:'no-store'});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const buf=await res.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const rows=sheetRowsFromWorkbook(wb);
+    const normalized=normalizeProductCatalogFromRows(rows);
+    const total=Object.values(normalized).reduce((n,a)=>n+a.length,0);
+    if(!total)throw new Error('4개 업체 품목을 찾지 못했습니다.');
+
+    productCatalog=normalized;
+    try{
+      localStorage.setItem(PRODUCT_CATALOG_CACHE_KEY,JSON.stringify({
+        vendors:productCatalog,savedAt:Date.now()
+      }));
+    }catch{}
+    updateCatalogSyncState(`✅ material.xlsx 연결됨 · 4개 업체 품목 ${total}개`,'ok');
+    render();
+  }catch(err){
+    try{
+      const cached=JSON.parse(localStorage.getItem(PRODUCT_CATALOG_CACHE_KEY)||'null');
+      const raw=cached?.vendors||{};
+      const normalized={iRay:[],Dell:[],Vieworks:[],i3system:[]};
+      Object.keys(normalized).forEach(v=>{
+        normalized[v]=Array.isArray(raw[v])?raw[v].filter(x=>x?.partNo&&x?.name):[];
+      });
+      const total=Object.values(normalized).reduce((n,a)=>n+a.length,0);
+      if(total){
+        productCatalog=normalized;
+        updateCatalogSyncState(`⚠️ material.xlsx 연결 실패 · 저장된 품목 ${total}개 사용 중`,'warn');
+        render();
+        return;
+      }
+    }catch{}
+    updateCatalogSyncState(`⚠️ material.xlsx를 불러오지 못했습니다. (${err?.message||'오류'})`,'warn');
+    render();
+  }
+}
+
+function productKey(product){return product?`${product.partNo}||${product.name}`:''}
+function findProductByKey(vendor,key){
+  return (productCatalog[vendor]||[]).find(x=>productKey(x)===key)||null;
+}
+function ensureSingleProductSelected(vendor){
+  const items=productCatalog[vendor]||[];
+  if(items.length===1 && !selectedProducts[vendor]) selectedProducts[vendor]=items[0];
+}
+function createProductSelector(vendor,codeCount){
+  const items=productCatalog[vendor]||[];
+  if(!items.length || !codeCount)return null;
+
+  ensureSingleProductSelected(vendor);
+
+  const box=document.createElement('div');
+  box.className='productSelectBox';
+
+  const picked=selectedProducts[vendor]||null;
+  const options=[
+    `<option value="">품번 · 품명을 선택하세요</option>`,
+    ...items.map(item=>{
+      const key=productKey(item);
+      const selected=picked&&productKey(picked)===key?' selected':'';
+      return `<option value="${key.replace(/"/g,'&quot;')}"${selected}>${item.name}</option>`;
+    })
+  ].join('');
+
+  box.innerHTML=`
+    <div class="productSelectTop">
+      <div class="productSelectTitle">출고 품목 선택</div>
+      <div class="productSelectState${picked?' ok':''}">${picked?'선택 완료':'Teams 공유 전 선택'}</div>
+    </div>
+    <select class="productSelect" aria-label="${vendorLabel(vendor)} 출고 품목 선택">${options}</select>
+    <div class="productPicked" style="${picked?'':'display:none'}"></div>
+    <div class="productHint">예약번호는 앱에서 입력하지 않습니다. 품목만 선택하면 Teams 공유 내용에 품번·품명이 함께 들어갑니다.</div>`;
+
+  const select=box.querySelector('.productSelect');
+  const state=box.querySelector('.productSelectState');
+  const pickedBox=box.querySelector('.productPicked');
+
+  function paint(){
+    const p=selectedProducts[vendor]||null;
+    if(p){
+      state.textContent='선택 완료';
+      state.className='productSelectState ok';
+      pickedBox.style.display='block';
+      pickedBox.textContent=p.name;
+    }else{
+      state.textContent='Teams 공유 전 선택';
+      state.className='productSelectState';
+      pickedBox.style.display='none';
+      pickedBox.textContent='';
+    }
+  }
+  paint();
+
+  select.addEventListener('change',()=>{
+    const p=findProductByKey(vendor,select.value);
+    if(p) selectedProducts[vendor]=p;
+    else delete selectedProducts[vendor];
+    paint();
+    saveSession();
+    if(p){
+      toast(`${p.partNo} 선택됨`);
+      setStatus(`${vendorLabel(vendor)} 출고 품목: ${p.name}`,'ok');
+    }
+  });
+
+  return box;
+}
+
 function render(){
   list.innerHTML='';
   rebuildResults();
@@ -1139,6 +1370,8 @@ function render(){
       group.classList.toggle('collapsed');
     });
     const body=group.querySelector('.vendorGroupBody');
+    const productSelector=createProductSelector(vendor,codeCount);
+    if(productSelector)body.appendChild(productSelector);
     if(vendor==='Legacy'){
       const assign=document.createElement('div');
       assign.className='legacyVendorAssign';
@@ -1280,6 +1513,7 @@ function resetEverything(){
   photoItems=[];
   results=[];
   legacyVendorAssignments={};
+  selectedProducts={};
   selectedVendor='iRay';
   nextPhotoId=1;
   busy=false;
@@ -1301,6 +1535,7 @@ function resetEverything(){
   try{
     sessionStorage.removeItem('raySnResults');
     sessionStorage.removeItem('raySnLegacyVendorAssignments');
+    sessionStorage.removeItem('raySnSelectedProducts');
   }catch{}
 
   renderPreviews();
@@ -1315,12 +1550,14 @@ function clearAllSnData(message='목록이 초기화되었습니다. 새로운 �
   photoItems=[];
   results=[];
   legacyVendorAssignments={};
+  selectedProducts={};
   resetFailedImages();
   renderPreviews();
   render();
   try{
     sessionStorage.removeItem('raySnResults');
     sessionStorage.removeItem('raySnLegacyVendorAssignments');
+    sessionStorage.removeItem('raySnSelectedProducts');
   }catch{}
   setStatus(message,'ok');
 }
@@ -1367,6 +1604,7 @@ function saveSession(){
   try{
     sessionStorage.setItem('raySnResults',JSON.stringify(results));
     sessionStorage.setItem('raySnLegacyVendorAssignments',JSON.stringify(legacyVendorAssignments));
+    sessionStorage.setItem('raySnSelectedProducts',JSON.stringify(selectedProducts));
   }catch{}
 }
 function loadSession(){
@@ -1375,6 +1613,8 @@ function loadSession(){
     if(Array.isArray(x))results=unique(x);
     const map=JSON.parse(sessionStorage.getItem('raySnLegacyVendorAssignments')||'{}');
     if(map&&typeof map==='object'&&!Array.isArray(map))legacyVendorAssignments=map;
+    const products=JSON.parse(sessionStorage.getItem('raySnSelectedProducts')||'{}');
+    if(products&&typeof products==='object'&&!Array.isArray(products))selectedProducts=products;
   }catch{}
   render();
 }
@@ -1489,18 +1729,35 @@ function buildGroupedShareText(){
     groups.get(vendor).push(code);
   });
 
-  const lines=['RaySmart S/N 추출 결과',`총 ${results.length}개`,''];
+  const missing=[];
   order.forEach(vendor=>{
     const codes=unique(groups.get(vendor)||[]);
     if(!codes.length)return;
+    if(productCatalog[vendor]?.length && !selectedProducts[vendor])missing.push(vendorLabel(vendor));
+  });
+  if(missing.length){
+    return {ok:false,message:`${missing.join(', ')} 품목을 먼저 선택해 주세요.`,text:''};
+  }
+
+  const lines=['RaySmart S/N 출고 공유',`총 ${results.length}개`,''];
+  order.forEach(vendor=>{
+    const codes=unique(groups.get(vendor)||[]);
+    if(!codes.length)return;
+
     lines.push(`[${vendorLabel(vendor)}] ${codes.length}개`);
+    const p=selectedProducts[vendor];
+    if(p){
+      lines.push(`품번 : ${p.partNo}`);
+      lines.push(`품명 : ${p.name}`);
+    }
+    lines.push('S/N');
     lines.push(...codes);
     lines.push('');
   });
-  // Teams 모바일에서도 코드가 서로 붙지 않도록 각 코드를 한 줄씩 보냅니다.
-  return lines.join('\r\n').trim();
-}
 
+  // 예약번호는 엑셀에서 직접 입력하며, Teams에는 품번·품명·S/N만 공유합니다.
+  return {ok:true,message:'',text:lines.join('\r\n').trim()};
+}
 async function copyAll(){const text=results.filter(Boolean).join('\n');if(!text)return toast('복사할 S/N이 없어요');try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('전체 복사 완료')}
 
 document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.vendor').forEach(x=>x.classList.remove('active'));btn.classList.add('active');selectedVendor=btn.dataset.vendor;setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 촬영을 시작하세요.`)}));
@@ -1513,8 +1770,14 @@ captureInput.addEventListener('change',async()=>{const file=captureInput.files?.
 imageInput.addEventListener('change',async()=>{const files=[...(imageInput.files||[])];imageInput.value='';const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
 $('copyBtn').addEventListener('click',copyAll);
 $('shareBtn').addEventListener('click',async()=>{
-  const text=buildGroupedShareText();
   if(!results.length)return toast('보낼 S/N이 없어요');
+  const shareData=buildGroupedShareText();
+  if(!shareData.ok){
+    toast(shareData.message);
+    setStatus(shareData.message,'bad');
+    return;
+  }
+  const text=shareData.text;
 
   setStatus('Teams 공유 준비 중…','');
   $('shareBtn').disabled=true;
@@ -1600,6 +1863,7 @@ $('shareResetCancel').addEventListener('click',()=>cancelShareAutoReset(true));
 window.addEventListener('pagehide',()=>{if(shareResetTimer)clearInterval(shareResetTimer);stopCamera();photoItems.forEach(x=>URL.revokeObjectURL(x.url))});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&stream)stopCamera()});
 loadSession();
+loadProductCatalog();
 })();
 </script>
 
