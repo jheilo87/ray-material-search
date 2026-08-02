@@ -434,6 +434,91 @@ main{padding:14px}
 .multiNumberedInput{width:100%;border:0;outline:0;padding:12px 13px;background:transparent;color:#26364f;font-size:15px;text-transform:uppercase}
 .multiAddRow{width:100%;min-height:42px;margin-top:8px;border:1px dashed #c9d6e6;border-radius:12px;background:#f8fafc;color:#617085;font-size:11px;font-weight:900}
 
+
+
+/* 다중 품번 조회 팝업 - Android / iPhone 공통 */
+.searchMultiOverlay{
+  position:fixed;inset:0;z-index:12050;
+  display:none;align-items:center;justify-content:center;
+  padding:18px;
+  background:rgba(15,23,42,.52);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.searchMultiOverlay.show{display:flex}
+.searchMultiBox{
+  width:min(92vw,410px);
+  max-height:min(86dvh,calc(100dvh - 24px));
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:#fff;border-radius:24px;
+  box-shadow:0 28px 80px rgba(15,23,42,.30);
+}
+.searchMultiTop{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:18px 18px 12px;border-bottom:1px solid #edf0f4;
+}
+.searchMultiTitle{font-size:20px;font-weight:1000;color:#183c71}
+.searchMultiCount{margin-top:4px;color:#16895b;font-size:11px;font-weight:950}
+.searchMultiX{
+  width:36px;height:36px;border:0;border-radius:50%;
+  background:#eef2f6;color:#667085;font-size:21px;font-weight:950
+}
+.searchMultiStep{
+  display:inline-flex;margin:14px 18px 0;padding:6px 10px;border-radius:999px;
+  background:#eaf9f1;color:#16895b;font-size:11px;font-weight:950;
+  align-self:flex-start;
+}
+.searchMultiInput{
+  width:calc(100% - 36px);margin:9px 18px 0;padding:14px;
+  border:1px solid #cbd8e7;border-radius:14px;outline:0;
+  background:#fff;color:#183c71;font-size:18px;font-weight:950;
+  text-transform:uppercase;scroll-margin-bottom:96px;
+}
+.searchMultiInput:focus{
+  border-color:#28b779;box-shadow:0 0 0 4px rgba(40,183,121,.12)
+}
+.searchMultiHelp{
+  margin:7px 18px 0;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45
+}
+.searchMultiListTitle{margin:15px 18px 0;color:#526174;font-size:11px;font-weight:950}
+.searchMultiList{
+  display:flex;flex-direction:column;gap:6px;
+  margin:7px 18px 0;padding-bottom:4px;overflow:auto;min-height:0
+}
+.searchMultiEmpty{
+  padding:12px;text-align:center;border:1px dashed #dbe3ed;border-radius:12px;
+  color:#9aa4b2;font-size:11px;font-weight:850
+}
+.searchMultiItem{
+  display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;
+  align-items:center;gap:6px;padding:8px;
+  border:1px solid #e2e8ef;border-radius:12px;background:#fafcfe
+}
+.searchMultiNo{font-size:10px;font-weight:950;color:#8190a4;text-align:center}
+.searchMultiCode{min-width:0;font-size:13px;font-weight:950;color:#183c71;word-break:break-all}
+.searchMultiEdit,.searchMultiDel{
+  border:0;border-radius:9px;padding:7px 8px;font-size:10px;font-weight:950
+}
+.searchMultiEdit{background:#eaf3ff;color:#1769e0}
+.searchMultiDel{background:#fff0f0;color:#c92a2a}
+.searchMultiActions{
+  position:sticky;bottom:0;z-index:3;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-top:14px;padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.97);border-top:1px solid #edf0f4;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+.searchMultiBtn{
+  min-height:47px;border:0;border-radius:13px;font-size:13px;font-weight:1000
+}
+.searchMultiBtn.next{background:#eaf3ff;color:#1769e0}
+.searchMultiBtn.go{background:linear-gradient(135deg,#28b779,#159765);color:#fff}
+body.searchMultiOpen{overflow:hidden}
+@supports(height:100svh){
+  .searchMultiBox{max-height:min(86svh,calc(100svh - 24px))}
+}
+
 </style>
 
 
@@ -694,6 +779,11 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
+
+const __raySearchParams = new URLSearchParams(location.search);
+const initialMode = (__raySearchParams.get('mode') || '').trim();
+const initialMulti = (__raySearchParams.get('multi') || '').trim();
+
 const BUILTIN = [];
 let DATA = [];
 let mode = 'part';
@@ -1220,9 +1310,38 @@ if(initialMode==='multi'){
     $('#singleSearchPanel').style.display='none';
     SEARCH_MULTI_ITEMS=initialMulti?initialMulti.split(/\n+/).map(formatMultiPartToken).filter(Boolean):[];
   }
+}else if(initialMode==='location'){
+  const locationTab=document.querySelector('.tab[data-mode="location"]');
+  if(locationTab){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    locationTab.classList.add('active');
+    mode='location';
+    $('#singleSearchPanel').style.display='block';
+    $('#q').placeholder='위치 입력 (예: 3L2-3)';
+    $('#hint').textContent='예: 3L2-3을 입력하면 그 위치의 자재가 모두 표시됩니다.';
+  }
 }
 loadRemoteExcel();
 setTimeout(() => document.querySelector('#splash')?.classList.add('hide'), 1650);
+
+
+(function setupSearchMultiKeyboardSafety(){
+  const overlay=document.getElementById('searchMultiOverlay');
+  const box=overlay?.querySelector('.searchMultiBox');
+  const input=document.getElementById('searchMultiInput');
+  if(!overlay||!box||!input||!window.visualViewport)return;
+
+  const sync=()=>{
+    box.style.maxHeight=Math.max(320,window.visualViewport.height-20)+'px';
+  };
+  window.visualViewport.addEventListener('resize',sync);
+  window.visualViewport.addEventListener('scroll',sync);
+  input.addEventListener('focus',()=>{
+    sync();
+    setTimeout(()=>input.scrollIntoView({block:'center',behavior:'smooth'}),100);
+  });
+})();
+
 </script>
 
 

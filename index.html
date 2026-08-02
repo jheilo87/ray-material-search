@@ -315,6 +315,70 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   .mainMultiField{font-size:15px;padding:11px 12px}
 }
 
+
+
+/* 메인 화면 다중 품번 조회 결과 */
+.mainResults.multiMode .mainResultsHead strong{color:#16895b}
+.mainMultiResult{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  padding:13px 14px;
+  border-bottom:1px solid #edf0f4;
+  background:#fff;
+}
+.mainMultiResult:last-child{border-bottom:0}
+.mainMultiResultNo{
+  width:28px;height:28px;
+  display:grid;place-items:center;
+  border-radius:9px;
+  background:#eaf9f1;
+  color:#16895b;
+  font-size:11px;
+  font-weight:950;
+}
+.mainMultiResultInfo{min-width:0}
+.mainMultiResultCode{
+  color:#183c71;
+  font-size:15px;
+  font-weight:950;
+  word-break:break-all;
+}
+.mainMultiResultName{
+  margin-top:3px;
+  color:#667085;
+  font-size:12px;
+  line-height:1.4;
+  word-break:keep-all;
+}
+.mainMultiResultLoc{
+  white-space:nowrap;
+  border-radius:999px;
+  padding:7px 9px;
+  background:#f2efff;
+  color:#5b39d2;
+  font-size:12px;
+  font-weight:950;
+}
+.mainMultiResult.bad{background:#fff8f8}
+.mainMultiResult.bad .mainMultiResultNo{background:#fff0f0;color:#c92a2a}
+.mainMultiResult.bad .mainMultiResultCode{color:#c92a2a}
+.mainMultiResultStatus{
+  margin-top:3px;
+  color:#c92a2a;
+  font-size:11px;
+  font-weight:850;
+}
+.mainMultiResult.ambiguous{background:#fffaf0}
+.mainMultiResult.ambiguous .mainMultiResultNo{background:#fff2cf;color:#a96500}
+.mainMultiResult.ambiguous .mainMultiResultCode{color:#a96500}
+.mainMultiResult.ambiguous .mainMultiResultStatus{color:#a96500}
+@media(max-width:520px){
+  .mainMultiResult{grid-template-columns:30px minmax(0,1fr);align-items:start}
+  .mainMultiResultLoc{grid-column:2;margin-top:2px;justify-self:start}
+}
+
 </style>
 
 <style id="incoming-today-popup-style">
@@ -771,7 +835,7 @@ async function loadMainMaterial(){
     return {ok:false,count:0};
   }
 }
-function showMainResults(query){const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}const nq=mainNorm(q);const hits=MAIN_MATERIAL.filter(row=>mainNorm(row.code).includes(nq)||mainNorm(row.name).includes(nq));const shown=hits.slice(0,6);count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?q='+encodeURIComponent(q);more.style.display=hits.length?'block':'none';list.innerHTML=shown.length?shown.map(row=>`<a class="mainResult" href="search.html?q=${encodeURIComponent(row.code)}"><div><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></div><div class="mainResultLoc">📍 ${esc(row.location)}</div></a>`).join(''):`<div class="mainResultEmpty">검색되는 품번이나 품명이 없습니다.<br>다른 검색어로 다시 확인해 주세요.</div>`;box.classList.add('show');}
+function showMainResults(query){const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');box.classList.remove('multiMode');const head=box.querySelector('.mainResultsHead strong');if(head)head.textContent='검색 결과';const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}const nq=mainNorm(q);const hits=MAIN_MATERIAL.filter(row=>mainNorm(row.code).includes(nq)||mainNorm(row.name).includes(nq));const shown=hits.slice(0,6);count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?q='+encodeURIComponent(q);more.style.display=hits.length?'block':'none';list.innerHTML=shown.length?shown.map(row=>`<a class="mainResult" href="search.html?q=${encodeURIComponent(row.code)}"><div><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></div><div class="mainResultLoc">📍 ${esc(row.location)}</div></a>`).join(''):`<div class="mainResultEmpty">검색되는 품번이나 품명이 없습니다.<br>다른 검색어로 다시 확인해 주세요.</div>`;box.classList.add('show');}
 let MAIN_SEARCH_MULTI=false;
 let MAIN_MULTI_ITEMS=[];
 let MAIN_MULTI_EDIT=-1;
@@ -912,15 +976,100 @@ function nextMainMulti(){
     setTimeout(()=>document.getElementById('rsMultiInput').focus(),30);
   }
 }
+
+function findMainMultiMaterial(query,index){
+  const n=mainNorm(query);
+
+  const exact=MAIN_MATERIAL.filter(r=>mainNorm(r.code)===n);
+  if(exact.length){
+    return {index,query,status:'found',row:exact[0]};
+  }
+
+  const partial=MAIN_MATERIAL.filter(r=>mainNorm(r.code).includes(n));
+  if(partial.length===1){
+    return {index,query,status:'found',row:partial[0],partial:true};
+  }
+  if(partial.length>1){
+    return {index,query,status:'ambiguous',matches:partial.length};
+  }
+
+  return {index,query,status:'notfound'};
+}
+
+function showMainMultiResults(){
+  const box=document.getElementById('mainResults');
+  const list=document.getElementById('mainResultList');
+  const count=document.getElementById('mainResultsCount');
+  const more=document.getElementById('mainResultMore');
+  const head=box.querySelector('.mainResultsHead strong');
+
+  if(!MAIN_MATERIAL.length){
+    head.textContent='다중 품번 조회 결과';
+    count.textContent='';
+    list.innerHTML='<div class="mainResultEmpty">자재 DB를 아직 불러오는 중입니다.<br>잠시 후 다시 조회해 주세요.</div>';
+    more.style.display='none';
+    box.classList.add('show','multiMode');
+    box.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  const results=MAIN_MULTI_ITEMS.map((q,i)=>findMainMultiMaterial(q,i));
+  const found=results.filter(x=>x.status==='found').length;
+
+  head.textContent='다중 품번 조회 결과';
+  count.textContent=`${found}/${results.length}건`;
+  more.style.display='none';
+
+  list.innerHTML=results.map(item=>{
+    if(item.status==='found'){
+      return `
+        <div class="mainMultiResult">
+          <div class="mainMultiResultNo">${item.index+1}</div>
+          <div class="mainMultiResultInfo">
+            <div class="mainMultiResultCode">${esc(item.row.code)}</div>
+            <div class="mainMultiResultName">${esc(item.row.name||'품명 정보 없음')}</div>
+          </div>
+          <div class="mainMultiResultLoc">📍 ${esc(item.row.location||'N/A')}</div>
+        </div>`;
+    }
+
+    if(item.status==='ambiguous'){
+      return `
+        <div class="mainMultiResult ambiguous">
+          <div class="mainMultiResultNo">${item.index+1}</div>
+          <div class="mainMultiResultInfo">
+            <div class="mainMultiResultCode">${esc(item.query)}</div>
+            <div class="mainMultiResultStatus">${item.matches}건이 검색됩니다. 품번을 조금 더 입력해 주세요.</div>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="mainMultiResult bad">
+        <div class="mainMultiResultNo">${item.index+1}</div>
+        <div class="mainMultiResultInfo">
+          <div class="mainMultiResultCode">${esc(item.query)}</div>
+          <div class="mainMultiResultStatus">검색되는 품번이 없습니다.</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  box.classList.add('show','multiMode');
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 function runMainMultiSearch(){
   saveCurrentMainMulti();
   if(!MAIN_MULTI_ITEMS.length)return;
-  location.href='search.html?mode=multi&multi='+encodeURIComponent(MAIN_MULTI_ITEMS.join('\n'));
+
+  closeMainMultiPopup(false);
+  showMainMultiResults();
 }
 
 document.getElementById('rsSingleTab').addEventListener('click',()=>{
   MAIN_SEARCH_MULTI=false;
   setRsSearchTab('single');
+  document.getElementById('mainResults').classList.remove('multiMode');
   document.getElementById('mainQ').focus();
 });
 document.getElementById('rsMultiTab').addEventListener('click',openMainMultiPopup);
