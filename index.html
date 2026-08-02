@@ -1478,6 +1478,13 @@ window.addEventListener('storage',e=>{if(e.key===ADMIN_KEY)refreshAdminState();}
 window.addEventListener('pageshow',refreshAdminState);
 renderQuick();status();refreshAdminState();
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+  window.addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.register('./service-worker.js');
+      // 사용자에게 별도 알림을 띄우지 않고 새 버전을 조용히 확인합니다.
+      // 새 서비스워커가 준비되면 현재 작업을 방해하지 않고, 앱을 다음에 열 때 자연스럽게 적용됩니다.
+      await reg.update();
+    }catch{}
+  });
 }
 </script></body></html>
