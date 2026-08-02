@@ -247,11 +247,95 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   .dbDashValue{font-size:12px}
 }
 
+
+<style id="incoming-today-popup-style">
+.incomingTodayOverlay{
+  position:fixed;inset:0;z-index:9800;display:none;align-items:center;justify-content:center;
+  padding:20px;background:rgba(15,23,42,.48);backdrop-filter:blur(3px)
+}
+.incomingTodayOverlay.show{display:flex}
+.incomingTodayBox{
+  width:min(92vw,390px);background:#fff;border-radius:24px;padding:22px 20px 18px;
+  box-shadow:0 24px 70px rgba(15,23,42,.28);text-align:center
+}
+.incomingTodayIcon{
+  width:58px;height:58px;margin:0 auto 10px;display:grid;place-items:center;border-radius:18px;
+  background:#f1edff;color:#5b39d2;font-size:31px;font-weight:950
+}
+.incomingTodayTitle{font-size:21px;font-weight:1000;color:#1b2a44;letter-spacing:-.5px}
+.incomingTodayDate{margin-top:6px;color:#7a8495;font-size:12px;font-weight:850}
+.incomingTodayList{display:flex;flex-direction:column;gap:8px;margin-top:15px}
+.incomingTodayItem{
+  padding:12px 14px;border:1px solid #e4e0f8;border-radius:14px;
+  background:linear-gradient(180deg,#fbfaff,#f5f2ff);color:#4d39a8;font-size:15px;font-weight:950
+}
+.incomingTodayClose{
+  width:100%;min-height:48px;margin-top:17px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,#5b39d2,#7c3aed);color:#fff;font-size:15px;font-weight:950
+}
+</style>
+
+<style id="incoming-card-highlight-style">
+.calendar.hasIncoming{
+  border-color:#8a74e8!important;
+  background:linear-gradient(135deg,#ebe5ff 0%,#f7f4ff 100%)!important;
+  box-shadow:0 12px 0 rgba(85,50,199,.08),0 20px 34px rgba(85,50,199,.17)!important;
+}
+.calendar.hasIncoming::before{
+  background:#5b39d2!important;
+  width:6px!important;
+  box-shadow:2px 0 14px rgba(85,50,199,.28)!important;
+}
+.calendar.hasIncoming .ico{
+  color:#5b39d2!important;
+  transform:scale(1.05);
+}
+.calendar.hasIncoming h2{
+  color:#4f32c5!important;
+}
+.calendar.hasIncoming p{
+  margin-top:4px;
+  display:inline-block;
+  padding:7px 10px;
+  border-radius:11px;
+  background:#fff;
+  color:#4936a5!important;
+  font-weight:950!important;
+  box-shadow:0 4px 12px rgba(85,50,199,.09);
+}
+.calendar.hasIncoming .go{
+  background:#5b39d2!important;
+  color:#fff!important;
+  border-color:#5b39d2!important;
+  box-shadow:0 8px 20px rgba(85,50,199,.22)!important;
+}
+.calendar.hasIncoming::after{
+  content:"오늘 입고";
+  position:absolute;
+  top:13px;
+  right:14px;
+  width:auto;
+  height:auto;
+  inset:auto 14px auto auto;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#5b39d2;
+  color:#fff;
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:-.2px;
+  opacity:1;
+}
+@media(max-width:520px){
+  .calendar.hasIncoming::after{top:10px;right:11px;font-size:9px;padding:4px 7px}
+  .calendar.hasIncoming p{padding:6px 8px}
+}
+</style>
 </style></head><body><div class="v11Splash" id="v11Splash" aria-hidden="true"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div>
 <form class="search" id="mainSearch" action="search.html" method="get"><span class="searchIcon">⌕</span><input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search"></form><section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
 <a class="hero blue" href="search.html"><div class="bigIcon">⌑⌕</div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
 <a class="hero green" href="sn.html"><div class="bigIcon">▥</div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
-<a class="calendar" href="calendar.html"><div class="ico">▦</div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
+<a class="calendar" id="incomingCalendarCard" href="calendar.html"><div class="ico">▦</div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
 <section class="dbDashboard" aria-label="GitHub DB 연동 상태">
   <div class="dbDashHead">
     <div class="dbDashTitle">
@@ -275,6 +359,16 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   <div class="dbDashTime" id="dbSyncTime">마지막 확인 · 확인 중</div>
 </section>
 <div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><span>전체 보기 ›</span></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><span>전체 보기 ›</span></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><div class="foot">© RAY Corp. All rights reserved.</div></main></div>
+
+<div class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog" aria-modal="true" aria-labelledby="incomingTodayTitle">
+  <div class="incomingTodayBox">
+    <div class="incomingTodayIcon">▦</div>
+    <div class="incomingTodayTitle" id="incomingTodayTitle">오늘 입고가 있습니다</div>
+    <div class="incomingTodayDate" id="incomingTodayDate"></div>
+    <div class="incomingTodayList" id="incomingTodayList"></div>
+    <button class="incomingTodayClose" id="incomingTodayClose" type="button">확인</button>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
 (function(){
   const close=()=>{const el=document.getElementById('v11Splash');if(!el)return;el.classList.add('hide');setTimeout(()=>el.remove(),320)};
@@ -304,6 +398,31 @@ function incomingVendorDisplay(v){
 function koreanWeekday(date){
   return ['일','월','화','수','목','금','토'][date.getDay()];
 }
+
+function showIncomingTodayPopup(vendors, now){
+  if(!Array.isArray(vendors)||!vendors.length)return;
+
+  // 같은 날짜에는 한 번만 표시
+  const popupKey=`rayIncomingPopup_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  if(sessionStorage.getItem(popupKey)==='1')return;
+
+  const overlay=document.getElementById('incomingTodayOverlay');
+  const dateEl=document.getElementById('incomingTodayDate');
+  const listEl=document.getElementById('incomingTodayList');
+  if(!overlay||!dateEl||!listEl)return;
+
+  dateEl.textContent=`${now.getMonth()+1}월 ${now.getDate()}일(${koreanWeekday(now)})`;
+  listEl.innerHTML=vendors.map(v=>`<div class="incomingTodayItem">${esc(v)}</div>`).join('');
+  overlay.classList.add('show');
+  sessionStorage.setItem(popupKey,'1');
+}
+
+document.getElementById('incomingTodayClose')?.addEventListener('click',()=>{
+  document.getElementById('incomingTodayOverlay')?.classList.remove('show');
+});
+document.getElementById('incomingTodayOverlay')?.addEventListener('click',e=>{
+  if(e.target===e.currentTarget)e.currentTarget.classList.remove('show');
+});
 function renderQuick(){let rs=[],fs=[];try{rs=JSON.parse(localStorage.getItem('rayRecents')||'[]');fs=JSON.parse(localStorage.getItem('rayFavorites')||'[]')}catch(e){}document.getElementById('recent').innerHTML=rs.length?rs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x.q)}">${esc(x.q)}</a>`).join(''):'<span class="empty">검색 기록 없음</span>';document.getElementById('favorite').innerHTML=fs.length?fs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x)}">★ ${esc(x)}</a>`).join(''):'<span class="empty">즐겨찾기 없음</span>'}
 let MAIN_MATERIAL=[];
 const mainNorm=value=>String(value??'').toLowerCase().replace(/\s+/g,'').replace(/[-_.]/g,'');
@@ -360,6 +479,13 @@ async function loadCalendarDashboard(){
     document.getElementById('todayText').textContent=todayVendors.length
       ?`${dateLabel} ${todayVendors.join(' · ')}`
       :`${dateLabel} 입고 없습니다.`;
+
+    const calendarCard=document.getElementById('incomingCalendarCard');
+    calendarCard?.classList.toggle('hasIncoming',todayVendors.length>0);
+
+    if(todayVendors.length){
+      showIncomingTodayPopup(todayVendors,now);
+    }
     return {ok:true,count};
   }catch(error){
     return {ok:false,count:0};
