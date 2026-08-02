@@ -492,8 +492,14 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 <style id="dispatch-product-select-style">
 /* 추출 완료 후 출고 품목 선택 */
 .productSelectBox{
-  margin:0 0 9px;padding:11px 12px;border:1px solid #cfe7dc;border-radius:14px;
-  background:linear-gradient(180deg,#f8fffb,#f1fbf6)
+  margin:4px 0 0;padding:12px 12px;border:1px solid #cfe7dc;border-radius:14px;
+  background:linear-gradient(180deg,#f8fffb,#f1fbf6);
+  box-shadow:0 4px 12px rgba(25,120,82,.05)
+}
+.productSelectBox::before{
+  content:'S/N 확인 후 출고 품목을 선택하세요';
+  display:block;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #dceee5;
+  color:#6d7e76;font-size:10px;font-weight:850
 }
 .productSelectTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
 .productSelectTitle{font-size:12px;font-weight:1000;color:#226f52}
@@ -1313,6 +1319,22 @@ async function loadProductCatalog(){
 }
 
 function productKey(product){return product?`${product.partNo}||${product.name}`:''}
+function displayProductName(product){
+  if(!product)return '';
+  const original=String(product.name||'').trim();
+  const partNo=String(product.partNo||'').trim();
+  if(!original||!partNo)return original;
+
+  // 품명이 "품번 + 품명" 형태일 때 화면에서는 앞쪽 품번만 숨깁니다.
+  // 내부 데이터/Teams 품번 값은 그대로 유지합니다.
+  const escaped=partNo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const prefix=new RegExp(
+    `^\\s*(?:\\[|\\(|\\{)?${escaped}(?:\\]|\\)|\\})?\\s*(?:[-–—_:·/]|\\s)*`,
+    'i'
+  );
+  const cleaned=original.replace(prefix,'').trim();
+  return cleaned||original;
+}
 function findProductByKey(vendor,key){
   return (productCatalog[vendor]||[]).find(x=>productKey(x)===key)||null;
 }
@@ -1335,7 +1357,7 @@ function createProductSelector(vendor,codeCount){
     ...items.map(item=>{
       const key=productKey(item);
       const selected=picked&&productKey(picked)===key?' selected':'';
-      return `<option value="${key.replace(/"/g,'&quot;')}"${selected}>${item.name}</option>`;
+      return `<option value="${key.replace(/"/g,'&quot;')}"${selected}>${displayProductName(item)}</option>`;
     })
   ].join('');
 
@@ -1358,7 +1380,7 @@ function createProductSelector(vendor,codeCount){
       state.textContent='선택 완료';
       state.className='productSelectState ok';
       pickedBox.style.display='block';
-      pickedBox.textContent=p.name;
+      pickedBox.textContent=displayProductName(p);
     }else{
       state.textContent='Teams 공유 전 선택';
       state.className='productSelectState';
@@ -1376,7 +1398,7 @@ function createProductSelector(vendor,codeCount){
     saveSession();
     if(p){
       toast(`${p.partNo} 선택됨`);
-      setStatus(`${vendorLabel(vendor)} 출고 품목: ${p.name}`,'ok');
+      setStatus(`${vendorLabel(vendor)} 출고 품목: ${displayProductName(p)}`,'ok');
     }
   });
 
@@ -1426,8 +1448,6 @@ function render(){
       group.classList.toggle('collapsed');
     });
     const body=group.querySelector('.vendorGroupBody');
-    const productSelector=createProductSelector(vendor,codeCount);
-    if(productSelector)body.appendChild(productSelector);
     if(vendor==='Legacy'){
       const assign=document.createElement('div');
       assign.className='legacyVendorAssign';
@@ -1536,6 +1556,11 @@ function render(){
       }
       body.appendChild(row);
     });
+
+    // S/N 코드들을 먼저 보여준 뒤 출고 품목을 선택하도록 배치합니다.
+    const productSelector=createProductSelector(vendor,codeCount);
+    if(productSelector)body.appendChild(productSelector);
+
     list.appendChild(group);
   });
   saveSession();
@@ -1831,7 +1856,7 @@ function buildGroupedShareText(){
     const p=selectedProducts[vendor];
     if(p){
       lines.push(`품번 : ${p.partNo}`);
-      lines.push(`품명 : ${p.name}`);
+      lines.push(`품명 : ${displayProductName(p)}`);
     }
     lines.push('S/N');
     lines.push(...codes);
