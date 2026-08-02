@@ -835,6 +835,7 @@ let pendingDeletePhotoId=null;
 let nextPhotoId=1;
 let shareResetTimer=null;
 let shareResetRemaining=0;
+let shareResetDeadline=0;
 let shareResetPendingReturn=false;
 let currentInputMode='';
 let activeBatchId='';
@@ -1591,10 +1592,9 @@ function render(){
         <option value="Vieworks">Vieworks</option>
         <option value="i3system">i3System</option>
       </select>
-      <button type="button">선택 업체로 지정</button>
-      <div class="legacyVendorAssignHelp">이전 세션에서 유지된 코드를 선택한 업체로 지정합니다. 사진은 이전 세션 종료 후 보관되지 않아 연결할 수 없습니다.</div>`;
+      <div class="legacyVendorAssignHelp">업체를 선택하면 바로 적용됩니다. 사진은 이전 세션 종료 후 보관되지 않아 연결할 수 없습니다.</div>`;
       const select=assign.querySelector('select');
-      assign.querySelector('button').addEventListener('click',()=>assignLegacyVendor(select.value,entries));
+      select.addEventListener('change',()=>{ if(select.value) assignLegacyVendor(select.value,entries); });
       body.appendChild(assign);
     }
     if(vendor==='Unknown'){
@@ -1607,10 +1607,9 @@ function render(){
         <option value="Vieworks">Vieworks</option>
         <option value="i3system">i3System</option>
       </select>
-      <button type="button">선택 업체로 이동</button>
-      <div class="unknownVendorAssignHelp">현재 업체 미확인 그룹의 사진과 S/N을 선택한 업체 그룹으로 한꺼번에 이동합니다.</div>`;
+      <div class="unknownVendorAssignHelp">업체를 선택하면 바로 적용되어 해당 업체 그룹으로 이동합니다.</div>`;
       const select=assign.querySelector('select');
-      assign.querySelector('button').addEventListener('click',()=>assignUnknownVendor(select.value,entries));
+      select.addEventListener('change',()=>{ if(select.value) assignUnknownVendor(select.value,entries); });
       body.appendChild(assign);
     }
     entries.forEach(entry=>{
@@ -1792,10 +1791,11 @@ function clearAllSnData(message='목록이 초기화되었습니다. 새로운 �
 
 function cancelShareAutoReset(showMessage=true){
   if(shareResetTimer){
-    clearInterval(shareResetTimer);
+    clearTimeout(shareResetTimer);
     shareResetTimer=null;
   }
   shareResetRemaining=0;
+  shareResetDeadline=0;
   closeModal('shareResetModal');
   if(showMessage){
     toast('자동 초기화를 취소했습니다');
@@ -1806,26 +1806,36 @@ function cancelShareAutoReset(showMessage=true){
 function startShareAutoReset(){
   cancelShareAutoReset(false);
   shareResetRemaining=5;
+  shareResetDeadline=Date.now()+5000;
   $('shareResetCount').textContent='5';
   $('shareResetSeconds').textContent='5초';
   $('shareResetSummary').textContent=`총 ${results.length}개의 S/N · 촬영 사진 ${photoItems.length}장`;
   openModal('shareResetModal');
   if(navigator.vibrate)navigator.vibrate(80);
 
-  shareResetTimer=setInterval(()=>{
-    shareResetRemaining--;
-    if(shareResetRemaining<=0){
-      clearInterval(shareResetTimer);
+  const tick=()=>{
+    if(!shareResetDeadline)return;
+    const msLeft=shareResetDeadline-Date.now();
+    const next=Math.max(0,Math.ceil(msLeft/1000));
+    shareResetRemaining=next;
+
+    if(next<=0){
+      if(shareResetTimer)clearTimeout(shareResetTimer);
       shareResetTimer=null;
+      shareResetDeadline=0;
       closeModal('shareResetModal');
       clearAllSnData('목록이 자동으로 초기화되었습니다. 새로운 촬영을 시작하세요.');
       toast('목록이 초기화되었습니다');
       if(navigator.vibrate)navigator.vibrate([70,50,70]);
       return;
     }
-    $('shareResetCount').textContent=String(shareResetRemaining);
-    $('shareResetSeconds').textContent=`${shareResetRemaining}초`;
-  },1000);
+
+    $('shareResetCount').textContent=String(next);
+    $('shareResetSeconds').textContent=`${next}초`;
+    shareResetTimer=setTimeout(tick,200);
+  };
+
+  shareResetTimer=setTimeout(tick,200);
 }
 
 function queueShareResetForReturn(){
@@ -2387,10 +2397,21 @@ window.addEventListener('pagehide',()=>{
   // 모바일에서 앨범/카메라/공유 화면으로 잠시 이동할 때도 pagehide가 발생할 수 있습니다.
   // 이때 미리보기용 Blob URL을 해제하면 돌아왔을 때 일부 썸네일이 깨질 수 있으므로
   // 여기서는 카메라 스트림과 타이머만 정리하고, 사진 URL은 목록 삭제/초기화 시에만 해제합니다.
-  if(shareResetTimer)clearInterval(shareResetTimer);
+  // 공유 완료 카운트다운은 실제 시간(deadline) 기준으로 동작하므로
+  // pagehide에서 강제로 중지하지 않습니다. 돌아왔을 때 남은 시간에 맞춰 계속 진행됩니다.
   stopCamera();
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&stream)stopCamera()});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&stream)stopCamera();
+  if(!document.hidden && shareResetDeadline){
+    const next=Math.max(0,Math.ceil((shareResetDeadline-Date.now())/1000));
+    if(next>0){
+      shareResetRemaining=next;
+      $('shareResetCount').textContent=String(next);
+      $('shareResetSeconds').textContent=`${next}초`;
+    }
+  }
+});
 loadSession();
 loadProductCatalog();
 })();
@@ -2421,7 +2442,7 @@ updateActionReadyStates();
 </html>
 
 <style id="raysmart-new-mode-button-design">
-/* ===== RaySmart 촬영/앨범 완전 신규 버튼 디자인 ===== */
+/* ===== RaySmart 촬영/앨범 버튼: 비활성 흰색 / 선택한 방식만 컬러 ===== */
 .modeBtns{
   gap:12px!important;
   align-items:stretch!important;
@@ -2430,7 +2451,6 @@ updateActionReadyStates();
   position:relative!important;
   min-height:92px!important;
   padding:14px 12px 13px!important;
-  border:0!important;
   border-radius:20px!important;
   display:flex!important;
   flex-direction:column!important;
@@ -2438,10 +2458,9 @@ updateActionReadyStates();
   justify-content:center!important;
   gap:7px!important;
   overflow:hidden!important;
-  color:#fff!important;
   cursor:pointer!important;
   transform:translateY(0)!important;
-  transition:transform .13s ease, box-shadow .13s ease, filter .13s ease!important;
+  transition:transform .13s ease,box-shadow .13s ease,filter .13s ease,background .16s ease,color .16s ease!important;
   -webkit-tap-highlight-color:transparent!important;
 }
 .modeBtn::before{
@@ -2450,7 +2469,7 @@ updateActionReadyStates();
   inset:1px 1px auto 1px;
   height:46%;
   border-radius:19px 19px 48% 48%;
-  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));
+  background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0));
   pointer-events:none;
 }
 .modeBtn::after{
@@ -2462,32 +2481,57 @@ updateActionReadyStates();
   font-size:24px;
   line-height:1;
   font-weight:900;
-  color:rgba(255,255,255,.72);
 }
 .cameraBtn,
 .cameraBtn.ready{
-  background:linear-gradient(145deg,#27b77b,#138d5d)!important;
-  color:#fff!important;
-  border:0!important;
-  box-shadow:0 7px 0 #0d7049,0 12px 20px rgba(20,120,79,.22)!important;
+  background:#fff!important;
+  color:#159765!important;
+  border:2px solid #46bd8b!important;
+  box-shadow:0 7px 0 #d7f0e5,0 11px 18px rgba(20,120,79,.10)!important;
 }
 .galleryBtn{
+  background:#fff!important;
+  color:#168396!important;
+  border:2px solid #4bb7c4!important;
+  box-shadow:0 7px 0 #d7eef1,0 11px 18px rgba(22,114,131,.10)!important;
+}
+.cameraBtn::after{color:#159765!important}
+.galleryBtn::after{color:#168396!important}
+
+.cameraBtn.activeMode,
+.cameraBtn.ready.activeMode{
+  background:linear-gradient(145deg,#27b77b,#138d5d)!important;
+  color:#fff!important;
+  border-color:#138d5d!important;
+  box-shadow:0 7px 0 #0d7049,0 12px 20px rgba(20,120,79,.22)!important;
+}
+.galleryBtn.activeMode{
   background:linear-gradient(145deg,#26a9b9,#168396)!important;
   color:#fff!important;
-  border:0!important;
+  border-color:#168396!important;
   box-shadow:0 7px 0 #0e6978,0 12px 20px rgba(22,114,131,.22)!important;
 }
+.modeBtn.activeMode::after{color:rgba(255,255,255,.78)!important}
+
 .modeBtn:active{
   transform:translateY(5px)!important;
   filter:brightness(.98)!important;
 }
 .cameraBtn:active,
 .cameraBtn.ready:active{
-  box-shadow:0 2px 0 #0d7049,0 6px 12px rgba(20,120,79,.18)!important;
+  box-shadow:0 2px 0 #c7e8d9,0 6px 12px rgba(20,120,79,.10)!important;
 }
 .galleryBtn:active{
+  box-shadow:0 2px 0 #c7e6ea,0 6px 12px rgba(22,114,131,.10)!important;
+}
+.cameraBtn.activeMode:active,
+.cameraBtn.ready.activeMode:active{
+  box-shadow:0 2px 0 #0d7049,0 6px 12px rgba(20,120,79,.18)!important;
+}
+.galleryBtn.activeMode:active{
   box-shadow:0 2px 0 #0e6978,0 6px 12px rgba(22,114,131,.18)!important;
 }
+
 .modeIcon{
   position:relative!important;
   z-index:1!important;
@@ -2495,10 +2539,9 @@ updateActionReadyStates();
   height:36px!important;
   display:grid!important;
   place-items:center!important;
-  color:#fff!important;
   flex:0 0 auto!important;
 }
-.modeIcon svg{width:36px!important;height:36px!important;color:#fff!important}
+.modeIcon svg{width:36px!important;height:36px!important;color:currentColor!important}
 .modeCopy{
   position:relative!important;
   z-index:1!important;
@@ -2512,7 +2555,7 @@ updateActionReadyStates();
   padding:0 10px 0 2px!important;
 }
 .modeCopy strong{
-  color:#fff!important;
+  color:currentColor!important;
   font-size:14px!important;
   font-weight:1000!important;
   letter-spacing:-.55px!important;
@@ -2520,18 +2563,16 @@ updateActionReadyStates();
 }
 .modeCopy small,
 .cameraBtn .modeCopy small,
-.galleryBtn .modeCopy small,
-.modeBtn.activeMode .modeCopy small{
+.galleryBtn .modeCopy small{
   margin-top:5px!important;
-  color:rgba(255,255,255,.88)!important;
+  color:#667487!important;
   font-size:9.5px!important;
   font-weight:800!important;
   white-space:nowrap!important;
 }
-/* 선택 후에도 버튼 본래 색은 유지하고, 체크 배지로만 현재 방식을 표시 */
+.modeBtn.activeMode .modeCopy small{color:rgba(255,255,255,.88)!important}
+
 .modeBtn.activeMode{
-  color:#fff!important;
-  border:0!important;
   outline:3px solid rgba(255,255,255,.96)!important;
   outline-offset:-6px!important;
 }
@@ -2552,6 +2593,7 @@ updateActionReadyStates();
   box-shadow:0 2px 7px rgba(0,0,0,.16);
 }
 .galleryBtn.activeMode .modeIcon::after{color:#167f91}
+
 @media(max-width:430px){
   .modeBtn{min-height:88px!important;padding:12px 8px!important}
   .modeIcon,.modeIcon svg{width:34px!important;height:34px!important}
