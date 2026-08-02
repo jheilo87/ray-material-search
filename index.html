@@ -1190,24 +1190,57 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
   showMainResults(q);
 });
 
-/* iOS / Android 키보드 대응 */
+/* iOS / Android 키보드 대응: 다중 품번 팝업을 키보드 위의 실제 보이는 영역에 맞춤 */
 (()=>{
+  const overlay=document.getElementById('rsMultiOverlay');
   const box=document.querySelector('.rsMultiBox');
   const input=document.getElementById('rsMultiInput');
-  if(!box||!input||!window.visualViewport)return;
+  if(!overlay||!box||!input||!window.visualViewport)return;
 
+  const vv=window.visualViewport;
   const sync=()=>{
-    box.style.maxHeight=Math.max(320,visualViewport.height-20)+'px';
+    const h=Math.max(280, vv.height);
+    overlay.style.top=vv.offsetTop+'px';
+    overlay.style.left=vv.offsetLeft+'px';
+    overlay.style.width=vv.width+'px';
+    overlay.style.height=h+'px';
+    overlay.style.right='auto';
+    overlay.style.bottom='auto';
+    overlay.style.padding='10px 14px';
+    overlay.style.alignItems='center';
+    box.style.maxHeight=Math.max(260,h-20)+'px';
   };
-  visualViewport.addEventListener('resize',sync);
-  visualViewport.addEventListener('scroll',sync);
+
+  const reset=()=>{
+    overlay.style.top='';
+    overlay.style.left='';
+    overlay.style.width='';
+    overlay.style.height='';
+    overlay.style.right='';
+    overlay.style.bottom='';
+    overlay.style.padding='';
+    overlay.style.alignItems='';
+    box.style.maxHeight='';
+  };
+
+  vv.addEventListener('resize',sync);
+  vv.addEventListener('scroll',sync);
+  window.addEventListener('orientationchange',()=>setTimeout(sync,120));
 
   input.addEventListener('focus',()=>{
     sync();
     setTimeout(()=>{
-      input.scrollIntoView({block:'center',behavior:'smooth'});
-    },100);
+      sync();
+      input.scrollIntoView({block:'nearest',behavior:'smooth'});
+    },80);
   });
+
+  input.addEventListener('blur',()=>setTimeout(()=>{
+    if(!document.getElementById('rsMultiOverlay')?.classList.contains('show')) reset();
+    else sync();
+  },120));
+
+  document.getElementById('rsMultiClose')?.addEventListener('click',reset);
 })();
 
 function setDbRow(id,valueId,state,text){
