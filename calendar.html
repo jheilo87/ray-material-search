@@ -53,6 +53,70 @@
 .vacationSavedText{min-width:0;color:#17627a;font-size:11px;font-weight:900;line-height:1.45}
 .vacationDeleteBtn{border:0;border-radius:9px;padding:8px 10px;background:#fff0f0;color:#c92a2a;font-size:10px;font-weight:950}
 .vacationEmpty{padding:10px;text-align:center;color:#8592a3;font-size:10.5px;font-weight:800}
+.dateDetailOverlay{
+  position:fixed;inset:0;z-index:1600;display:none;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(15,23,42,.50);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.dateDetailOverlay.show{display:flex}
+.dateDetailCard{
+  width:min(420px,92vw);
+  max-height:78dvh;
+  overflow:hidden;
+  background:#fff;
+  border-radius:24px;
+  border:1px solid #e5eaf2;
+  box-shadow:0 28px 80px rgba(15,23,42,.28);
+  animation:dateDetailIn .18s ease-out;
+}
+@keyframes dateDetailIn{
+  from{opacity:0;transform:translateY(12px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.dateDetailHead{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:18px 18px 14px;border-bottom:1px solid #edf1f6;
+  background:linear-gradient(180deg,#faf8ff,#fff);
+}
+.dateDetailTitle{font-size:19px;font-weight:1000;letter-spacing:-.4px;color:#172b4d}
+.dateDetailSub{margin-top:4px;font-size:11px;font-weight:850;color:#7a879d}
+.dateDetailClose{
+  flex:none;width:38px;height:38px;border:0;border-radius:50%;
+  background:#f1edff;color:#6d28d9;font-size:22px;font-weight:900;line-height:1;
+}
+.dateDetailBody{
+  padding:15px 16px 17px;overflow-y:auto;max-height:calc(78dvh - 84px);
+}
+.dateDetailSection{margin-bottom:11px}
+.dateDetailLabel{
+  margin:0 0 7px 2px;font-size:10.5px;font-weight:950;color:#7b8798;
+}
+.dateDetailItem{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 12px;margin-top:7px;border-radius:14px;
+  border:1px solid #e7edf5;background:#fbfdff;
+}
+.dateDetailIcon{
+  flex:none;width:30px;height:30px;display:grid;place-items:center;
+  border-radius:10px;background:#f3efff;font-size:17px;
+}
+.dateDetailText{min-width:0;flex:1}
+.dateDetailMain{font-size:13px;font-weight:950;color:#1f3557;line-height:1.35}
+.dateDetailMinor{margin-top:3px;font-size:10.5px;font-weight:800;color:#7b8798;line-height:1.4}
+.dateDetailItem.holidayItem{background:#fff7f7;border-color:#ffd7d7}
+.dateDetailItem.holidayItem .dateDetailIcon{background:#ffe9e9}
+.dateDetailItem.vacationItem{background:#f1fbff;border-color:#ccecf6}
+.dateDetailItem.vacationItem .dateDetailIcon{background:#ddf5fb}
+.dateDetailItem.vendor0{background:#f1fbf5;border-color:#d8efe1}
+.dateDetailItem.vendor1{background:#f3f8ff;border-color:#dce9fb}
+.dateDetailItem.vendor2{background:#fff9ef;border-color:#f8e9c9}
+.dateDetailItem.vendor3{background:#faf5ff;border-color:#eadcff}
+.dateDetailEmpty{
+  padding:26px 12px;text-align:center;color:#8a96a8;font-size:12px;font-weight:850;
+}
+
 
 .weekNo{position:absolute;left:2px;bottom:2px;z-index:2;padding:2px 4px;border-radius:5px;background:#eef2ff;color:#6366f1;font-size:6.5px;font-weight:950;line-height:1;pointer-events:none}
 .day.weekStart{padding-bottom:17px}
@@ -368,6 +432,18 @@ body.adminModalOpen{overflow:hidden}
     </div>
   </div>
 </section></div><div class="modal" id="modal"><div class="sheet"><div class="sheetHead"><div class="sheetTitle" id="sheetTitle"></div><button class="close" id="close">닫기</button></div><div class="list" id="list"></div></div></div>
+<div class="dateDetailOverlay" id="dateDetailOverlay" aria-hidden="true">
+  <div class="dateDetailCard" role="dialog" aria-modal="true" aria-labelledby="dateDetailTitle">
+    <div class="dateDetailHead">
+      <div>
+        <div class="dateDetailTitle" id="dateDetailTitle">날짜 상세</div>
+        <div class="dateDetailSub" id="dateDetailSub"></div>
+      </div>
+      <button class="dateDetailClose" id="dateDetailClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="dateDetailBody" id="dateDetailBody"></div>
+  </div>
+</div>
 <div class="appDialog" id="appDialog" role="dialog" aria-modal="true">
   <div class="appDialogBox">
     <div class="appDialogIcon" id="appDialogIcon">✅</div>
@@ -736,14 +812,62 @@ function renderFilters(){
   document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{filter=b.dataset.v;render()});
 }
 function openDay(k){
+  const d=parse(k);
+  if(!d)return;
+
   const arr=events.filter(e=>key(e.date)===k&&(filter==='전체'||e.vendor===filter));
-  $('sheetTitle').textContent=k;
-  $('list').innerHTML=arr.length?arr.map(e=>`<div class="row"><div><div class="vendor">${vendorDisplay(e.vendor)}</div><small>${e.done?'입고 완료':'입고 예정'}</small></div><button class="toggle ${e.done?'on':''}" data-id="${e.id}">${e.done?'완료':'완료 처리'}</button></div>`).join(''):'<div class="empty">등록된 일정이 없습니다.</div>';
-  $('modal').classList.add('show');
-  document.querySelectorAll('.toggle').forEach(b=>b.onclick=()=>{
-    const e=events.find(x=>x.id===b.dataset.id);
-    e.done=!e.done;openDay(k);render();
+  const holiday=holidayName(d);
+  const vacation=companyVacationName(d);
+  const weekday=['일','월','화','수','목','금','토'][d.getDay()];
+
+  $('dateDetailTitle').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${weekday})`;
+  $('dateDetailSub').textContent=arr.length
+    ? `입고 일정 ${arr.length}건`
+    : (holiday||vacation ? '휴일 정보' : '등록된 입고 일정 없음');
+
+  const blocks=[];
+
+  if(holiday){
+    blocks.push(`
+      <div class="dateDetailItem holidayItem">
+        <div class="dateDetailIcon">🇰🇷</div>
+        <div class="dateDetailText">
+          <div class="dateDetailMain">${esc(holiday)}</div>
+          <div class="dateDetailMinor">대한민국 공휴일</div>
+        </div>
+      </div>`);
+  }
+
+  if(vacation){
+    blocks.push(`
+      <div class="dateDetailItem vacationItem">
+        <div class="dateDetailIcon">🏖</div>
+        <div class="dateDetailText">
+          <div class="dateDetailMain">${esc(vacation)}</div>
+          <div class="dateDetailMinor">회사 휴가</div>
+        </div>
+      </div>`);
+  }
+
+  arr.forEach(e=>{
+    const vi=Math.max(0,vendors.indexOf(e.vendor))%4;
+    blocks.push(`
+      <div class="dateDetailItem vendor${vi}">
+        <div class="dateDetailIcon">📦</div>
+        <div class="dateDetailText">
+          <div class="dateDetailMain">${esc(vendorDisplay(e.vendor))}</div>
+          <div class="dateDetailMinor">${e.done?'입고 완료':'입고 예정'}</div>
+        </div>
+      </div>`);
   });
+
+  $('dateDetailBody').innerHTML=blocks.length
+    ? blocks.join('')
+    : '<div class="dateDetailEmpty">이 날짜에는 등록된 일정이 없습니다.</div>';
+
+  $('dateDetailOverlay').classList.add('show');
+  $('dateDetailOverlay').setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
 }
 
 function targetYM(){
@@ -974,6 +1098,14 @@ $('purchaseFiles').onchange=async e=>{
   e.target.value='';
 };
 
+function closeDateDetail(){
+  $('dateDetailOverlay').classList.remove('show');
+  $('dateDetailOverlay').setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+$('dateDetailClose').onclick=closeDateDetail;
+$('dateDetailOverlay').onclick=e=>{if(e.target===$('dateDetailOverlay'))closeDateDetail()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('dateDetailOverlay').classList.contains('show'))closeDateDetail()});
 $('close').onclick=()=>$('modal').classList.remove('show');
 $('modal').onclick=e=>{if(e.target===$('modal'))$('modal').classList.remove('show')};
 $('prev').onclick=()=>{view.setMonth(view.getMonth()-1);render()};
