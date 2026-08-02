@@ -2419,3 +2419,143 @@ updateActionReadyStates();
 
 </body>
 </html>
+
+<style id="raysmart-new-mode-button-design">
+/* ===== RaySmart 촬영/앨범 완전 신규 버튼 디자인 ===== */
+.modeBtns{
+  gap:12px!important;
+  align-items:stretch!important;
+}
+.modeBtn{
+  position:relative!important;
+  min-height:92px!important;
+  padding:14px 12px 13px!important;
+  border:0!important;
+  border-radius:20px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  overflow:hidden!important;
+  color:#fff!important;
+  cursor:pointer!important;
+  transform:translateY(0)!important;
+  transition:transform .13s ease, box-shadow .13s ease, filter .13s ease!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.modeBtn::before{
+  content:"";
+  position:absolute;
+  inset:1px 1px auto 1px;
+  height:46%;
+  border-radius:19px 19px 48% 48%;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));
+  pointer-events:none;
+}
+.modeBtn::after{
+  content:"›";
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:24px;
+  line-height:1;
+  font-weight:900;
+  color:rgba(255,255,255,.72);
+}
+.cameraBtn,
+.cameraBtn.ready{
+  background:linear-gradient(145deg,#27b77b,#138d5d)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 7px 0 #0d7049,0 12px 20px rgba(20,120,79,.22)!important;
+}
+.galleryBtn{
+  background:linear-gradient(145deg,#26a9b9,#168396)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 7px 0 #0e6978,0 12px 20px rgba(22,114,131,.22)!important;
+}
+.modeBtn:active{
+  transform:translateY(5px)!important;
+  filter:brightness(.98)!important;
+}
+.cameraBtn:active,
+.cameraBtn.ready:active{
+  box-shadow:0 2px 0 #0d7049,0 6px 12px rgba(20,120,79,.18)!important;
+}
+.galleryBtn:active{
+  box-shadow:0 2px 0 #0e6978,0 6px 12px rgba(22,114,131,.18)!important;
+}
+.modeIcon{
+  position:relative!important;
+  z-index:1!important;
+  width:36px!important;
+  height:36px!important;
+  display:grid!important;
+  place-items:center!important;
+  color:#fff!important;
+  flex:0 0 auto!important;
+}
+.modeIcon svg{width:36px!important;height:36px!important;color:#fff!important}
+.modeCopy{
+  position:relative!important;
+  z-index:1!important;
+  width:100%!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  text-align:center!important;
+  line-height:1.15!important;
+  padding:0 10px 0 2px!important;
+}
+.modeCopy strong{
+  color:#fff!important;
+  font-size:14px!important;
+  font-weight:1000!important;
+  letter-spacing:-.55px!important;
+  white-space:nowrap!important;
+}
+.modeCopy small,
+.cameraBtn .modeCopy small,
+.galleryBtn .modeCopy small,
+.modeBtn.activeMode .modeCopy small{
+  margin-top:5px!important;
+  color:rgba(255,255,255,.88)!important;
+  font-size:9.5px!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+}
+/* 선택 후에도 버튼 본래 색은 유지하고, 체크 배지로만 현재 방식을 표시 */
+.modeBtn.activeMode{
+  color:#fff!important;
+  border:0!important;
+  outline:3px solid rgba(255,255,255,.96)!important;
+  outline-offset:-6px!important;
+}
+.modeBtn.activeMode .modeIcon::after{
+  content:"✓";
+  position:absolute;
+  right:-13px;
+  top:-10px;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:#168e60;
+  font-size:13px;
+  font-weight:1000;
+  box-shadow:0 2px 7px rgba(0,0,0,.16);
+}
+.galleryBtn.activeMode .modeIcon::after{color:#167f91}
+@media(max-width:430px){
+  .modeBtn{min-height:88px!important;padding:12px 8px!important}
+  .modeIcon,.modeIcon svg{width:34px!important;height:34px!important}
+  .modeCopy strong{font-size:13.5px!important}
+  .modeCopy small{font-size:9px!important}
+}
+</style>
