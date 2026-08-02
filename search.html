@@ -481,7 +481,7 @@ RA-10B-0031"></textarea>
         <button class="multiSearchBtn" id="multiGo" type="button" disabled>여러 품번 한번에 조회</button>
         <button class="multiClearBtn" id="multiClear" type="button">초기화</button>
       </div>
-      <div class="multiGuide">여러 품번을 줄바꿈·쉼표로 입력할 수 있습니다. 결과는 <b>입력순</b> 또는 <b>위치순</b>으로 정렬할 수 있으며 재고수량은 표시하지 않습니다.</div>
+      <div class="multiGuide">여러 품번을 줄바꿈·쉼표로 입력할 수 있습니다. 소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 하이픈도 자동으로 맞춰집니다. 결과는 <b>입력순</b> 또는 <b>위치순</b>으로 정렬할 수 있으며 재고수량은 표시하지 않습니다.</div>
     </div>
   </section>
   <section class="toolGrid" aria-label="기능 선택">
@@ -777,6 +777,43 @@ function addRecent(q){
   RECENTS.unshift({q,mode}); RECENTS=RECENTS.slice(0,10); saveQuick(); drawQuick();
 }
 
+
+function formatMultiPartToken(raw){
+  const upper=String(raw||'').toUpperCase();
+  const compact=norm(upper);
+  if(!compact)return '';
+
+  // DB에 같은 품번이 있으면 실제 DB 표기(하이픈 포함)를 그대로 사용합니다.
+  const exact=DATA.find(r=>norm(r.code)===compact);
+  if(exact)return String(exact.code||'').toUpperCase();
+
+  // 아직 입력 중이거나 DB에서 정확히 못 찾은 값은 대문자만 유지합니다.
+  return upper.replace(/\s+/g,'').replace(/_+/g,'-');
+}
+
+function formatMultiInputValue(raw){
+  return String(raw||'').split(/(\r?\n|,|;|\t)/).map(part=>{
+    if(/^(?:\r?\n|,|;|\t)$/.test(part))return part;
+    return formatMultiPartToken(part);
+  }).join('');
+}
+
+function applyMultiInputFormatting(){
+  const el=$('#multiQ');
+  if(!el)return;
+  const before=el.value;
+  const start=el.selectionStart;
+  const formatted=formatMultiInputValue(before);
+  if(formatted===before)return;
+  el.value=formatted;
+  // 자동 하이픈 삽입으로 커서가 튀는 현상을 최소화합니다.
+  try{
+    const delta=formatted.length-before.length;
+    const pos=Math.max(0,(start??formatted.length)+delta);
+    el.setSelectionRange(pos,pos);
+  }catch(e){}
+}
+
 function parseMultiQueries(raw){
   const parts=String(raw||'')
     .split(/[\n\r,;,\t]+/)
@@ -878,6 +915,7 @@ function renderMultiResults(){
 
 function multiSearch(){
   if(!DATA.length){showToast('자재 DB를 먼저 불러와 주세요.');return;}
+  applyMultiInputFormatting();
   const parsed=parseMultiQueries($('#multiQ').value);
   if(!parsed.queries.length){showToast('조회할 품번을 입력해 주세요.');return;}
 
@@ -931,6 +969,12 @@ $('#multiClear').addEventListener('click',()=>{
   MULTI_RESULTS=[];
   closeResultModal();
   setTimeout(()=>$('#multiQ')?.focus(),50);
+});
+$('#multiQ').addEventListener('input',()=>{
+  applyMultiInputFormatting();
+});
+$('#multiQ').addEventListener('paste',()=>{
+  setTimeout(applyMultiInputFormatting,0);
 });
 $('#multiQ').addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey) && e.key==='Enter') multiSearch();
