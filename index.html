@@ -280,6 +280,41 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   .search textarea{font-size:16px}
 }
 
+
+.mainMultiWrap{display:none}
+.mainMultiWrap.show{display:block}
+.mainMultiRows{
+  margin-top:8px;border:1px solid #e0e6ee;border-radius:18px;background:#fff;
+  overflow:hidden;box-shadow:0 7px 20px rgba(34,58,88,.05)
+}
+.mainMultiRow{
+  display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;
+  min-height:48px;border-bottom:1px solid #edf1f5
+}
+.mainMultiRow:last-child{border-bottom:0}
+.mainMultiNo{
+  text-align:center;color:#8190a4;font-size:12px;font-weight:950;
+  border-right:1px solid #edf1f5
+}
+.mainMultiField{
+  width:100%;border:0;outline:0;padding:12px 13px;background:transparent;
+  color:#26364f;font-size:16px;text-transform:uppercase
+}
+.mainMultiAdd{
+  width:100%;min-height:42px;margin-top:8px;border:1px dashed #c9d6e6;
+  border-radius:13px;background:#f8fafc;color:#5f6f84;font-size:12px;font-weight:900
+}
+.mainMultiSearchBtn{
+  width:100%;min-height:50px;margin-top:10px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,#0aa3df,#168fd0);color:#fff;
+  font-size:15px;font-weight:1000;box-shadow:0 7px 18px rgba(0,143,207,.18)
+}
+.mainMultiSearchBtn:active{transform:translateY(1px)}
+@media(max-width:520px){
+  .mainMultiRow{min-height:46px}
+  .mainMultiField{font-size:15px;padding:11px 12px}
+}
+
 </style>
 
 <style id="incoming-today-popup-style">
@@ -392,6 +427,11 @@ body.incomingPopupOpen{overflow:hidden}
   <button class="mainSearchTab" id="mainMultiTab" type="button" role="tab" aria-selected="false">다중 품번 조회</button>
 </div>
 <div class="mainSearchHint" id="mainSearchHint">품번 또는 품명을 검색하세요.</div>
+<div class="mainMultiWrap" id="mainMultiWrap">
+  <div class="mainMultiRows" id="mainMultiRows"></div>
+  <button class="mainMultiAdd" id="mainMultiAdd" type="button">＋ 품번 한 줄 추가</button>
+  <button class="mainMultiSearchBtn" id="mainMultiSearchBtn" type="button">다중 품번 조회</button>
+</div>
 <section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
 <a class="hero blue" href="search.html"><div class="bigIcon">⌑⌕</div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
 <a class="hero green" href="sn.html"><div class="bigIcon">▥</div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
@@ -527,7 +567,7 @@ let MAIN_SEARCH_MULTI=false;
 function mainUpper(value){
   return String(value||'').toUpperCase();
 }
-function bindMainInput(){
+function bindMainSingleInput(){
   const input=document.getElementById('mainQ');
   if(!input)return;
   input.addEventListener('input',e=>{
@@ -540,73 +580,102 @@ function bindMainInput(){
     if(!e.target.value.trim())document.getElementById('mainResults').classList.remove('show');
   });
 }
+function addMainMultiRow(value=''){
+  const rows=document.getElementById('mainMultiRows');
+  const row=document.createElement('div');
+  row.className='mainMultiRow';
+  row.innerHTML=`<div class="mainMultiNo"></div><input class="mainMultiField" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 입력">`;
+  const input=row.querySelector('input');
+  input.value=mainUpper(value);
+  input.addEventListener('input',()=>{
+    const pos=input.selectionStart;
+    input.value=mainUpper(input.value);
+    try{input.setSelectionRange(pos,pos)}catch{}
+  });
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const all=[...document.querySelectorAll('.mainMultiField')];
+      const idx=all.indexOf(input);
+      if(idx===all.length-1 && input.value.trim()){
+        addMainMultiRow('');
+        setTimeout(()=>document.querySelectorAll('.mainMultiField')[idx+1]?.focus(),0);
+      }else{
+        all[idx+1]?.focus();
+      }
+    }
+  });
+  rows.appendChild(row);
+  renumberMainMultiRows();
+}
+function renumberMainMultiRows(){
+  document.querySelectorAll('.mainMultiRow').forEach((row,i)=>{
+    row.querySelector('.mainMultiNo').textContent=(i+1)+'.';
+  });
+}
+function ensureMainMultiRows(){
+  const rows=document.getElementById('mainMultiRows');
+  if(!rows.children.length){
+    addMainMultiRow('');
+    addMainMultiRow('');
+    addMainMultiRow('');
+  }
+}
 function setMainSearchMode(multi){
   MAIN_SEARCH_MULTI=!!multi;
   const form=document.getElementById('mainSearch');
-  const oldInput=document.getElementById('mainQ');
   const singleTab=document.getElementById('mainSingleTab');
   const multiTab=document.getElementById('mainMultiTab');
   const hint=document.getElementById('mainSearchHint');
+  const multiWrap=document.getElementById('mainMultiWrap');
 
   singleTab.classList.toggle('active',!MAIN_SEARCH_MULTI);
   multiTab.classList.toggle('active',MAIN_SEARCH_MULTI);
   singleTab.setAttribute('aria-selected',String(!MAIN_SEARCH_MULTI));
   multiTab.setAttribute('aria-selected',String(MAIN_SEARCH_MULTI));
 
-  const current=oldInput?.value||'';
-  let replacement;
+  form.style.display=MAIN_SEARCH_MULTI?'none':'grid';
+  multiWrap.classList.toggle('show',MAIN_SEARCH_MULTI);
+  hint.textContent=MAIN_SEARCH_MULTI
+    ?'품번을 한 줄에 하나씩 입력한 뒤 아래 조회 버튼을 눌러 주세요.'
+    :'품번 또는 품명을 검색하세요.';
+
+  document.getElementById('mainResults').classList.remove('show');
 
   if(MAIN_SEARCH_MULTI){
-    replacement=document.createElement('textarea');
-    replacement.id='mainQ';
-    replacement.name='q';
-    replacement.rows=3;
-    replacement.placeholder='품번을 여러 개 입력하세요';
-    replacement.autocomplete='off';
-    replacement.spellcheck=false;
-    replacement.value=current;
-    form.classList.add('multiInput');
-    hint.textContent='한 줄에 하나씩 입력하거나 쉼표로 구분해 주세요.';
+    ensureMainMultiRows();
+    setTimeout(()=>document.querySelector('.mainMultiField')?.focus(),40);
   }else{
-    replacement=document.createElement('input');
-    replacement.id='mainQ';
-    replacement.name='q';
-    replacement.type='search';
-    replacement.placeholder='품번 또는 품명 검색';
-    replacement.autocomplete='off';
-    replacement.setAttribute('autocapitalize','characters');
-    replacement.setAttribute('autocorrect','off');
-    replacement.spellcheck=false;
-    replacement.setAttribute('enterkeyhint','search');
-    replacement.value=current.split(/[\\n,;]/)[0]||'';
-    form.classList.remove('multiInput');
-    hint.textContent='품번 또는 품명을 검색하세요.';
+    setTimeout(()=>document.getElementById('mainQ')?.focus(),40);
   }
-
-  oldInput.replaceWith(replacement);
-  bindMainInput();
-  document.getElementById('mainResults').classList.remove('show');
-  setTimeout(()=>replacement.focus(),40);
+}
+function runMainMultiSearch(){
+  const qs=[...document.querySelectorAll('.mainMultiField')]
+    .map(el=>mainUpper(el.value.trim()))
+    .filter(Boolean);
+  if(!qs.length)return;
+  location.href='search.html?mode=multi&multi='+encodeURIComponent(qs.join('\n'));
 }
 
 document.getElementById('mainSingleTab').addEventListener('click',()=>setMainSearchMode(false));
 document.getElementById('mainMultiTab').addEventListener('click',()=>setMainSearchMode(true));
-bindMainInput();
+document.getElementById('mainMultiAdd').addEventListener('click',()=>{
+  addMainMultiRow('');
+  setTimeout(()=>{
+    const fields=document.querySelectorAll('.mainMultiField');
+    fields[fields.length-1]?.focus();
+  },0);
+});
+document.getElementById('mainMultiSearchBtn').addEventListener('click',runMainMultiSearch);
+bindMainSingleInput();
 
 document.getElementById('mainSearch').addEventListener('submit',e=>{
   e.preventDefault();
   const q=document.getElementById('mainQ').value.trim();
   if(!q)return;
-
-  if(MAIN_SEARCH_MULTI){
-    const qs=q.split(/[\\n\\r,;\\t]+/).map(x=>x.trim()).filter(Boolean);
-    if(!qs.length)return;
-    location.href='search.html?mode=multi&multi='+encodeURIComponent(qs.join('\\n'));
-    return;
-  }
-
   showMainResults(q);
 });
+
 function setDbRow(id,valueId,state,text){
   const row=document.getElementById(id);
   const value=document.getElementById(valueId);

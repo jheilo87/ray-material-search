@@ -426,6 +426,14 @@ main{padding:14px}
   .calendarToolSummary{font-size:13px!important}
 }
 
+
+.multiNumberedRows{display:flex;flex-direction:column;border:1px solid #d9e4f0;border-radius:14px;overflow:hidden;background:#fff}
+.multiNumberedRow{display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;min-height:48px;border-bottom:1px solid #edf1f5}
+.multiNumberedRow:last-child{border-bottom:0}
+.multiNumberedNo{text-align:center;color:#8190a4;font-size:11px;font-weight:950;border-right:1px solid #edf1f5}
+.multiNumberedInput{width:100%;border:0;outline:0;padding:12px 13px;background:transparent;color:#26364f;font-size:15px;text-transform:uppercase}
+.multiAddRow{width:100%;min-height:42px;margin-top:8px;border:1px dashed #c9d6e6;border-radius:12px;background:#f8fafc;color:#617085;font-size:11px;font-weight:900}
+
 </style>
 
 
@@ -471,17 +479,13 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
       <div class="hint" id="hint">예: RA-09A-0935 또는 0935처럼 번호 일부만 입력해도 됩니다.</div>
     </div>
     <div class="multiSearchPanel" id="multiSearchPanel">
-      <textarea class="multiInput" id="multiQ" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번을 한 줄에 하나씩 입력하세요.
-
-예)
-RA-09A-0935
-RA-09A-1020
-RA-10B-0031"></textarea>
+      <div class="multiNumberedRows" id="multiNumberedRows"></div>
+      <button class="multiAddRow" id="multiAddRow" type="button">＋ 품번 한 줄 추가</button>
       <div class="multiActions">
-        <button class="multiSearchBtn" id="multiGo" type="button" disabled>여러 품번 한번에 조회</button>
+        <button class="multiSearchBtn" id="multiGo" type="button" disabled>다중 품번 조회</button>
         <button class="multiClearBtn" id="multiClear" type="button">초기화</button>
       </div>
-      <div class="multiGuide">여러 품번을 줄바꿈·쉼표로 입력할 수 있습니다. 소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 하이픈도 자동으로 맞춰집니다. 결과는 <b>입력순</b> 또는 <b>위치순</b>으로 정렬할 수 있으며 재고수량은 표시하지 않습니다.</div>
+      <div class="multiGuide">소문자는 자동으로 대문자로 바뀌고, 하이픈 없이 입력해도 DB의 실제 품번 형식으로 자동 맞춰집니다. 결과는 <b>입력순</b> 또는 <b>위치순</b>으로 정렬할 수 있습니다.</div>
     </div>
   </section>
   <section class="toolGrid" aria-label="기능 선택">
@@ -756,7 +760,7 @@ function startNewSearch(){
   if(mode==='multi'){
     $('#multiQ').value='';
     MULTI_RESULTS=[];
-    setTimeout(()=>$('#multiQ')?.focus(),80);
+    ensureSearchMultiRows(); setTimeout(()=>document.querySelector('.multiNumberedInput')?.focus(),80);
     return;
   }
   $('#q').value='';
@@ -778,40 +782,60 @@ function addRecent(q){
 }
 
 
+
+
+
 function formatMultiPartToken(raw){
   const upper=String(raw||'').toUpperCase();
   const compact=norm(upper);
   if(!compact)return '';
-
-  // DB에 같은 품번이 있으면 실제 DB 표기(하이픈 포함)를 그대로 사용합니다.
   const exact=DATA.find(r=>norm(r.code)===compact);
   if(exact)return String(exact.code||'').toUpperCase();
-
-  // 아직 입력 중이거나 DB에서 정확히 못 찾은 값은 대문자만 유지합니다.
   return upper.replace(/\s+/g,'').replace(/_+/g,'-');
 }
-
-function formatMultiInputValue(raw){
-  return String(raw||'').split(/(\r?\n|,|;|\t)/).map(part=>{
-    if(/^(?:\r?\n|,|;|\t)$/.test(part))return part;
-    return formatMultiPartToken(part);
-  }).join('');
+function renumberSearchMultiRows(){
+  document.querySelectorAll('.multiNumberedRow').forEach((row,i)=>{
+    row.querySelector('.multiNumberedNo').textContent=(i+1)+'.';
+  });
 }
-
-function applyMultiInputFormatting(){
-  const el=$('#multiQ');
-  if(!el)return;
-  const before=el.value;
-  const start=el.selectionStart;
-  const formatted=formatMultiInputValue(before);
-  if(formatted===before)return;
-  el.value=formatted;
-  // 자동 하이픈 삽입으로 커서가 튀는 현상을 최소화합니다.
-  try{
-    const delta=formatted.length-before.length;
-    const pos=Math.max(0,(start??formatted.length)+delta);
-    el.setSelectionRange(pos,pos);
-  }catch(e){}
+function addSearchMultiRow(value=''){
+  const rows=$('#multiNumberedRows');
+  const row=document.createElement('div');
+  row.className='multiNumberedRow';
+  row.innerHTML='<div class="multiNumberedNo"></div><input class="multiNumberedInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 입력">';
+  const input=row.querySelector('input');
+  input.value=formatMultiPartToken(value);
+  input.addEventListener('input',()=>{
+    const pos=input.selectionStart;
+    input.value=formatMultiPartToken(input.value);
+    try{input.setSelectionRange(pos,pos)}catch{}
+  });
+  input.addEventListener('blur',()=>{input.value=formatMultiPartToken(input.value)});
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const all=[...document.querySelectorAll('.multiNumberedInput')];
+      const idx=all.indexOf(input);
+      if(idx===all.length-1 && input.value.trim()){
+        addSearchMultiRow('');
+        setTimeout(()=>document.querySelectorAll('.multiNumberedInput')[idx+1]?.focus(),0);
+      }else all[idx+1]?.focus();
+    }
+  });
+  rows.appendChild(row);
+  renumberSearchMultiRows();
+}
+function ensureSearchMultiRows(values=[]){
+  const rows=$('#multiNumberedRows');
+  if(rows.children.length)return;
+  const list=values.length?values:['','',''];
+  list.forEach(v=>addSearchMultiRow(v));
+}
+function getSearchMultiRaw(){
+  return [...document.querySelectorAll('.multiNumberedInput')]
+    .map(el=>formatMultiPartToken(el.value.trim()))
+    .filter(Boolean)
+    .join('\n');
 }
 
 function parseMultiQueries(raw){
@@ -915,8 +939,7 @@ function renderMultiResults(){
 
 function multiSearch(){
   if(!DATA.length){showToast('자재 DB를 먼저 불러와 주세요.');return;}
-  applyMultiInputFormatting();
-  const parsed=parseMultiQueries($('#multiQ').value);
+  const parsed=parseMultiQueries(getSearchMultiRaw());
   if(!parsed.queries.length){showToast('조회할 품번을 입력해 주세요.');return;}
 
   MULTI_RESULTS=parsed.queries.map((q,i)=>findMultiMaterial(q,i));
@@ -964,20 +987,19 @@ document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', (
 }));
 $('#go').addEventListener('click', search);
 $('#multiGo').addEventListener('click',multiSearch);
+$('#multiAddRow').addEventListener('click',()=>{
+  addSearchMultiRow('');
+  setTimeout(()=>{
+    const f=document.querySelectorAll('.multiNumberedInput');
+    f[f.length-1]?.focus();
+  },0);
+});
 $('#multiClear').addEventListener('click',()=>{
-  $('#multiQ').value='';
+  $('#multiNumberedRows').innerHTML='';
+  ensureSearchMultiRows();
   MULTI_RESULTS=[];
   closeResultModal();
-  setTimeout(()=>$('#multiQ')?.focus(),50);
-});
-$('#multiQ').addEventListener('input',()=>{
-  applyMultiInputFormatting();
-});
-$('#multiQ').addEventListener('paste',()=>{
-  setTimeout(applyMultiInputFormatting,0);
-});
-$('#multiQ').addEventListener('keydown',e=>{
-  if((e.ctrlKey||e.metaKey) && e.key==='Enter') multiSearch();
+  setTimeout(()=>document.querySelector('.multiNumberedInput')?.focus(),50);
 });
 
 $('#q').addEventListener('keydown', e => { if(e.key==='Enter') search(); });
@@ -1083,11 +1105,10 @@ function applyMaterialData(fresh, sourceText, stamp, cached=false) {
   if($('#headerExcelMain')) $('#headerExcelMain').textContent = cached ? '🟡 저장된 자재 DB 사용 중' : '🟢 최신 자재 DB 적용 완료';
   if($('#headerExcelSub')) $('#headerExcelSub').textContent = `${sourceText} · 조회 ${DATA.length.toLocaleString()}건 · 엑셀 최종 저장 ${stamp}`;
   if($('#headerExcelBadge')) $('#headerExcelBadge').textContent='검색 가능';
-  $('#q').disabled=false; $('#go').disabled=false; $('#multiQ').disabled=false; $('#multiGo').disabled=false;
+  $('#q').disabled=false; $('#go').disabled=false; $('#multiGo').disabled=false;
   if(initialMode==='multi' && initialMulti && !window.__rayInitialMultiDone){
     window.__rayInitialMultiDone=true;
     setTimeout(()=>{
-      applyMultiInputFormatting();
       multiSearch();
     },80);
   }
@@ -1106,7 +1127,7 @@ function loadMaterialCache() {
 }
 
 async function loadRemoteExcel() {
-  $('#q').disabled=true; $('#go').disabled=true; $('#multiQ').disabled=true; $('#multiGo').disabled=true;
+  $('#q').disabled=true; $('#go').disabled=true; $('#multiGo').disabled=true;
   $('#status').textContent='GitHub의 최신 material.xlsx를 확인하고 있습니다…';
   $('#uploadLookup').textContent='자동 연결 · 확인 중';
   if($('#dbUpdatedAt')) $('#dbUpdatedAt').textContent='확인 중';
@@ -1155,7 +1176,7 @@ if(initialMode==='multi'){
     mode='multi';
     $('#singleSearchPanel').style.display='none';
     $('#multiSearchPanel').classList.add('show');
-    if(initialMulti) $('#multiQ').value=initialMulti;
+    ensureSearchMultiRows(initialMulti?initialMulti.split(/\n+/):[]);
   }
 }
 loadRemoteExcel();
