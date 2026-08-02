@@ -250,29 +250,47 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 
 <style id="incoming-today-popup-style">
 .incomingTodayOverlay{
-  position:fixed;inset:0;z-index:9800;display:none;align-items:center;justify-content:center;
-  padding:20px;background:rgba(15,23,42,.48);backdrop-filter:blur(3px)
+  position:fixed!important;inset:0!important;z-index:10050!important;
+  display:none;align-items:center!important;justify-content:center!important;
+  padding:20px;background:rgba(15,23,42,.52);backdrop-filter:blur(4px);
+  overflow:hidden!important
 }
-.incomingTodayOverlay.show{display:flex}
+.incomingTodayOverlay.show{display:flex!important}
 .incomingTodayBox{
-  width:min(92vw,390px);background:#fff;border-radius:24px;padding:22px 20px 18px;
-  box-shadow:0 24px 70px rgba(15,23,42,.28);text-align:center
+  position:relative;width:min(92vw,390px);max-height:calc(100dvh - 40px);
+  overflow:auto;background:#fff;border-radius:24px;padding:24px 20px 18px;
+  box-shadow:0 28px 80px rgba(15,23,42,.32);text-align:center;
+  animation:incomingPopIn .18s ease-out
+}
+@keyframes incomingPopIn{
+  from{opacity:0;transform:translateY(10px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.incomingTodayX{
+  position:absolute;top:12px;right:12px;width:38px;height:38px;border:0;border-radius:50%;
+  background:#f1f3f7;color:#667085;font-size:24px;line-height:1;font-weight:900
 }
 .incomingTodayIcon{
-  width:58px;height:58px;margin:0 auto 10px;display:grid;place-items:center;border-radius:18px;
-  background:#f1edff;color:#5b39d2;font-size:31px;font-weight:950
+  width:60px;height:60px;margin:4px auto 11px;display:grid;place-items:center;border-radius:18px;
+  background:#f1edff;color:#5b39d2;font-size:32px;font-weight:950
 }
-.incomingTodayTitle{font-size:21px;font-weight:1000;color:#1b2a44;letter-spacing:-.5px}
-.incomingTodayDate{margin-top:6px;color:#7a8495;font-size:12px;font-weight:850}
+.incomingTodayTitle{font-size:22px;font-weight:1000;color:#1b2a44;letter-spacing:-.6px}
+.incomingTodayDate{margin-top:7px;color:#7a8495;font-size:12px;font-weight:850}
 .incomingTodayList{display:flex;flex-direction:column;gap:8px;margin-top:15px}
 .incomingTodayItem{
   padding:12px 14px;border:1px solid #e4e0f8;border-radius:14px;
   background:linear-gradient(180deg,#fbfaff,#f5f2ff);color:#4d39a8;font-size:15px;font-weight:950
 }
+.incomingTodayDontShow{
+  margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;
+  color:#667085;font-size:13px;font-weight:850;user-select:none
+}
+.incomingTodayDontShow input{width:18px;height:18px;accent-color:#5b39d2}
 .incomingTodayClose{
-  width:100%;min-height:48px;margin-top:17px;border:0;border-radius:14px;
+  width:100%;min-height:48px;margin-top:13px;border:0;border-radius:14px;
   background:linear-gradient(135deg,#5b39d2,#7c3aed);color:#fff;font-size:15px;font-weight:950
 }
+body.incomingPopupOpen{overflow:hidden}
 </style>
 
 <style id="incoming-card-highlight-style">
@@ -362,11 +380,16 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 
 <div class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog" aria-modal="true" aria-labelledby="incomingTodayTitle">
   <div class="incomingTodayBox">
+    <button class="incomingTodayX" id="incomingTodayX" type="button" aria-label="닫기">×</button>
     <div class="incomingTodayIcon">▦</div>
     <div class="incomingTodayTitle" id="incomingTodayTitle">오늘 입고가 있습니다</div>
     <div class="incomingTodayDate" id="incomingTodayDate"></div>
     <div class="incomingTodayList" id="incomingTodayList"></div>
-    <button class="incomingTodayClose" id="incomingTodayClose" type="button">확인</button>
+    <label class="incomingTodayDontShow">
+      <input id="incomingTodayDontShow" type="checkbox">
+      <span>오늘 다시 보지 않기</span>
+    </label>
+    <button class="incomingTodayClose" id="incomingTodayClose" type="button">닫기</button>
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
@@ -399,29 +422,46 @@ function koreanWeekday(date){
   return ['일','월','화','수','목','금','토'][date.getDay()];
 }
 
+function incomingPopupDateKey(now){
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+function closeIncomingTodayPopup(){
+  const overlay=document.getElementById('incomingTodayOverlay');
+  const dont=document.getElementById('incomingTodayDontShow');
+  if(dont?.checked){
+    const now=new Date();
+    localStorage.setItem(`rayIncomingPopupHide_${incomingPopupDateKey(now)}`,'1');
+  }
+  overlay?.classList.remove('show');
+  document.body.classList.remove('incomingPopupOpen');
+}
 function showIncomingTodayPopup(vendors, now){
   if(!Array.isArray(vendors)||!vendors.length)return;
 
-  // 같은 날짜에는 한 번만 표시
-  const popupKey=`rayIncomingPopup_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  if(sessionStorage.getItem(popupKey)==='1')return;
+  const popupKey=`rayIncomingPopupHide_${incomingPopupDateKey(now)}`;
+  if(localStorage.getItem(popupKey)==='1')return;
 
   const overlay=document.getElementById('incomingTodayOverlay');
   const dateEl=document.getElementById('incomingTodayDate');
   const listEl=document.getElementById('incomingTodayList');
+  const dont=document.getElementById('incomingTodayDontShow');
   if(!overlay||!dateEl||!listEl)return;
 
+  if(dont)dont.checked=false;
   dateEl.textContent=`${now.getMonth()+1}월 ${now.getDate()}일(${koreanWeekday(now)})`;
   listEl.innerHTML=vendors.map(v=>`<div class="incomingTodayItem">${esc(v)}</div>`).join('');
-  overlay.classList.add('show');
-  sessionStorage.setItem(popupKey,'1');
+
+  // 앱 시작 스플래시가 사라진 뒤 자연스럽게 표시
+  setTimeout(()=>{
+    overlay.classList.add('show');
+    document.body.classList.add('incomingPopupOpen');
+  },950);
 }
 
-document.getElementById('incomingTodayClose')?.addEventListener('click',()=>{
-  document.getElementById('incomingTodayOverlay')?.classList.remove('show');
-});
+document.getElementById('incomingTodayClose')?.addEventListener('click',closeIncomingTodayPopup);
+document.getElementById('incomingTodayX')?.addEventListener('click',closeIncomingTodayPopup);
 document.getElementById('incomingTodayOverlay')?.addEventListener('click',e=>{
-  if(e.target===e.currentTarget)e.currentTarget.classList.remove('show');
+  if(e.target===e.currentTarget)closeIncomingTodayPopup();
 });
 function renderQuick(){let rs=[],fs=[];try{rs=JSON.parse(localStorage.getItem('rayRecents')||'[]');fs=JSON.parse(localStorage.getItem('rayFavorites')||'[]')}catch(e){}document.getElementById('recent').innerHTML=rs.length?rs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x.q)}">${esc(x.q)}</a>`).join(''):'<span class="empty">검색 기록 없음</span>';document.getElementById('favorite').innerHTML=fs.length?fs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x)}">★ ${esc(x)}</a>`).join(''):'<span class="empty">즐겨찾기 없음</span>'}
 let MAIN_MATERIAL=[];
