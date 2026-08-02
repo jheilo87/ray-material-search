@@ -1084,6 +1084,13 @@ function applyMaterialData(fresh, sourceText, stamp, cached=false) {
   if($('#headerExcelSub')) $('#headerExcelSub').textContent = `${sourceText} · 조회 ${DATA.length.toLocaleString()}건 · 엑셀 최종 저장 ${stamp}`;
   if($('#headerExcelBadge')) $('#headerExcelBadge').textContent='검색 가능';
   $('#q').disabled=false; $('#go').disabled=false; $('#multiQ').disabled=false; $('#multiGo').disabled=false;
+  if(initialMode==='multi' && initialMulti && !window.__rayInitialMultiDone){
+    window.__rayInitialMultiDone=true;
+    setTimeout(()=>{
+      applyMultiInputFormatting();
+      multiSearch();
+    },80);
+  }
   $('#q').value=''; render(DATA,false);
 }
 
@@ -1140,6 +1147,17 @@ async function loadRemoteExcel() {
 $('#excelReloadBtn').addEventListener('click', loadRemoteExcel);
 render([],false);
 drawQuick();
+if(initialMode==='multi'){
+  const multiTab=document.querySelector('.tab[data-mode="multi"]');
+  if(multiTab){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    multiTab.classList.add('active');
+    mode='multi';
+    $('#singleSearchPanel').style.display='none';
+    $('#multiSearchPanel').classList.add('show');
+    if(initialMulti) $('#multiQ').value=initialMulti;
+  }
+}
 loadRemoteExcel();
 setTimeout(() => document.querySelector('#splash')?.classList.add('hide'), 1650);
 </script>
@@ -3064,6 +3082,8 @@ ${details.join(' / ')}`,'ok');}catch(err){setAdminStatus(`원본 처리 실패: 
 <script id="raysmart-query-bridge">
 (function(){
  const params=new URLSearchParams(location.search); const keyword=(params.get('q')||'').trim();
+const initialMode=(params.get('mode')||'').trim();
+const initialMulti=(params.get('multi')||'').trim();
  if(!keyword)return;
  let tries=0;
  const timer=setInterval(()=>{
