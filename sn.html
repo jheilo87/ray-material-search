@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#28b779">
-<title>RaySmart · S/N 추출 · material.xlsx 연동 TEST</title>
+<title>RaySmart · S/N 추출</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.23.0/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -531,7 +531,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 </head>
 <body>
 <div class="app">
-<header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">S/N 추출 <small style="font-size:10px;color:#8592a3">GitHub 연동 TEST</small></div><div class="rsPageSub">QR·바코드 촬영 및 추출</div></div></header>
+<header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">S/N 추출</div><div class="rsPageSub">QR·바코드 촬영 및 추출</div></div></header>
 <main>
 <section class="card">
   <div class="cardTitle">1. 인식 방식 선택</div>
@@ -851,7 +851,7 @@ function showErrorImage(index=0){
   const failedPhoto=failed?.photoId?photoItems.find(x=>x.id===failed.photoId):null;
   const failedVendor=failedPhoto?.vendor||selectedVendor;
   $('manualSnInput').dataset.vendor=failedVendor;
-  $('manualSnInput').placeholder=failedVendor==='i3system'?'예: XID24DCDIB2746':'S/N 영문·숫자를 입력하세요';
+  $('manualSnInput').placeholder=failedVendor==='i3system'?'예: DIB2746':'S/N 영문·숫자를 입력하세요';
   $('manualSnState').textContent=failed.manualDone?'✅ 이 사진은 수동 입력이 완료되었습니다.':vendorInputGuide(failedVendor);
   $('manualSnState').className='manualSnState'+(failed.manualDone?' ok':'');
   openModal('errorViewerModal');
@@ -866,18 +866,29 @@ function clean(s){return String(s||'').toUpperCase().replace(/[\s\u200B]+/g,'').
 function plainSerial(value){
   return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 }
+function normalizeI3Serial(value){
+  const plain=plainSerial(value);
+
+  // 실제 업무에서는 i3System S/N 중 마지막 DIB... 값만 사용합니다.
+  // 예: XID-24DC-DIB2747 → DIB2747
+  const dib=plain.match(/(DIB[A-Z0-9]{4,20})$/);
+  if(dib)return dib[1];
+
+  // 직접 DIB 코드를 입력하는 도중에도 자연스럽게 편집할 수 있게 합니다.
+  if(plain.startsWith('DIB'))return plain.slice(0,23);
+
+  return plain.slice(0,23);
+}
 function formatSerialInput(value,vendor=''){
   const plain=plainSerial(value);
   if(vendor==='i3system'){
-    if(plain.length<=3)return plain;
-    if(plain.length<=7)return `${plain.slice(0,3)}-${plain.slice(3)}`;
-    return `${plain.slice(0,3)}-${plain.slice(3,7)}-${plain.slice(7,24)}`;
+    return normalizeI3Serial(value);
   }
   // iRay, Dell, Vieworks는 하이픈 없이 영문·숫자만 사용합니다.
   return plain.slice(0,30);
 }
 function vendorInputGuide(vendor=''){
-  if(vendor==='i3system')return '영문·숫자만 입력하세요. 하이픈은 XID-24DC-DIB2746 형식으로 자동 입력됩니다.';
+  if(vendor==='i3system')return 'i3System은 DIB 번호만 사용합니다. 예: XID-24DC-DIB2746 → DIB2746';
   if(vendor==='Vieworks')return 'Vieworks: QR(DataMatrix)의 (21) S/N을 우선 사용하며, 직접 입력은 영문·숫자만 가능합니다.';
   if(vendor==='Dell')return 'Dell: 1D 바코드 형식 · 영문·숫자만 입력 · 하이픈 없음';
   if(vendor==='iRay')return 'iRay: 영문·숫자만 입력 · 하이픈 없음';
@@ -888,8 +899,8 @@ function validateSerialFormat(value,vendor=''){
   const plain=plainSerial(formatted);
   if(!plain)return {ok:false,message:'코드를 입력해 주세요.'};
   if(vendor==='i3system'){
-    const ok=/^[A-Z0-9]{3}-[A-Z0-9]{4}-[A-Z0-9]{3,17}$/.test(formatted);
-    return {ok,message:ok?'✔ i3System 형식 정상':'i3System 코드는 3자리-4자리-나머지 형식이 필요합니다.'};
+    const ok=/^DIB[A-Z0-9]{4,20}$/.test(formatted);
+    return {ok,message:ok?'✔ i3System S/N 형식 정상':'i3System은 DIB로 시작하는 S/N만 입력해 주세요. 예: DIB2747'};
   }
   const minimum=vendor==='Dell'?7:6;
   const ok=new RegExp(`^[A-Z0-9]{${minimum},30}$`).test(formatted);
@@ -1122,7 +1133,8 @@ async function extractSerial(source){
   // 바코드를 못 읽었을 때 OCR 오인식 문자가 목록에 들어가지 않도록 합니다.
   if(selectedVendor==='i3system'){
     // i3System은 OCR을 절대 실행하지 않습니다. 바코드가 없으면 미인식으로 처리합니다.
-    return unique(barcodes).slice(0,20);
+    // QR/바코드 전체값이 XID-24DC-DIB2747이어도 최종 결과에는 DIB2747만 저장합니다.
+    return unique(barcodes.map(normalizeI3Serial).filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))).slice(0,20);
   }
 
   if(selectedVendor==='Vieworks'){
@@ -1205,7 +1217,16 @@ function assignUnknownVendor(vendor,entries){
   entries.forEach(entry=>{if(entry.item)itemMap.set(entry.item.id,entry.item)});
   const items=[...itemMap.values()];
   if(!items.length)return toast('변경할 사진이 없어요');
-  items.forEach(item=>item.vendor=vendor);
+  items.forEach(item=>{
+    item.vendor=vendor;
+    if(vendor==='i3system'){
+      item.serials=unique(
+        item.serials
+          .map(normalizeI3Serial)
+          .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
+      );
+    }
+  });
   const codeCount=unique(items.flatMap(item=>item.serials)).length;
   const emptyPhotoCount=items.filter(item=>!item.serials.length).length;
   collapsedVendorGroups.delete('Unknown');
@@ -1225,7 +1246,23 @@ function assignLegacyVendor(vendor,entries){
   if(!valid.includes(vendor))return toast('업체를 선택해 주세요');
   const codes=unique(entries.map(entry=>entry.value).filter(Boolean));
   if(!codes.length)return toast('변경할 코드가 없어요');
-  codes.forEach(code=>legacyVendorAssignments[code]=vendor);
+
+  if(vendor==='i3system'){
+    const converted=new Map();
+    codes.forEach(code=>{
+      const normalized=normalizeI3Serial(code);
+      if(/^DIB[A-Z0-9]{4,20}$/.test(normalized))converted.set(code,normalized);
+    });
+    if(!converted.size)return toast('DIB 형식의 i3System S/N을 찾지 못했어요');
+
+    results=unique(results.map(code=>converted.get(code)||code));
+    converted.forEach((normalized,original)=>{
+      if(original!==normalized)delete legacyVendorAssignments[original];
+      legacyVendorAssignments[normalized]=vendor;
+    });
+  }else{
+    codes.forEach(code=>legacyVendorAssignments[code]=vendor);
+  }
   collapsedVendorGroups.delete('Legacy');
   collapsedVendorGroups.delete(vendor);
   render();
@@ -1944,6 +1981,13 @@ async function processFiles(files,opts={}){
       if(autoAlbum && item.serials.length){
         $('progressText').textContent=`${globalIndex+1}번째 사진 업체 확인 중…`;
         item.vendor=await detectPhotoVendor(files[localIndex],item.serials);
+        if(item.vendor==='i3system'){
+          item.serials=unique(
+            item.serials
+              .map(normalizeI3Serial)
+              .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
+          );
+        }
       }
 
       addedTotal+=item.serials.length;
