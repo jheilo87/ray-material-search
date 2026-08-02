@@ -391,6 +391,22 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   .mainMultiResultLoc{grid-column:2;margin-top:2px;justify-self:start}
 }
 
+
+
+/* iPhone Safari/PWA + Android keyboard safe-area 보정 */
+@supports (padding: max(0px)){
+  .rsMultiOverlay.keyboardOpen .rsMultiBox{
+    max-width:min(650px,calc(100vw - 28px));
+  }
+  .rsMultiOverlay.keyboardOpen .rsMultiFoot{
+    padding-bottom:max(10px,env(safe-area-inset-bottom));
+  }
+}
+@media(max-width:520px){
+  .rsMultiOverlay.keyboardOpen .rsMultiHead{padding-top:12px;padding-bottom:9px}
+  .rsMultiOverlay.keyboardOpen .rsMultiBody{padding-top:9px;padding-bottom:7px}
+  .rsMultiOverlay.keyboardOpen .rsMultiFoot{padding-top:9px}
+}
 </style>
 
 <style id="incoming-today-popup-style">
@@ -694,8 +710,7 @@ body.rsMultiOpen{overflow:hidden}
   padding:8px 14px !important;
 }
 .rsMultiBox:focus-within{
-  max-height:42vh !important;
-  max-height:42dvh !important;
+  /* 높이는 JS가 실제 키보드 위 visualViewport에 맞춰 계산함 */
   border-radius:20px !important;
 }
 .rsMultiBox:focus-within .rsMultiHead{padding-top:14px;padding-bottom:9px}
@@ -706,7 +721,6 @@ body.rsMultiOpen{overflow:hidden}
   padding-bottom:8px;
 }
 @media(max-height:700px){
-  .rsMultiBox:focus-within{max-height:46vh !important;max-height:46dvh !important}
   .rsMultiHelp{font-size:9.5px}
 }
 
@@ -1234,99 +1248,166 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
   showMainResults(q);
 });
 
-/* iOS / Android 키보드 대응 V4
-   - 키보드가 떠 있을 때 팝업을 무조건 화면 상단에 배치
-   - 앱이 백그라운드에서 돌아온 뒤 visualViewport 값이 늦게 갱신되는 경우 재동기화
-   - 포커스가 남아 있는 상태에서도 입력칸/하단 버튼이 키보드에 가려지지 않도록 보정 */
+/* iOS / Android 키보드 대응 V6
+   - Galaxy/Samsung Internet/Chrome + iPhone Safari/PWA 공통 대응
+   - visualViewport의 실제 보이는 영역을 기준으로 팝업 위치/높이 계산
+   - iOS 주소창/홈 인디케이터 safe-area 반영
+   - 백그라운드 복귀/pageshow 후 늦게 바뀌는 viewport를 여러 차례 재동기화
+   - 키보드가 열린 동안 입력칸과 하단 버튼이 항상 보이는 영역 안에 유지 */
 (()=>{
   const overlay=document.getElementById('rsMultiOverlay');
   const box=document.querySelector('.rsMultiBox');
   const input=document.getElementById('rsMultiInput');
+  const body=document.querySelector('.rsMultiBody');
+  const foot=document.querySelector('.rsMultiFoot');
   if(!overlay||!box||!input)return;
 
   const vv=window.visualViewport;
+  const ua=navigator.userAgent||'';
+  const isIOS=/iPad|iPhone|iPod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   let timers=[];
+  let lastH=0;
+
   const isOpen=()=>overlay.classList.contains('show');
   const isTyping=()=>document.activeElement===input || input.matches(':focus');
+  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+
+  const viewport=()=>{
+    const h=Math.max(260, vv?.height || window.innerHeight || document.documentElement.clientHeight || 700);
+    const w=Math.max(280, vv?.width || window.innerWidth || document.documentElement.clientWidth || 360);
+    return {
+      h,w,
+      top:Math.max(0, vv?.offsetTop || 0),
+      left:Math.max(0, vv?.offsetLeft || 0)
+    };
+  };
 
   const sync=()=>{
     if(!isOpen())return;
-
+    const v=viewport();
     const typing=isTyping();
-    const viewH=Math.max(300, vv?.height || window.innerHeight || document.documentElement.clientHeight || 700);
-    const viewW=Math.max(280, vv?.width || window.innerWidth || document.documentElement.clientWidth || 360);
-    const offTop=Math.max(0, vv?.offsetTop || 0);
-    const offLeft=Math.max(0, vv?.offsetLeft || 0);
+    lastH=v.h;
 
-    overlay.style.top=offTop+'px';
-    overlay.style.left=offLeft+'px';
-    overlay.style.width=viewW+'px';
-    overlay.style.height=viewH+'px';
+    /* layout viewport가 아니라 실제 사용자에게 보이는 visual viewport에 정확히 맞춤 */
+    overlay.style.position='fixed';
+    overlay.style.inset='auto';
+    overlay.style.top='0';
+    overlay.style.left='0';
+    overlay.style.width=v.w+'px';
+    overlay.style.height=v.h+'px';
+    overlay.style.transform=`translate3d(${v.left}px,${v.top}px,0)`;
     overlay.style.right='auto';
     overlay.style.bottom='auto';
+    overlay.style.boxSizing='border-box';
     overlay.style.justifyContent='center';
 
     if(typing){
-      /* 삼성 키보드가 viewport를 덮는 방식이어도 상단 고정으로 안전하게 유지 */
+      overlay.classList.add('keyboardOpen');
       overlay.style.alignItems='flex-start';
-      overlay.style.padding='8px 14px';
-      const safeMax=Math.min(650, Math.max(300, viewH-16));
-      box.style.maxHeight=safeMax+'px';
+      overlay.style.padding=isIOS
+        ? 'max(8px, env(safe-area-inset-top)) 14px max(6px, env(safe-area-inset-bottom))'
+        : '8px 14px 6px';
+
+      /* 보이는 영역 안에 머리/입력/목록/버튼이 모두 들어오도록 제한 */
+      const reserve=isIOS ? 14 : 10;
+      const maxH=clamp(v.h-reserve,260,680);
+      box.style.maxHeight=maxH+'px';
+      box.style.height='auto';
+
+      if(body){
+        body.style.minHeight='0';
+        body.style.overflowY='auto';
+        body.style.webkitOverflowScrolling='touch';
+      }
+      if(foot){
+        foot.style.flexShrink='0';
+      }
     }else{
+      overlay.classList.remove('keyboardOpen');
       overlay.style.alignItems='center';
-      overlay.style.padding='10px 14px';
-      box.style.maxHeight=Math.max(260,viewH-20)+'px';
+      overlay.style.padding=isIOS
+        ? 'max(10px, env(safe-area-inset-top)) 14px max(10px, env(safe-area-inset-bottom))'
+        : '10px 14px';
+      box.style.maxHeight=clamp(v.h-20,260,760)+'px';
+      box.style.height='auto';
+    }
+  };
+
+  const keepInputVisible=(smooth=false)=>{
+    if(!isOpen() || !isTyping())return;
+    try{input.scrollIntoView({block:'nearest',inline:'nearest',behavior:smooth?'smooth':'auto'})}catch{}
+    if(body){
+      const r=input.getBoundingClientRect();
+      const fr=foot?.getBoundingClientRect();
+      const limit=(fr?.top || (viewport().h-8))-12;
+      if(r.bottom>limit)body.scrollTop+=r.bottom-limit+12;
     }
   };
 
   const syncBurst=(scrollInput=false)=>{
     timers.forEach(clearTimeout); timers=[];
-    [0,60,160,320,650].forEach((ms,idx)=>{
+    /* iOS는 앱 복귀/주소창 변화 후 viewport 확정이 늦는 경우가 있어 길게 추적 */
+    const waits=isIOS ? [0,40,100,180,300,500,800,1200] : [0,60,160,320,650];
+    waits.forEach((ms,idx)=>{
       timers.push(setTimeout(()=>{
         sync();
-        if(scrollInput && idx>=1 && isTyping()){
-          try{input.scrollIntoView({block:'nearest',behavior:idx===1?'auto':'smooth'})}catch{}
-        }
+        if(scrollInput && idx>=1)keepInputVisible(idx>3);
       },ms));
     });
   };
 
   const reset=()=>{
     timers.forEach(clearTimeout); timers=[];
+    overlay.classList.remove('keyboardOpen');
+    overlay.style.position='';
+    overlay.style.inset='';
     overlay.style.top='';
     overlay.style.left='';
     overlay.style.width='';
     overlay.style.height='';
+    overlay.style.transform='';
     overlay.style.right='';
     overlay.style.bottom='';
     overlay.style.padding='';
     overlay.style.alignItems='';
     overlay.style.justifyContent='';
+    overlay.style.boxSizing='';
     box.style.maxHeight='';
+    box.style.height='';
+    if(body){body.style.minHeight='';body.style.overflowY='';body.style.webkitOverflowScrolling=''}
+    if(foot)foot.style.flexShrink='';
   };
 
   vv?.addEventListener('resize',()=>syncBurst(true));
-  vv?.addEventListener('scroll',()=>syncBurst(false));
+  vv?.addEventListener('scroll',()=>syncBurst(true));
   window.addEventListener('resize',()=>syncBurst(true));
   window.addEventListener('orientationchange',()=>syncBurst(true));
-  window.addEventListener('pageshow',()=>syncBurst(true));
-  window.addEventListener('focus',()=>syncBurst(true));
+  window.addEventListener('pageshow',e=>{
+    if(isOpen())syncBurst(true);
+  });
+  window.addEventListener('focus',()=>{if(isOpen())syncBurst(true)});
 
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible' && isOpen()){
-      /* 백그라운드 복귀 직후에는 키보드/viewport 갱신이 늦어 여러 번 보정 */
       syncBurst(true);
+      /* iOS PWA/Safari에서 포커스는 살아있는데 화면만 원위치되는 케이스 재보정 */
+      if(isIOS && isTyping()){
+        setTimeout(()=>keepInputVisible(false),90);
+        setTimeout(()=>keepInputVisible(false),350);
+      }
     }
   });
 
   input.addEventListener('focus',()=>syncBurst(true));
   input.addEventListener('click',()=>syncBurst(true));
+  input.addEventListener('input',()=>{sync();keepInputVisible(false)});
   input.addEventListener('blur',()=>setTimeout(()=>{
     if(!isOpen())reset();
     else syncBurst(false);
   },120));
 
   document.getElementById('rsMultiTab')?.addEventListener('click',()=>syncBurst(true));
+  document.getElementById('rsMultiNext')?.addEventListener('click',()=>setTimeout(()=>syncBurst(true),20));
   document.getElementById('rsMultiClose')?.addEventListener('click',reset);
 })();
 
