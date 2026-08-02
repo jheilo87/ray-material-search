@@ -247,10 +247,11 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   .dbDashValue{font-size:12px}
 }
 
+</style>
 
 <style id="incoming-today-popup-style">
 .incomingTodayOverlay{
-  position:fixed!important;inset:0!important;z-index:10050!important;
+  position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;z-index:10050!important;width:100vw!important;height:100dvh!important;
   display:none;align-items:center!important;justify-content:center!important;
   padding:20px;background:rgba(15,23,42,.52);backdrop-filter:blur(4px);
   overflow:hidden!important
@@ -348,7 +349,6 @@ body.incomingPopupOpen{overflow:hidden}
   .calendar.hasIncoming::after{top:10px;right:11px;font-size:9px;padding:4px 7px}
   .calendar.hasIncoming p{padding:6px 8px}
 }
-</style>
 </style></head><body><div class="v11Splash" id="v11Splash" aria-hidden="true"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div>
 <form class="search" id="mainSearch" action="search.html" method="get"><span class="searchIcon">⌕</span><input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search"></form><section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
 <a class="hero blue" href="search.html"><div class="bigIcon">⌑⌕</div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
