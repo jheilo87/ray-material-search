@@ -33,7 +33,30 @@
   display:flex;
   align-items:center;
   justify-content:center;
-}.filter.active{background:var(--brand);border-color:var(--brand);color:#fff}.board{overflow:hidden;border:1px solid var(--line);border-radius:16px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week{background:#f3efff;text-align:center;font-size:11px;font-weight:950;color:#52719d}.week span{padding:9px 2px}.week span:first-child{color:#e24b4b}.week span:last-child{color:#3478d4}.day{position:relative;min-height:84px;padding:6px 4px;border-top:1px solid #edf1f6;border-right:1px solid #edf1f6;background:#fff;overflow:hidden}.day:nth-child(7n){border-right:0}.day.other{background:#f8fafc}.day.today{box-shadow:inset 0 0 0 2px #f2c94c;background:#fffbe6}.date{font-size:12px;font-weight:950;color:#526174}.day:nth-child(7n+1) .date{color:#e24b4b}.day:nth-child(7n) .date{color:#3478d4}.events{display:flex;flex-direction:column;gap:3px;margin-top:5px}.event{border:0;width:100%;border-radius:6px;padding:4px 3px;font-size:7.5px;line-height:1.25;font-weight:950;white-space:normal;overflow:hidden;text-align:center;word-break:keep-all}.event.done{text-decoration:line-through;opacity:.55}.v0{background:#e8f7ee;color:#14743d}.v1{background:#e9f2ff;color:#1769e0}.v2{background:#fff3df;color:#b15c00}.v3{background:#f3eaff;color:#7e22ce}.state{text-align:center;margin-top:10px;color:#7a879d;font-size:11px;font-weight:800}.adminTitle{font-size:16px;font-weight:1000}.adminNote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px}.adminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.btn,label.btn{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:12px;padding:10px;text-align:center;font-weight:950;font-size:13px}.primary{background:var(--brand);color:#fff}.soft{background:#f1edff;color:var(--brand)}#file{display:none}.add{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:9px}.add select,.add input{min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.add button{border:0;border-radius:10px;padding:0 13px;background:#172b4d;color:#fff;font-weight:950}.modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;background:#0f172a77;padding:12px}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:75vh;overflow:auto;margin:auto;background:#fff;border-radius:22px;padding:17px}.sheetHead{display:flex;justify-content:space-between;align-items:center}.sheetTitle{font-size:19px;font-weight:1000}.close{border:0;border-radius:10px;background:#f1edff;color:#5b21b6;padding:8px 11px;font-weight:900}.list{display:flex;flex-direction:column;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px}.vendor{font-weight:950}.row small{display:block;color:var(--muted);margin-top:3px}.toggle{border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px;font-size:11px;font-weight:900}.toggle.on{background:#eaf8ef;color:#14743d}.empty{padding:20px;text-align:center;color:var(--muted)}@media(max-width:430px){.day{min-height:77px;padding:5px 3px}.event{font-size:7.5px}.add{grid-template-columns:1fr}.add button{min-height:42px}.nav{grid-template-columns:42px minmax(0,1fr) 42px;gap:6px}.month{font-size:18px}.currentMonthBtn{min-width:58px;padding:0 9px!important;font-size:11px!important}}
+}.filter.active{background:var(--brand);border-color:var(--brand);color:#fff}.board{overflow:hidden;border:1px solid var(--line);border-radius:16px}.week,.days{display:grid;grid-template-columns:repeat(7,1fr)}.week{background:#f3efff;text-align:center;font-size:11px;font-weight:950;color:#52719d}.week span{padding:9px 2px}.week span:first-child{color:#e24b4b}.week span:last-child{color:#3478d4}.day{position:relative;min-height:84px;padding:6px 4px;border-top:1px solid #edf1f6;border-right:1px solid #edf1f6;background:#fff;overflow:hidden}.day:nth-child(7n){border-right:0}.day.other{background:#f8fafc}.day.today{box-shadow:inset 0 0 0 2px #f2c94c;background:#fffbe6}.date{font-size:12px;font-weight:950;color:#526174}.day:nth-child(7n+1) .date{color:#e24b4b}.day:nth-child(7n) .date{color:#3478d4}
+.day.holiday{background:#fff8f8}
+.day.holiday .date{color:#dc2626!important}
+.day.companyVacation{background:#f0fbff}
+.day.companyVacation.today{background:#fffbe6}
+.dayMeta{display:flex;flex-direction:column;gap:2px;margin-top:2px;min-height:0}
+.holidayName{font-size:7px;line-height:1.15;font-weight:950;color:#dc2626;word-break:keep-all}
+.vacationName{font-size:7px;line-height:1.15;font-weight:950;color:#0783a8;word-break:keep-all}
+.vacationAdminBox{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.vacationAdminTitle{font-size:14px;font-weight:1000}
+.vacationAdminNote{margin:4px 0 10px;color:var(--muted);font-size:10.5px;line-height:1.55}
+.vacationForm{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vacationForm input{width:100%;min-width:0;border:1px solid var(--line);border-radius:11px;padding:10px;background:#fff;color:var(--ink);font-size:12px;font-weight:850}
+.vacationForm .vacationNameInput{grid-column:1/-1}
+.vacationAddBtn{grid-column:1/-1;min-height:44px;border:0;border-radius:12px;background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;font-size:13px;font-weight:950}
+.vacationSavedList{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.vacationSavedItem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 11px;border:1px solid #cfe8ef;border-radius:12px;background:#f4fcff}
+.vacationSavedText{min-width:0;color:#17627a;font-size:11px;font-weight:900;line-height:1.45}
+.vacationDeleteBtn{border:0;border-radius:9px;padding:8px 10px;background:#fff0f0;color:#c92a2a;font-size:10px;font-weight:950}
+.vacationEmpty{padding:10px;text-align:center;color:#8592a3;font-size:10.5px;font-weight:800}
+
+.weekNo{position:absolute;left:2px;bottom:2px;z-index:2;padding:2px 4px;border-radius:5px;background:#eef2ff;color:#6366f1;font-size:6.5px;font-weight:950;line-height:1;pointer-events:none}
+.day.weekStart{padding-bottom:17px}
+.events{display:flex;flex-direction:column;gap:3px;margin-top:5px}.event{border:0;width:100%;border-radius:6px;padding:4px 3px;font-size:7.5px;line-height:1.25;font-weight:950;white-space:normal;overflow:hidden;text-align:center;word-break:keep-all}.event.done{text-decoration:line-through;opacity:.55}.v0{background:#e8f7ee;color:#14743d}.v1{background:#e9f2ff;color:#1769e0}.v2{background:#fff3df;color:#b15c00}.v3{background:#f3eaff;color:#7e22ce}.state{text-align:center;margin-top:10px;color:#7a879d;font-size:11px;font-weight:800}.adminTitle{font-size:16px;font-weight:1000}.adminNote{font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px}.adminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.btn,label.btn{display:flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:12px;padding:10px;text-align:center;font-weight:950;font-size:13px}.primary{background:var(--brand);color:#fff}.soft{background:#f1edff;color:var(--brand)}#file{display:none}.add{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:9px}.add select,.add input{min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.add button{border:0;border-radius:10px;padding:0 13px;background:#172b4d;color:#fff;font-weight:950}.modal{position:fixed;inset:0;z-index:50;display:none;align-items:flex-end;background:#0f172a77;padding:12px}.modal.show{display:flex}.sheet{width:min(760px,100%);max-height:75vh;overflow:auto;margin:auto;background:#fff;border-radius:22px;padding:17px}.sheetHead{display:flex;justify-content:space-between;align-items:center}.sheetTitle{font-size:19px;font-weight:1000}.close{border:0;border-radius:10px;background:#f1edff;color:#5b21b6;padding:8px 11px;font-weight:900}.list{display:flex;flex-direction:column;gap:8px;margin-top:12px}.row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:11px;border:1px solid var(--line);border-radius:13px}.vendor{font-weight:950}.row small{display:block;color:var(--muted);margin-top:3px}.toggle{border:1px solid var(--line);border-radius:9px;background:#fff;padding:8px;font-size:11px;font-weight:900}.toggle.on{background:#eaf8ef;color:#14743d}.empty{padding:20px;text-align:center;color:var(--muted)}@media(max-width:430px){.day{min-height:77px;padding:5px 3px}.event{font-size:7.5px}.add{grid-template-columns:1fr}.add button{min-height:42px}.nav{grid-template-columns:42px minmax(0,1fr) 42px;gap:6px}.month{font-size:18px}.currentMonthBtn{min-width:58px;padding:0 9px!important;font-size:11px!important}}
 
 .poBlock{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .poTitle{font-size:14px;font-weight:1000}
@@ -331,6 +354,17 @@ body.adminModalOpen{overflow:hidden}
     <button id="add" type="button">➕ 일정 직접 추가</button>
   </div>
 </div>
+<div class="vacationAdminBox">
+  <div class="vacationAdminTitle">🏖 회사 휴가 관리</div>
+  <div class="vacationAdminNote">하계휴가·동계휴가 등 회사 휴무 기간을 직접 등록할 수 있습니다. 등록한 기간은 이 기기에 저장되어 캘린더에 표시됩니다.</div>
+  <div class="vacationForm">
+    <input id="vacationStart" type="date" aria-label="휴가 시작일">
+    <input id="vacationEnd" type="date" aria-label="휴가 종료일">
+    <input class="vacationNameInput" id="vacationName" type="text" maxlength="20" value="하계휴가" placeholder="휴가 이름">
+    <button class="vacationAddBtn" id="vacationAdd" type="button">휴가 기간 추가</button>
+  </div>
+  <div class="vacationSavedList" id="vacationSavedList"></div>
+</div>
     </div>
   </div>
 </section></div><div class="modal" id="modal"><div class="sheet"><div class="sheetHead"><div class="sheetTitle" id="sheetTitle"></div><button class="close" id="close">닫기</button></div><div class="list" id="list"></div></div></div>
@@ -528,6 +562,136 @@ async function auto(){
     render();
   }
 }
+
+/* 대한민국 공휴일
+   - 고정 공휴일은 매년 자동 표시
+   - 음력 공휴일(설날/부처님오신날/추석)과 대체공휴일은
+     아래 HOLIDAY_TABLE에 연도별 정확한 날짜를 넣어 표시합니다.
+   - 현재 2026~2028년을 포함합니다. */
+const HOLIDAY_TABLE={
+  2026:{
+    '2026-02-16':'설날 연휴','2026-02-17':'설날','2026-02-18':'설날 연휴',
+    '2026-03-02':'삼일절 대체공휴일',
+    '2026-05-24':'부처님오신날','2026-05-25':'부처님오신날 대체공휴일',
+    '2026-08-17':'광복절 대체공휴일',
+    '2026-09-24':'추석 연휴','2026-09-25':'추석','2026-09-26':'추석 연휴',
+    '2026-10-05':'개천절 대체공휴일',
+    '2026-10-09':'한글날',
+    '2026-12-25':'성탄절'
+  },
+  2027:{
+    '2027-02-06':'설날 연휴','2027-02-07':'설날','2027-02-08':'설날 연휴','2027-02-09':'설날 대체공휴일',
+    '2027-05-13':'부처님오신날',
+    '2027-08-16':'광복절 대체공휴일',
+    '2027-09-14':'추석 연휴','2027-09-15':'추석','2027-09-16':'추석 연휴',
+    '2027-10-04':'개천절 대체공휴일','2027-10-11':'한글날 대체공휴일',
+    '2027-12-27':'성탄절 대체공휴일'
+  },
+  2028:{
+    '2028-01-26':'설날 연휴','2028-01-27':'설날','2028-01-28':'설날 연휴',
+    '2028-05-02':'부처님오신날',
+    '2028-10-02':'추석 연휴','2028-10-03':'추석','2028-10-04':'추석 연휴','2028-10-05':'추석 대체공휴일'
+  }
+};
+const FIXED_HOLIDAYS={
+  '01-01':'신정',
+  '03-01':'삼일절',
+  '05-05':'어린이날',
+  '06-06':'현충일',
+  '08-15':'광복절',
+  '10-03':'개천절',
+  '10-09':'한글날',
+  '12-25':'성탄절'
+};
+
+function holidayName(d){
+  const k=key(d);
+  const special=HOLIDAY_TABLE[d.getFullYear()]?.[k];
+  if(special)return special;
+  return FIXED_HOLIDAYS[`${pad(d.getMonth()+1)}-${pad(d.getDate())}`]||'';
+}
+
+/* 회사 하계휴가 기간.
+   날짜가 확정되면 아래 배열에 YYYY-MM-DD 형식으로 넣으면 됩니다.
+   예: {start:'2026-08-03',end:'2026-08-07',name:'하계휴가'} */
+const VACATION_STORAGE_KEY='rayCompanyVacationsV1';
+const DEFAULT_COMPANY_VACATIONS=[
+  {id:'vac-2026-summer',start:'2026-08-10',end:'2026-08-14',name:'하계휴가'}
+];
+let companyVacations=[];
+
+function normalizeVacationList(list){
+  return (Array.isArray(list)?list:[]).filter(v=>
+    v&&/^\d{4}-\d{2}-\d{2}$/.test(v.start||'')&&
+    /^\d{4}-\d{2}-\d{2}$/.test(v.end||'')&&v.start<=v.end
+  ).map(v=>({
+    id:String(v.id||`vac-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),
+    start:v.start,
+    end:v.end,
+    name:String(v.name||'회사 휴가').trim()||'회사 휴가'
+  })).sort((a,b)=>a.start.localeCompare(b.start));
+}
+function loadCompanyVacations(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(VACATION_STORAGE_KEY)||'null');
+    if(Array.isArray(saved)) companyVacations=normalizeVacationList(saved);
+    else{
+      companyVacations=normalizeVacationList(DEFAULT_COMPANY_VACATIONS);
+      localStorage.setItem(VACATION_STORAGE_KEY,JSON.stringify(companyVacations));
+    }
+  }catch{
+    companyVacations=normalizeVacationList(DEFAULT_COMPANY_VACATIONS);
+  }
+}
+function saveCompanyVacations(){
+  companyVacations=normalizeVacationList(companyVacations);
+  try{localStorage.setItem(VACATION_STORAGE_KEY,JSON.stringify(companyVacations))}catch{}
+  renderVacationAdminList();
+  render();
+}
+function companyVacationName(d){
+  const k=key(d);
+  const hit=companyVacations.find(v=>k>=v.start&&k<=v.end);
+  return hit?(hit.name||'회사 휴가'):'';
+}
+function renderVacationAdminList(){
+  const box=$('vacationSavedList');
+  if(!box)return;
+  if(!companyVacations.length){
+    box.innerHTML='<div class="vacationEmpty">등록된 회사 휴가가 없습니다.</div>';
+    return;
+  }
+  box.innerHTML=companyVacations.map(v=>`
+    <div class="vacationSavedItem">
+      <div class="vacationSavedText">🏖 ${esc(v.name)}<br>${v.start} ~ ${v.end}</div>
+      <button class="vacationDeleteBtn" type="button" data-vac-id="${esc(v.id)}">삭제</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-vac-id]').forEach(btn=>{
+    btn.onclick=async()=>{
+      const item=companyVacations.find(v=>v.id===btn.dataset.vacId);
+      if(!item)return;
+      const ok=await appDialog({
+        title:'휴가 삭제',
+        message:`${item.name}\n${item.start} ~ ${item.end}\n\n이 휴가 표시를 삭제할까요?`,
+        icon:'🏖',confirmText:'삭제',cancelText:'취소',danger:true
+      });
+      if(!ok)return;
+      companyVacations=companyVacations.filter(v=>v.id!==item.id);
+      saveCompanyVacations();
+      setAdminStatus(`✅ ${item.name} 기간을 삭제했습니다.`,'ok');
+    };
+  });
+}
+
+/* ISO 주차: 월요일 시작, 해당 주의 목요일이 속한 연도를 기준으로 계산 */
+function isoWeekNumber(d){
+  const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const day=x.getDay()||7;
+  x.setDate(x.getDate()+4-day);
+  const yearStart=new Date(x.getFullYear(),0,1);
+  return Math.ceil((((x-yearStart)/86400000)+1)/7);
+}
+
 function color(v){
   const i=Math.max(0,vendors.indexOf(v));
   return 'v'+(i%4);
@@ -545,13 +709,18 @@ function render(){
   for(let i=0;i<42;i++){
     const d=new Date(start);d.setDate(start.getDate()+i);
     const arr=events.filter(e=>key(e.date)===key(d)&&(filter==='전체'||e.vendor===filter));
-    html+=`<div class="day ${d.getMonth()!==view.getMonth()?'other':''} ${key(d)===today?'today':''}" data-date="${key(d)}">
+    const holiday=holidayName(d);
+    const vacation=companyVacationName(d);
+    const monday=d.getDay()===1;
+    html+=`<div class="day ${d.getMonth()!==view.getMonth()?'other':''} ${key(d)===today?'today':''} ${holiday?'holiday':''} ${vacation?'companyVacation':''} ${monday?'weekStart':''}" data-date="${key(d)}">
       <div class="date">${d.getDate()}</div>
+      ${(holiday||vacation)?`<div class="dayMeta">${holiday?`<div class="holidayName">${esc(holiday)}</div>`:''}${vacation?`<div class="vacationName">🏖 ${esc(vacation)}</div>`:''}</div>`:''}
       <div class="events">${arr.slice(0,3).map(e=>`<button class="event ${color(e.vendor)} ${e.done?'done':''}" data-id="${e.id}" title="${vendorDisplay(e.vendor)}">${vendorDisplay(e.vendor)}</button>`).join('')}${arr.length>3?`<button class="event">+${arr.length-3}</button>`:''}</div>
+      ${monday?`<span class="weekNo">${isoWeekNumber(d)}주차</span>`:''}
     </div>`;
   }
   $('days').innerHTML=html;
-  document.querySelectorAll('.day').forEach(x=>x.onclick=()=>openDay(x.dataset.date));
+  document.querySelectorAll('.day').forEach(x=>x.onclick=e=>{if(e.target.closest('.event'))return;openDay(x.dataset.date)});
   const monthEvents=events.filter(e=>e.date.getFullYear()===view.getFullYear()&&e.date.getMonth()===view.getMonth());
   $('monthCount').textContent=monthEvents.length;
   $('doneCount').textContent=monthEvents.filter(e=>e.done).length;
@@ -833,6 +1002,38 @@ $('add').onclick=async()=>{
   await appDialog({title:'일정 추가 완료',message:`${vendor}\n${key(d)} 일정이 추가되었습니다.`,icon:'✅'});
 };
 
+$('vacationAdd').onclick=async()=>{
+  const start=$('vacationStart').value;
+  const end=$('vacationEnd').value;
+  const name=String($('vacationName').value||'회사 휴가').trim()||'회사 휴가';
+  if(!start||!end){
+    await appDialog({title:'날짜 확인',message:'휴가 시작일과 종료일을 모두 선택해 주세요.',icon:'⚠️'});
+    return;
+  }
+  if(start>end){
+    await appDialog({title:'날짜 확인',message:'종료일은 시작일보다 빠를 수 없습니다.',icon:'⚠️'});
+    return;
+  }
+  const overlap=companyVacations.some(v=>!(end<v.start||start>v.end));
+  if(overlap){
+    const ok=await appDialog({
+      title:'기간 겹침',
+      message:'이미 등록된 회사 휴가 기간과 일부 날짜가 겹칩니다.\n그래도 추가할까요?',
+      icon:'⚠️',confirmText:'추가',cancelText:'취소'
+    });
+    if(!ok)return;
+  }
+  companyVacations.push({
+    id:`vac-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+    start,end,name
+  });
+  saveCompanyVacations();
+  view=new Date(Number(start.slice(0,4)),Number(start.slice(5,7))-1,1);
+  render();
+  setAdminStatus(`✅ ${name} ${start} ~ ${end} 등록 완료`,'ok');
+  await appDialog({title:'휴가 등록 완료',message:`${name}\n${start} ~ ${end}\n캘린더에 표시했습니다.`,icon:'🏖'});
+};
+
 $('resetAll').onclick=async()=>{
   const ok=await appDialog({title:'새 통합 시작',message:`현재 불러온 일정 ${events.length}건을 모두 비우고 새 통합 Calendar를 시작할까요?`,icon:'🗑️',confirmText:'모두 비우기',cancelText:'취소',danger:true});
   if(!ok) return;
@@ -870,6 +1071,10 @@ $('file').onchange=async e=>{
 $('download').onclick=saveCalendar;
 $('downloadDirect').onclick=saveCalendar;
 
+loadCompanyVacations();
+renderVacationAdminList();
+$('vacationStart').value='2026-08-10';
+$('vacationEnd').value='2026-08-14';
 auto();
 if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
 </script>
