@@ -370,10 +370,18 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   font-size:11px;
   font-weight:850;
 }
-.mainMultiResult.ambiguous{background:#fffaf0}
+.mainMultiResult.ambiguous{background:#fffaf0;cursor:pointer}
 .mainMultiResult.ambiguous .mainMultiResultNo{background:#fff2cf;color:#a96500}
 .mainMultiResult.ambiguous .mainMultiResultCode{color:#a96500}
 .mainMultiResult.ambiguous .mainMultiResultStatus{color:#a96500}
+.mainMultiAmbiguousHint{margin-top:5px;color:#a96500;font-size:10px;font-weight:950}
+.mainMultiChoices{display:none;grid-column:1/-1;margin-top:10px;padding:8px;border-top:1px dashed #efd9aa;gap:7px}
+.mainMultiResult.ambiguous.open .mainMultiChoices{display:grid}
+.mainMultiChoice{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;border:1px solid #ead8ad;border-radius:12px;background:#fff;padding:11px 12px;color:#26364f}
+.mainMultiChoice:active{transform:scale(.99);background:#fffaf0}
+.mainMultiChoiceCode{font-size:14px;font-weight:950;color:#8a5700;word-break:break-all}
+.mainMultiChoiceName{margin-top:3px;font-size:11px;color:#6f7888;line-height:1.35}
+.mainMultiChoiceLoc{white-space:nowrap;border-radius:999px;padding:6px 8px;background:#f2efff;color:#5b39d2;font-size:11px;font-weight:950}
 @media(max-width:520px){
   .mainMultiResult{grid-template-columns:30px minmax(0,1fr);align-items:start}
   .mainMultiResultLoc{grid-column:2;margin-top:2px;justify-self:start}
@@ -655,6 +663,23 @@ body.rsMultiOpen{overflow:hidden}
   .rsMultiBox{max-height:min(86svh,calc(100svh - 24px))}
 }
 
+
+/* 2026-08-03 메인 카드 아이콘 현대화: 기존 기능 변경 없음 */
+.bigIcon,.calendar .ico{display:grid;place-items:center}
+.rsCardIcon{width:78px;height:78px;display:grid;place-items:center;border-radius:24px;background:rgba(255,255,255,.72);box-shadow:0 10px 24px rgba(31,57,88,.10),inset 0 0 0 1px rgba(255,255,255,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.rsCardIcon svg{width:46px;height:46px;display:block;fill:none;stroke:currentColor;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round}
+.hero.blue .rsCardIcon{color:#008fcf;background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(225,247,255,.9));box-shadow:0 10px 24px rgba(0,143,207,.13),inset 0 0 0 1px rgba(0,143,207,.08)}
+.hero.green .rsCardIcon{color:#149e61;background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(229,249,238,.9));box-shadow:0 10px 24px rgba(20,158,97,.12),inset 0 0 0 1px rgba(20,158,97,.08)}
+.calendar .rsCardIcon{color:#5532c7;background:linear-gradient(145deg,rgba(248,245,255,.98),rgba(232,225,255,.96));box-shadow:0 10px 24px rgba(85,50,199,.11),inset 0 0 0 1px rgba(85,50,199,.11)}
+.hero:active .rsCardIcon,.calendar:active .rsCardIcon{transform:scale(.94);transition:transform .11s ease}
+@media(max-width:520px){.rsCardIcon{width:66px;height:66px;border-radius:20px}.rsCardIcon svg{width:39px;height:39px}}
+
+/* 2026-08-03 입고 캘린더 아이콘/텍스트 정렬 보정: 상단 카드와 동일한 시작선 */
+.calendar{grid-template-columns:150px 1fr 64px;padding-left:24px;padding-right:24px}
+@media(max-width:520px){
+  .calendar{grid-template-columns:94px 1fr 48px;padding-left:15px;padding-right:15px}
+}
+
 </style></head><body>
 
 <div class="rsMultiOverlay" id="rsMultiOverlay" role="dialog" aria-modal="true" aria-labelledby="rsMultiTitle">
@@ -707,9 +732,9 @@ body.rsMultiOpen{overflow:hidden}
 </div>
 
 <section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
-<a class="hero blue" href="search.html"><div class="bigIcon">⌑⌕</div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
-<a class="hero green" href="sn.html"><div class="bigIcon">▥</div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
-<a class="calendar" id="incomingCalendarCard" href="calendar.html"><div class="ico">▦</div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
+<a class="hero blue" href="search.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="M4 7.5V16l5.4 3"/><path d="M20 7.5v4.2"/><path d="m12 12 3.2-1.8"/><circle cx="17.2" cy="16.7" r="3.1"/><path d="m19.5 19 2 2"/></svg></span></div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
+<a class="hero green" href="sn.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4"/><path d="M7 10v4M10 9v6M13 10v4M16 9v6"/></svg></span></div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
+<a class="calendar" id="incomingCalendarCard" href="calendar.html"><div class="ico"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17"/><path d="M8 13h3v3H8zM14 13h2.5M14 16h2.5"/></svg></span></div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
 <section class="dbDashboard" aria-label="GitHub DB 연동 상태">
   <div class="dbDashHead">
     <div class="dbDashTitle">
@@ -990,7 +1015,7 @@ function findMainMultiMaterial(query,index){
     return {index,query,status:'found',row:partial[0],partial:true};
   }
   if(partial.length>1){
-    return {index,query,status:'ambiguous',matches:partial.length};
+    return {index,query,status:'ambiguous',matches:partial.length,rows:partial};
   }
 
   return {index,query,status:'notfound'};
@@ -1034,13 +1059,23 @@ function showMainMultiResults(){
     }
 
     if(item.status==='ambiguous'){
+      const choices=(item.rows||[]).map(row=>`
+        <button class="mainMultiChoice" type="button" data-rs-choice-index="${item.index}" data-rs-choice-code="${encodeURIComponent(row.code)}">
+          <div>
+            <div class="mainMultiChoiceCode">${esc(row.code)}</div>
+            <div class="mainMultiChoiceName">${esc(row.name||'품명 정보 없음')}</div>
+          </div>
+          <div class="mainMultiChoiceLoc">📍 ${esc(row.location||'N/A')}</div>
+        </button>`).join('');
       return `
-        <div class="mainMultiResult ambiguous">
+        <div class="mainMultiResult ambiguous" data-rs-ambiguous="${item.index}">
           <div class="mainMultiResultNo">${item.index+1}</div>
           <div class="mainMultiResultInfo">
             <div class="mainMultiResultCode">${esc(item.query)}</div>
-            <div class="mainMultiResultStatus">${item.matches}건이 검색됩니다. 품번을 조금 더 입력해 주세요.</div>
+            <div class="mainMultiResultStatus">${item.matches}건이 검색됩니다.</div>
+            <div class="mainMultiAmbiguousHint">눌러서 품번을 선택하세요 ▾</div>
           </div>
+          <div class="mainMultiChoices">${choices}</div>
         </div>`;
     }
 
@@ -1065,6 +1100,26 @@ function runMainMultiSearch(){
   closeMainMultiPopup(false);
   showMainMultiResults();
 }
+
+
+document.getElementById('mainResultList').addEventListener('click',e=>{
+  const choice=e.target.closest('[data-rs-choice-code]');
+  if(choice){
+    e.stopPropagation();
+    const i=Number(choice.dataset.rsChoiceIndex);
+    const code=decodeURIComponent(choice.dataset.rsChoiceCode||'');
+    if(Number.isInteger(i) && i>=0 && i<MAIN_MULTI_ITEMS.length && code){
+      MAIN_MULTI_ITEMS[i]=code;
+      showMainMultiResults();
+    }
+    return;
+  }
+
+  const ambiguous=e.target.closest('[data-rs-ambiguous]');
+  if(ambiguous){
+    ambiguous.classList.toggle('open');
+  }
+});
 
 document.getElementById('rsSingleTab').addEventListener('click',()=>{
   MAIN_SEARCH_MULTI=false;
