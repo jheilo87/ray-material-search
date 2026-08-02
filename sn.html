@@ -636,6 +636,21 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 <div class="adminFooter"><button class="adminOpenBtn" id="adminOpenBtn" type="button">🔒 관리자 모드</button></div>
 </div>
 
+<div class="rsModal" id="vendorRequiredModal" role="dialog" aria-modal="true" aria-labelledby="vendorRequiredTitle">
+  <div class="rsModalBox">
+    <div class="rsModalIcon">🏷️</div>
+    <div class="rsModalTitle" id="vendorRequiredTitle">업체를 먼저 선택해 주세요</div>
+    <div class="rsModalText" style="text-align:center">
+      연속촬영은 선택한 업체의 S/N 인식 방식으로 처리됩니다.<br>
+      위에서 <b style="color:#159765">iRay · Dell · Vieworks · i3System</b> 중<br>
+      촬영할 업체를 먼저 선택해 주세요.
+    </div>
+    <div class="rsModalActions" style="grid-template-columns:1fr">
+      <button class="rsModalBtn primary" id="vendorRequiredClose" type="button">확인</button>
+    </div>
+  </div>
+</div>
+
 <div class="rsModal" id="shootGuideModal" role="dialog" aria-modal="true" aria-labelledby="shootGuideTitle">
   <div class="rsModalBox">
     <div class="rsModalIcon">📷</div><div class="rsModalTitle" id="shootGuideTitle">연속촬영 안내</div>
@@ -1598,7 +1613,7 @@ function resetEverything(){
   results=[];
   legacyVendorAssignments={};
   selectedProducts={};
-  selectedVendor='iRay';
+  selectedVendor='';
   nextPhotoId=1;
   busy=false;
 
@@ -1606,7 +1621,7 @@ function resetEverything(){
   collapsedVendorGroups.clear();
 
   document.querySelectorAll('.vendor').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.vendor==='iRay');
+    btn.classList.remove('active');
   });
 
   if(captureInput)captureInput.value='';
@@ -1625,7 +1640,7 @@ function resetEverything(){
   renderPreviews();
   render();
   setLive('카메라 준비 중…');
-  setStatus('전체 초기화가 완료되었습니다. 새 작업을 시작하세요.','ok');
+  setStatus('전체 초기화가 완료되었습니다. 연속촬영 시 업체를 먼저 선택해 주세요.','ok');
   toast('전체 초기화가 완료되었습니다');
 }
 
@@ -1871,8 +1886,34 @@ function buildGroupedShareText(){
 }
 async function copyAll(){const text=results.filter(Boolean).join('\n');if(!text)return toast('복사할 S/N이 없어요');try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('전체 복사 완료')}
 
-document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.vendor').forEach(x=>x.classList.remove('active'));btn.classList.add('active');selectedVendor=btn.dataset.vendor;setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 촬영을 시작하세요.`)}));
-$('openCameraBtn').addEventListener('click',()=>{if(busy)return;if(localStorage.getItem('raySnShootGuideSkip')==='1'){captureInput.click();return}$('shootGuideSkip').checked=false;openModal('shootGuideModal')});
+document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',()=>{
+  const sameSelected=btn.classList.contains('active') && selectedVendor===btn.dataset.vendor;
+  document.querySelectorAll('.vendor').forEach(x=>x.classList.remove('active'));
+
+  if(sameSelected){
+    selectedVendor='';
+    setStatus('업체 선택이 해제되었습니다. 연속촬영 시 업체를 먼저 선택해 주세요.');
+    return;
+  }
+
+  btn.classList.add('active');
+  selectedVendor=btn.dataset.vendor;
+  setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 촬영을 시작하세요.`);
+}));
+$('openCameraBtn').addEventListener('click',()=>{
+  if(busy)return;
+  if(!selectedVendor){
+    openModal('vendorRequiredModal');
+    return;
+  }
+  if(localStorage.getItem('raySnShootGuideSkip')==='1'){
+    captureInput.click();
+    return;
+  }
+  $('shootGuideSkip').checked=false;
+  openModal('shootGuideModal');
+});
+$('vendorRequiredClose').addEventListener('click',()=>closeModal('vendorRequiredModal'));
 $('shootGuideCancel').addEventListener('click',()=>closeModal('shootGuideModal'));
 $('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checked)localStorage.setItem('raySnShootGuideSkip','1');closeModal('shootGuideModal');captureInput.click()});
 $('captureBtn').addEventListener('click',captureAndExtract);
