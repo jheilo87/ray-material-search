@@ -537,7 +537,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   <div class="cardTitle">1. 인식 방식 선택</div>
   <div class="sub">연속촬영은 선택한 업체 방식으로, 앨범선택은 자동인식으로 처리합니다.</div>
   <div class="vendors vendorLogoGrid">
-    <button class="vendor active" data-vendor="iRay">
+    <button class="vendor" data-vendor="iRay">
       <span class="vendorMark irayMark">iR</span>
       <span class="vendorName">iRay</span>
     </button>
@@ -744,7 +744,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 <div class="toast" id="toast"></div>
 <script>
 (()=>{
-let selectedVendor='iRay';
+let selectedVendor='';
 let results=[];
 let photoItems=[];
 let stream=null;
