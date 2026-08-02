@@ -26,9 +26,81 @@ header{padding:22px 18px 19px;background:rgba(255,255,255,.94);color:var(--brand
 h1{font-size:39px;margin:0;font-weight:950;letter-spacing:-2.5px;line-height:1}.sub{font-size:15px;margin-top:5px;color:#2c64b3;font-weight:900;letter-spacing:.6px}.tagline{font-size:12px;color:#7a8db2;margin-top:8px}
 .stats{display:flex;gap:7px;margin-top:15px;flex-wrap:wrap;justify-content:center}.stat{background:#f3f8ff;border:1px solid #d7e7ff;color:#466a9f;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:700}
 main{padding:16px}.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:20px;padding:15px;box-shadow:0 7px 22px #1c4f8a0b;margin-bottom:12px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.tab{border:0;border-radius:13px;padding:12px;font-weight:900;background:#edf4ff;color:#5274a8}.tab.active{background:linear-gradient(135deg,var(--brand),#3d8df1);color:#fff;box-shadow:0 6px 14px #1769e02f}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.tab{border:0;border-radius:13px;padding:12px;font-weight:900;background:#edf4ff;color:#5274a8}.tab.active{background:linear-gradient(135deg,var(--brand),#3d8df1);color:#fff;box-shadow:0 6px 14px #1769e02f}
 .searchrow{display:flex;gap:8px}.searchrow input[type=text],.searchrow input[type=tel]{width:100%;padding:16px 14px;border:1px solid #cad8eb;border-radius:15px;font-size:17px;outline:none;background:#fff;color:var(--ink)}.searchrow input[type=text]:focus,.searchrow input[type=tel]:focus{border-color:var(--brand2);box-shadow:0 0 0 4px #58a8ff1f}.go{min-width:82px;border:0;border-radius:15px;background:#15243d;color:#fff;font-weight:900;font-size:15px;box-shadow:0 5px 12px #15243d24}.go:active{transform:translateY(1px)}
-.hint{font-size:12px;color:var(--muted);margin:9px 2px 0;line-height:1.55}.upload{display:flex;align-items:center;justify-content:space-between;gap:10px}.upload strong{font-size:14px}.upload small{display:block;color:var(--muted);margin-top:4px;line-height:1.4;font-size:11px}.filebtn{white-space:nowrap;background:#eaf3ff;color:var(--brand);border:1px solid #c9ddff;border-radius:13px;padding:10px 12px;font-weight:900}#file{display:none}.status{font-size:12px;color:var(--muted);margin:0 3px 12px;line-height:1.55}
+.hint{font-size:12px;color:var(--muted);margin:9px 2px 0;line-height:1.55}
+.multiSearchPanel{display:none}
+.multiSearchPanel.show{display:block}
+.multiInput{
+  width:100%;min-height:150px;resize:vertical;
+  padding:14px;border:1px solid #cad8eb;border-radius:15px;
+  background:#fff;color:var(--ink);font-size:15px;line-height:1.55;outline:none
+}
+.multiInput:focus{border-color:var(--brand2);box-shadow:0 0 0 4px #58a8ff1f}
+.multiInput:disabled{background:#f2f4f7;color:#9aa4b2}
+.multiActions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:9px}
+.multiSearchBtn{
+  min-height:48px;border:0;border-radius:14px;padding:10px 15px;
+  background:#15243d;color:#fff;font-size:14px;font-weight:950
+}
+.multiClearBtn{
+  min-width:76px;border:1px solid #d6e1ef;border-radius:14px;padding:10px;
+  background:#f5f8fc;color:#64748b;font-size:13px;font-weight:900
+}
+.multiGuide{
+  margin-top:9px;padding:10px 11px;border-radius:12px;
+  background:#f6f9fd;color:#68778e;font-size:11px;line-height:1.55
+}
+.multiResultTools{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin:0 0 10px;padding:10px 11px;border:1px solid #dbe6f3;
+  border-radius:14px;background:#fff
+}
+.multiSummary{font-size:11px;font-weight:900;color:#526174;line-height:1.45}
+.multiSorts{display:flex;gap:5px;flex-shrink:0}
+.multiSortBtn{
+  border:1px solid #d5e1f0;border-radius:999px;padding:7px 9px;
+  background:#f5f8fc;color:#64748b;font-size:10px;font-weight:900
+}
+.multiSortBtn.active{background:#1769e0;border-color:#1769e0;color:#fff}
+.multiLocationGroup{
+  margin:12px 0 7px;padding:7px 10px;border-radius:10px;
+  background:#edf5ff;color:#1769e0;font-size:12px;font-weight:950
+}
+.multiItem{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:13px;margin-bottom:8px;box-shadow:0 4px 12px #1b4e8908
+}
+.multiItemTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.multiIndex{
+  min-width:28px;height:28px;display:grid;place-items:center;border-radius:9px;
+  background:#eef4ff;color:#1769e0;font-size:11px;font-weight:950
+}
+.multiInfo{min-width:0;flex:1}
+.multiCode{font-size:16px;font-weight:950;color:#183c71;word-break:break-all}
+.multiDesc{margin-top:4px;color:#667085;font-size:12px;line-height:1.4;word-break:keep-all}
+.multiLocWrap{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:10px;padding-top:9px;border-top:1px dashed #dce6f5
+}
+.multiLocLabel{font-size:10px;color:#8a96a8;font-weight:850}
+.multiLoc{font-size:22px;font-weight:1000;color:#142c50}
+.multiFloor{padding:7px 10px;border-radius:10px;font-size:12px;font-weight:950}
+.multiNotFound{
+  border-color:#ffd5d5;background:#fff8f8
+}
+.multiNotFound .multiCode{color:#c92a2a}
+.multiStatusBad{margin-top:5px;color:#c92a2a;font-size:11px;font-weight:850}
+.multiCopyAll{
+  width:100%;margin-top:10px;min-height:44px;border:1px solid #cfe0f5;
+  border-radius:13px;background:#eaf3ff;color:#1769e0;font-size:13px;font-weight:950
+}
+@media(max-width:480px){
+  .tabs{gap:6px}.tab{padding:11px 5px;font-size:12px}
+  .multiResultTools{align-items:flex-start;flex-direction:column}
+  .multiSorts{width:100%}.multiSortBtn{flex:1}
+}
+.upload{display:flex;align-items:center;justify-content:space-between;gap:10px}.upload strong{font-size:14px}.upload small{display:block;color:var(--muted);margin-top:4px;line-height:1.4;font-size:11px}.filebtn{white-space:nowrap;background:#eaf3ff;color:var(--brand);border:1px solid #c9ddff;border-radius:13px;padding:10px 12px;font-weight:900}#file{display:none}.status{font-size:12px;color:var(--muted);margin:0 3px 12px;line-height:1.55}
 .resultTop{display:flex;justify-content:space-between;align-items:center;margin:5px 2px 10px}.count{font-weight:950}.clear{border:0;background:transparent;color:#64748b;font-weight:750}.empty{text-align:center;padding:38px 14px;color:var(--muted)}.emptyIcon{font-size:36px;margin-bottom:9px}.emptyTitle{font-size:18px;color:#2e3e5c;font-weight:950;margin-bottom:7px}
 .item{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:10px;box-shadow:0 5px 15px #1b4e890a}.code{font-size:19px;font-weight:950;word-break:break-all;color:#183c71}.desc{font-size:13px;color:#667085;margin-top:6px;word-break:break-all;line-height:1.45}.supplier{display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:6px 9px;border-radius:10px;background:#edf5ff;color:#1769e0;font-size:12px;font-weight:850}.itemHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.fav{border:0;background:#f1f5f9;color:#a3afc1;border-radius:11px;min-width:40px;height:40px;font-size:19px}.fav.on{background:#fff6e6;color:#f59e0b}
 .quickTitle{font-size:13px;font-weight:950;margin:2px 2px 8px;color:#475569}.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px}.chip{border:1px solid #cfdaea;background:#fff;border-radius:999px;padding:8px 11px;white-space:nowrap;font-size:12px;color:#334155}.chip.emptyChip{color:#94a3b8}.locrow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px dashed #d9e3f1}.locLabel{font-size:11px;color:#8290a7;font-weight:800;margin-bottom:3px}.loc{font-size:29px;font-weight:950;letter-spacing:.2px;color:#142c50;line-height:1.15}.badge{display:flex;align-items:center;justify-content:center;min-width:104px;height:86px;font-size:38px;font-weight:950;padding:10px 18px;border-radius:22px;line-height:1;box-shadow:0 7px 18px #1b4e8918;flex-shrink:0}.f1{background:#dcfce7;color:#166534}.f3{background:#dbeafe;color:#1d4ed8}.f4{background:#f3e8ff;color:#7e22ce}.f5{background:#ffedd5;color:#c2410c}.na{background:#e5e7eb;color:#4b5563}.footerNote{font-size:11px;color:#7b8790;text-align:center;padding:12px;line-height:1.6}
@@ -252,10 +324,9 @@ button,label,input,textarea{-webkit-tap-highlight-color:transparent}button,label
 /* V1.0 관리자 로그인 복원 */
 #calendarAdminToggle{display:none!important}
 /* RaySmart 공통 하단 관리자 버튼 */
-.adminFooter{padding:4px 16px 18px;display:flex;justify-content:center;align-items:center;text-align:center}
+.adminFooter{padding:4px 16px 18px;text-align:center}
 .adminOpenBtn{
-  display:flex;align-items:center;justify-content:center;gap:7px;
-  margin:0 auto;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
   width:min(280px,calc(100% - 16px));min-height:48px;
   border:1px solid #d5e1f0;border-radius:15px;background:#fff;
   color:#64748b;padding:10px 18px;font-size:13px;font-weight:950;
@@ -394,9 +465,24 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 </header>
 <main>
   <section class="card searchOnly" id="searchCard">
-    <div class="tabs"><button class="tab active" data-mode="part">품번 검색</button><button class="tab" data-mode="location">위치 검색</button></div>
-    <div class="searchrow"><input id="q" type="text" inputmode="text" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 입력"><button class="go" id="go" disabled>검색</button></div>
-    <div class="hint" id="hint">예: RA-09A-0935 또는 0935처럼 번호 일부만 입력해도 됩니다.</div>
+    <div class="tabs"><button class="tab active" data-mode="part">품번 검색</button><button class="tab" data-mode="location">위치 검색</button><button class="tab" data-mode="multi">다중 품번 조회</button></div>
+    <div class="singleSearchPanel" id="singleSearchPanel">
+      <div class="searchrow"><input id="q" type="text" inputmode="text" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 입력"><button class="go" id="go" disabled>검색</button></div>
+      <div class="hint" id="hint">예: RA-09A-0935 또는 0935처럼 번호 일부만 입력해도 됩니다.</div>
+    </div>
+    <div class="multiSearchPanel" id="multiSearchPanel">
+      <textarea class="multiInput" id="multiQ" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번을 한 줄에 하나씩 입력하세요.
+
+예)
+RA-09A-0935
+RA-09A-1020
+RA-10B-0031"></textarea>
+      <div class="multiActions">
+        <button class="multiSearchBtn" id="multiGo" type="button" disabled>여러 품번 한번에 조회</button>
+        <button class="multiClearBtn" id="multiClear" type="button">초기화</button>
+      </div>
+      <div class="multiGuide">여러 품번을 줄바꿈·쉼표로 입력할 수 있습니다. 결과는 <b>입력순</b> 또는 <b>위치순</b>으로 정렬할 수 있으며 재고수량은 표시하지 않습니다.</div>
+    </div>
   </section>
   <section class="toolGrid" aria-label="기능 선택">
   <button class="toolBtn active" id="searchToolBtn" type="button">자재 검색</button>
@@ -588,6 +674,8 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 const BUILTIN = [];
 let DATA = [];
 let mode = 'part';
+let MULTI_RESULTS = [];
+let MULTI_SORT = 'input';
 let RECENTS = JSON.parse(localStorage.getItem('rayRecents') || '[]');
 let FAVORITES = JSON.parse(localStorage.getItem('rayFavorites') || '[]');
 const $ = s => document.querySelector(s);
@@ -665,6 +753,12 @@ function setSearchKeyboard(shouldFocus=false){
 
 function startNewSearch(){
   closeResultModal();
+  if(mode==='multi'){
+    $('#multiQ').value='';
+    MULTI_RESULTS=[];
+    setTimeout(()=>$('#multiQ')?.focus(),80);
+    return;
+  }
   $('#q').value='';
   setSearchKeyboard(true);
 }
@@ -682,6 +776,119 @@ function addRecent(q){
   RECENTS=RECENTS.filter(x=>!(x.q===q && x.mode===mode));
   RECENTS.unshift({q,mode}); RECENTS=RECENTS.slice(0,10); saveQuick(); drawQuick();
 }
+
+function parseMultiQueries(raw){
+  const parts=String(raw||'')
+    .split(/[\n\r,;,\t]+/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+  const seen=new Set(), unique=[];
+  let duplicateCount=0;
+  parts.forEach(q=>{
+    const n=norm(q);
+    if(!n)return;
+    if(seen.has(n)){duplicateCount++;return;}
+    seen.add(n);unique.push(q);
+  });
+  return {queries:unique,duplicateCount,totalInput:parts.length};
+}
+
+function findMultiMaterial(query,index){
+  const n=norm(query);
+  const exact=DATA.filter(r=>norm(r.code)===n);
+  if(exact.length===1)return {index,query,status:'found',row:exact[0]};
+  if(exact.length>1)return {index,query,status:'found',row:exact[0]};
+
+  const partial=DATA.filter(r=>norm(r.code).includes(n));
+  if(partial.length===1)return {index,query,status:'found',row:partial[0],partial:true};
+  if(partial.length>1)return {index,query,status:'ambiguous',matches:partial.length};
+  return {index,query,status:'notfound'};
+}
+
+function sortMultiResults(list){
+  const copy=[...list];
+  if(MULTI_SORT==='location'){
+    copy.sort((a,b)=>{
+      const al=a.status==='found'?String(a.row.location||'N/A'):'ZZZZ';
+      const bl=b.status==='found'?String(b.row.location||'N/A'):'ZZZZ';
+      return al.localeCompare(bl,'ko',{numeric:true}) || a.index-b.index;
+    });
+  }else copy.sort((a,b)=>a.index-b.index);
+  return copy;
+}
+
+function renderMultiResults(){
+  const list=sortMultiResults(MULTI_RESULTS);
+  const found=list.filter(x=>x.status==='found').length;
+  const bad=list.length-found;
+
+  $('#count').textContent=`다중 품번 조회 · ${found}/${list.length}건 확인`;
+
+  let html=`<div class="multiResultTools">
+    <div class="multiSummary">조회 ${list.length}개 · 확인 ${found}개${bad?` · 확인 필요 ${bad}개`:''}</div>
+    <div class="multiSorts">
+      <button class="multiSortBtn ${MULTI_SORT==='input'?'active':''}" type="button" data-multi-sort="input">입력순</button>
+      <button class="multiSortBtn ${MULTI_SORT==='location'?'active':''}" type="button" data-multi-sort="location">위치순</button>
+    </div>
+  </div>`;
+
+  let lastLoc=null;
+  list.forEach(item=>{
+    if(item.status==='found'){
+      const r=item.row;
+      const [floor,cls]=floorInfo(r.location);
+      const loc=String(r.location||'N/A');
+      if(MULTI_SORT==='location' && loc!==lastLoc){
+        html+=`<div class="multiLocationGroup">📍 ${esc(loc)}</div>`;
+        lastLoc=loc;
+      }
+      html+=`<article class="multiItem">
+        <div class="multiItemTop">
+          <div class="multiIndex">${item.index+1}</div>
+          <div class="multiInfo">
+            <div class="multiCode">${esc(r.code)}</div>
+            ${r.desc?`<div class="multiDesc">${esc(r.desc)}</div>`:''}
+            ${r.supplier?`<div class="supplier">업체 · ${esc(r.supplier)}</div>`:''}
+          </div>
+        </div>
+        <div class="multiLocWrap">
+          <div><div class="multiLocLabel">보관 위치</div><div class="multiLoc">${esc(loc)}</div></div>
+          <span class="multiFloor ${cls}">${floor}</span>
+        </div>
+      </article>`;
+    }else{
+      const msg=item.status==='ambiguous'
+        ?`일치하는 품번이 ${item.matches}건 있습니다. 품번을 더 정확히 입력해 주세요.`
+        :'자재 DB에서 찾지 못했습니다.';
+      html+=`<article class="multiItem multiNotFound">
+        <div class="multiItemTop"><div class="multiIndex">${item.index+1}</div><div class="multiInfo">
+          <div class="multiCode">${esc(item.query)}</div>
+          <div class="multiStatusBad">${msg}</div>
+        </div></div>
+      </article>`;
+    }
+  });
+
+  if(found){
+    html+=`<button class="multiCopyAll" id="multiCopyAll" type="button">📋 조회 결과 전체 복사</button>`;
+  }
+  $('#results').innerHTML=html;
+  openResultModal();
+}
+
+function multiSearch(){
+  if(!DATA.length){showToast('자재 DB를 먼저 불러와 주세요.');return;}
+  const parsed=parseMultiQueries($('#multiQ').value);
+  if(!parsed.queries.length){showToast('조회할 품번을 입력해 주세요.');return;}
+
+  MULTI_RESULTS=parsed.queries.map((q,i)=>findMultiMaterial(q,i));
+  MULTI_SORT='input';
+  renderMultiResults();
+
+  const found=MULTI_RESULTS.filter(x=>x.status==='found').length;
+  $('#status').textContent=`다중 품번 조회 완료 · ${parsed.queries.length}개 입력 · ${found}개 확인${parsed.duplicateCount?` · 중복 ${parsed.duplicateCount}개 제외`:''}`;
+}
+
 function search() {
   if (!DATA.length) { $('#status').textContent='먼저 엑셀 파일을 업로드해 주세요.'; return; }
   const raw = $('#q').value.trim();
@@ -699,14 +906,36 @@ function search() {
 document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   btn.classList.add('active'); mode = btn.dataset.mode;
+
+  const isMulti=mode==='multi';
+  $('#singleSearchPanel').style.display=isMulti?'none':'block';
+  $('#multiSearchPanel').classList.toggle('show',isMulti);
+  closeResultModal();
+
+  if(isMulti){
+    setTimeout(()=>$('#multiQ')?.focus(),80);
+    return;
+  }
+
   const qInput = $('#q');
   qInput.value='';
   setSearchKeyboard();
   qInput.placeholder = mode==='part' ? '품번 번호 입력' : '위치 입력 (예: 3L2-3)';
   $('#hint').textContent = mode==='part' ? '예: RA-09A-0935 또는 0935처럼 번호 일부만 입력해도 됩니다.' : '예: 3L2-3을 입력하면 그 위치의 자재가 모두 표시됩니다.';
-  closeResultModal(); render(DATA,false); focusSearchInput();
+  render(DATA,false); focusSearchInput();
 }));
 $('#go').addEventListener('click', search);
+$('#multiGo').addEventListener('click',multiSearch);
+$('#multiClear').addEventListener('click',()=>{
+  $('#multiQ').value='';
+  MULTI_RESULTS=[];
+  closeResultModal();
+  setTimeout(()=>$('#multiQ')?.focus(),50);
+});
+$('#multiQ').addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey) && e.key==='Enter') multiSearch();
+});
+
 $('#q').addEventListener('keydown', e => { if(e.key==='Enter') search(); });
 $('#q').addEventListener('input', () => { if(!$('#q').value.trim()) closeResultModal(); });
 $('#closeModal').addEventListener('click', closeResultModal);
@@ -718,6 +947,18 @@ function pickHeader(headers, keys) {
   return headers.findIndex(h => keys.some(k => String(h||'').replace(/\s/g,'').includes(k)));
 }
 $('#results').addEventListener('click', e=>{
+  const sortBtn=e.target.closest('[data-multi-sort]');
+  if(sortBtn){
+    MULTI_SORT=sortBtn.dataset.multiSort;
+    return renderMultiResults();
+  }
+  if(e.target.closest('#multiCopyAll')){
+    const rows=sortMultiResults(MULTI_RESULTS).filter(x=>x.status==='found').map(x=>{
+      const r=x.row;
+      return `${r.code} | ${r.desc||''} | ${r.location||'N/A'}`;
+    });
+    return copyText(rows.join('\n'),'다중 조회 결과');
+  }
   const copy=e.target.closest('[data-copy]');
   if(copy){
     const type=copy.dataset.copy;
@@ -798,7 +1039,7 @@ function applyMaterialData(fresh, sourceText, stamp, cached=false) {
   if($('#headerExcelMain')) $('#headerExcelMain').textContent = cached ? '🟡 저장된 자재 DB 사용 중' : '🟢 최신 자재 DB 적용 완료';
   if($('#headerExcelSub')) $('#headerExcelSub').textContent = `${sourceText} · 조회 ${DATA.length.toLocaleString()}건 · 엑셀 최종 저장 ${stamp}`;
   if($('#headerExcelBadge')) $('#headerExcelBadge').textContent='검색 가능';
-  $('#q').disabled=false; $('#go').disabled=false;
+  $('#q').disabled=false; $('#go').disabled=false; $('#multiQ').disabled=false; $('#multiGo').disabled=false;
   $('#q').value=''; render(DATA,false);
 }
 
@@ -814,7 +1055,7 @@ function loadMaterialCache() {
 }
 
 async function loadRemoteExcel() {
-  $('#q').disabled=true; $('#go').disabled=true;
+  $('#q').disabled=true; $('#go').disabled=true; $('#multiQ').disabled=true; $('#multiGo').disabled=true;
   $('#status').textContent='GitHub의 최신 material.xlsx를 확인하고 있습니다…';
   $('#uploadLookup').textContent='자동 연결 · 확인 중';
   if($('#dbUpdatedAt')) $('#dbUpdatedAt').textContent='확인 중';
