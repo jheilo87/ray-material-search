@@ -276,10 +276,31 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   align-items:center!important;
   justify-content:stretch!important;
   column-gap:12px;
-  box-shadow:0 5px 13px rgba(20,48,73,.11);
-  transition:transform .14s ease,box-shadow .14s ease!important;
+  background:#fff!important;
+  color:#159765!important;
+  border:2px solid #67c79e!important;
+  box-shadow:
+    0 6px 0 rgba(31,157,104,.13),
+    0 10px 18px rgba(20,48,73,.10);
+  transition:transform .14s ease,box-shadow .14s ease,background .14s ease,color .14s ease,border-color .14s ease!important;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
-.modeBtn:active{transform:scale(.97)}
+.modeBtn:active{
+  transform:translateY(3px) scale(.985);
+  box-shadow:
+    0 3px 0 rgba(31,157,104,.13),
+    0 6px 12px rgba(20,48,73,.09);
+}
+.modeBtn.activeMode{
+  background:linear-gradient(135deg,#28b779,#169f66)!important;
+  color:#fff!important;
+  border-color:#169f66!important;
+  box-shadow:
+    0 6px 0 rgba(18,125,81,.24),
+    0 11px 19px rgba(32,167,110,.20);
+}
+.modeBtn.activeMode .modeCopy small{color:rgba(255,255,255,.92)!important}
 .modeIcon{
   width:44px;
   height:44px;
@@ -310,17 +331,20 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   opacity:.92;
   white-space:nowrap;
 }
-.cameraBtn{
-  background:linear-gradient(135deg,#28b779,#169f66)!important;
-  color:#fff!important;
-  border:1px solid #1fa86f!important;
-}
+.cameraBtn,
 .galleryBtn{
   background:#fff!important;
   color:#159765!important;
   border:2px solid #67c79e!important;
 }
+.cameraBtn .modeCopy small,
 .galleryBtn .modeCopy small{color:#657083}
+.cameraBtn.activeMode,
+.galleryBtn.activeMode{
+  background:linear-gradient(135deg,#28b779,#169f66)!important;
+  color:#fff!important;
+  border-color:#169f66!important;
+}
 @media(max-width:430px){
   .sectionGroove{width:118px;margin:14px auto 9px}
   .vendorLogoGrid .vendor{
@@ -812,6 +836,7 @@ let nextPhotoId=1;
 let shareResetTimer=null;
 let shareResetRemaining=0;
 let shareResetPendingReturn=false;
+let currentInputMode='';
 let activeBatchId='';
 let activeBatchTotal=0;
 let activeBatchIndex=0;
@@ -1753,6 +1778,7 @@ function clearAllSnData(message='목록이 초기화되었습니다. 새로운 �
   activeBatchIndex=0;
   activeBatchMode='';
   activeBatchWasHidden=false;
+  setInputMode('');
 
   renderPreviews();
   render();
@@ -1779,9 +1805,9 @@ function cancelShareAutoReset(showMessage=true){
 
 function startShareAutoReset(){
   cancelShareAutoReset(false);
-  shareResetRemaining=3;
-  $('shareResetCount').textContent='3';
-  $('shareResetSeconds').textContent='3초';
+  shareResetRemaining=5;
+  $('shareResetCount').textContent='5';
+  $('shareResetSeconds').textContent='5초';
   $('shareResetSummary').textContent=`총 ${results.length}개의 S/N · 촬영 사진 ${photoItems.length}장`;
   openModal('shareResetModal');
   if(navigator.vibrate)navigator.vibrate(80);
@@ -1807,12 +1833,13 @@ function queueShareResetForReturn(){
   try{sessionStorage.setItem('raySnShareResetPending','1')}catch{}
   setStatus('공유되었습니다. RaySmart로 돌아오면 완료 안내 후 자동 초기화됩니다.','ok');
 
-  // 공유창이 닫힌 뒤 이미 RaySmart가 다시 보이는 상태라면 바로 표시합니다.
+  // Android 공유창에서 RaySmart로 복귀한 직후 팝업이 확실히 보이도록
+  // visibilitychange/pageshow가 오지 않는 경우를 대비해 약간 여유를 두고 한 번 더 확인합니다.
   setTimeout(()=>{
     if(shareResetPendingReturn && !document.hidden && document.visibilityState==='visible'){
       runPendingShareReset();
     }
-  },250);
+  },700);
 }
 
 function runPendingShareReset(){
@@ -1823,9 +1850,10 @@ function runPendingShareReset(){
 
   shareResetPendingReturn=false;
   try{sessionStorage.removeItem('raySnShareResetPending')}catch{}
-  toast('공유되었습니다');
-  setStatus('공유되었습니다. 3초 후 목록과 추출 완료 표시가 자동으로 초기화됩니다.','ok');
+  toast('✓ 공유되었습니다');
+  setStatus('공유되었습니다. 5초 후 목록과 추출 완료 표시가 자동으로 초기화됩니다.','ok');
   startShareAutoReset();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>$('shareResetModal')?.classList.add('show')));
 }
 
 
@@ -2187,6 +2215,12 @@ function buildGroupedShareText(){
 }
 async function copyAll(){const text=results.filter(Boolean).join('\n');if(!text)return toast('복사할 S/N이 없어요');try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('전체 복사 완료')}
 
+function setInputMode(mode=''){
+  currentInputMode=mode;
+  $('openCameraBtn')?.classList.toggle('activeMode',mode==='camera');
+  document.querySelector('.galleryBtn')?.classList.toggle('activeMode',mode==='gallery');
+}
+
 function updateActionReadyStates(){
   $('openCameraBtn')?.classList.toggle('ready',!!selectedVendor);
   $('shareBtn')?.classList.toggle('ready',results.length>0);
@@ -2214,6 +2248,7 @@ $('openCameraBtn').addEventListener('click',()=>{
     openModal('vendorRequiredModal');
     return;
   }
+  setInputMode('camera');
   if(localStorage.getItem('raySnShootGuideSkip')==='1'){
     captureInput.click();
     return;
@@ -2255,7 +2290,7 @@ $('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checke
 $('captureBtn').addEventListener('click',captureAndExtract);
 $('finishBtn').addEventListener('click',()=>{stopCamera();$('cameraPanel').classList.remove('show');setStatus('촬영을 종료했습니다. 결과를 확인하세요.','ok')});
 captureInput.addEventListener('change',async()=>{const file=captureInput.files?.[0];captureInput.value='';if(!file)return;setStatus('기본 카메라 사진에서 S/N을 추출하고 있습니다…');await processFiles([file]);if(results.length)setStatus(`현재 ${results.length}건 저장됨 · 다음 박스는 연속촬영을 다시 눌러주세요.`,'ok')});
-imageInput.addEventListener('change',async()=>{const files=[...(imageInput.files||[])];imageInput.value='';if(!files.length)return;setStatus('선택한 사진의 촬영/저장 날짜를 확인하고 있습니다…');const go=await checkAlbumDateOutliers(files);if(!go){setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');return;}const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
+imageInput.addEventListener('change',async()=>{const files=[...(imageInput.files||[])];imageInput.value='';if(!files.length)return;setInputMode('gallery');setStatus('선택한 사진의 촬영/저장 날짜를 확인하고 있습니다…');const go=await checkAlbumDateOutliers(files);if(!go){setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');return;}const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
 $('albumDateCancel').addEventListener('click',()=>finishAlbumDateCheck(false));
 $('albumDateContinue').addEventListener('click',()=>finishAlbumDateCheck(true));
 $('copyBtn').addEventListener('click',copyAll);
@@ -2348,7 +2383,13 @@ $('itemDeleteCancel').addEventListener('click',()=>{pendingDeletePhotoId=null;cl
 $('itemDeleteConfirm').addEventListener('click',deletePendingPhoto);
 $('shareResetCancel').addEventListener('click',()=>cancelShareAutoReset(true));
 ['shootGuideModal','clearConfirmModal','resetAllConfirmModal','errorViewerModal','previewViewerModal','itemDeleteModal'].forEach(id=>$(id).addEventListener('click',e=>{if(e.target===$(id))closeModal(id)}));
-window.addEventListener('pagehide',()=>{if(shareResetTimer)clearInterval(shareResetTimer);stopCamera();photoItems.forEach(x=>URL.revokeObjectURL(x.url))});
+window.addEventListener('pagehide',()=>{
+  // 모바일에서 앨범/카메라/공유 화면으로 잠시 이동할 때도 pagehide가 발생할 수 있습니다.
+  // 이때 미리보기용 Blob URL을 해제하면 돌아왔을 때 일부 썸네일이 깨질 수 있으므로
+  // 여기서는 카메라 스트림과 타이머만 정리하고, 사진 URL은 목록 삭제/초기화 시에만 해제합니다.
+  if(shareResetTimer)clearInterval(shareResetTimer);
+  stopCamera();
+});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&stream)stopCamera()});
 loadSession();
 loadProductCatalog();
