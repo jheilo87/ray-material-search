@@ -528,6 +528,31 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 .albumDateSummary{margin:10px 0;padding:11px 12px;border-radius:13px;background:#fff7e8;color:#7a5310;font-size:13px;font-weight:900;line-height:1.55}
 .albumDateList{display:flex;flex-direction:column;gap:8px;margin-top:10px;max-height:42vh;overflow:auto}.albumDateItem{display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px;align-items:center;padding:8px;border:1px solid #f0dfbd;border-radius:12px;background:#fff}.albumDateItem img{width:58px;height:58px;object-fit:cover;border-radius:9px;background:#eef2f6}.albumDateMeta{font-size:12px;font-weight:900;color:#5d4a2a;line-height:1.5;word-break:break-all}.albumDateMeta small{display:block;color:#8a795e;font-size:10px;font-weight:800}.albumDateNotice{margin-top:8px;color:#7a8792;font-size:10px;font-weight:800;line-height:1.45}
 </style>
+
+<style id="action-ready-state-fix">
+/* 시작 화면에서는 주요 버튼을 '선택됨'처럼 보이지 않게 하고, 실제 사용 가능 상태에서만 초록색 강조 */
+.cameraBtn{
+  background:#fff!important;
+  color:#159765!important;
+  border:2px solid #67c79e!important;
+  box-shadow:0 5px 13px rgba(20,48,73,.08)!important;
+}
+.cameraBtn.ready{
+  background:linear-gradient(135deg,#28b779,#169f66)!important;
+  color:#fff!important;
+  border-color:#1fa86f!important;
+  box-shadow:0 7px 16px rgba(40,183,121,.22)!important;
+}
+.share{
+  background:#eef2f7!important;
+  color:#7b8798!important;
+  box-shadow:none!important;
+}
+.share.ready{
+  background:linear-gradient(135deg,#28b779,#1e9d67)!important;
+  color:#fff!important;
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1492,6 +1517,7 @@ function render(){
   rebuildResults();
   empty.style.display=results.length?'none':'block';
   resultCount.textContent=`${results.length}건`;
+  updateActionReadyStates();
 
   const linkedSerials=new Set(photoItems.flatMap(item=>item.serials));
   const groups=new Map();
@@ -2161,6 +2187,11 @@ function buildGroupedShareText(){
 }
 async function copyAll(){const text=results.filter(Boolean).join('\n');if(!text)return toast('복사할 S/N이 없어요');try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('전체 복사 완료')}
 
+function updateActionReadyStates(){
+  $('openCameraBtn')?.classList.toggle('ready',!!selectedVendor);
+  $('shareBtn')?.classList.toggle('ready',results.length>0);
+}
+
 document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',()=>{
   const sameSelected=btn.classList.contains('active') && selectedVendor===btn.dataset.vendor;
   document.querySelectorAll('.vendor').forEach(x=>x.classList.remove('active'));
@@ -2168,11 +2199,13 @@ document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',(
   if(sameSelected){
     selectedVendor='';
     setStatus('업체 선택이 해제되었습니다. 연속촬영 시 업체를 먼저 선택해 주세요.');
+    updateActionReadyStates();
     return;
   }
 
   btn.classList.add('active');
   selectedVendor=btn.dataset.vendor;
+  updateActionReadyStates();
   setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 촬영을 시작하세요.`);
 }));
 $('openCameraBtn').addEventListener('click',()=>{
@@ -2339,6 +2372,7 @@ loadProductCatalog();
 (function(){
   const active=localStorage.getItem('rayAdminLoggedIn')==='1';
   document.body.classList.toggle('adminUnlocked',active);
+updateActionReadyStates();
 })();
 </script>
 
