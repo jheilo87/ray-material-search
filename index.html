@@ -248,62 +248,72 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 }
 
 
-
-/* 검색 메뉴 탭 · 단일(파랑) / 다중(초록) */
 .mainSearchTabs{
-  display:grid;grid-template-columns:1fr 1fr;
-  margin:22px 0 0;border-bottom:1px solid #e4e9f0;
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;
+  width:min(330px,100%);margin:9px auto 0;padding:4px;
+  border:1px solid #e1e7ef;border-radius:14px;background:#f5f7fa
 }
 .mainSearchTab{
-  position:relative;min-height:46px;border:0;background:transparent;
-  color:#8993a3;font-size:14px;font-weight:950;letter-spacing:-.35px;
+  min-height:36px;border:0;border-radius:10px;background:transparent;
+  color:#7a8495;font-size:12px;font-weight:950;letter-spacing:-.2px
 }
-.mainSearchTab::after{
-  content:"";position:absolute;left:18%;right:18%;bottom:-1px;height:3px;
-  border-radius:999px;transform:scaleX(0);transition:transform .16s ease;
+.mainSearchTab.active{
+  background:#fff;color:#078fc9;box-shadow:0 3px 10px rgba(34,58,88,.10)
 }
-#mainSingleTab{color:#4f86a9}
-#mainMultiTab{color:#4d9c74}
-#mainSingleTab.active{color:#078fc9;background:linear-gradient(180deg,transparent,#effaff)}
-#mainSingleTab.active::after{background:#08a2dc;transform:scaleX(1)}
-#mainMultiTab.active{color:#16895b;background:linear-gradient(180deg,transparent,#effbf5)}
-#mainMultiTab.active::after{background:#28b779;transform:scaleX(1)}
-.mainSearchHint{margin:7px 4px 0;text-align:center;color:#8a94a4;font-size:10.5px;font-weight:800;line-height:1.45}
+.mainSearchHint{
+  margin:7px 4px 0;text-align:center;color:#8a94a4;
+  font-size:10.5px;font-weight:800;line-height:1.45
+}
+.search.multiInput{
+  height:auto;min-height:96px;align-items:flex-start;padding-top:17px;padding-bottom:15px
+}
+.search.multiInput .searchIcon{padding-top:2px}
+.search textarea{
+  width:100%;min-height:62px;max-height:126px;resize:none;
+  border:0;outline:0;background:transparent;color:#26364f;
+  font:inherit;font-size:17px;line-height:1.45
+}
+.search textarea::placeholder{color:#8b91a0}
+@media(max-width:520px){
+  .mainSearchTabs{width:min(300px,100%);margin-top:8px}
+  .mainSearchTab{min-height:34px;font-size:11.5px}
+  .search textarea{font-size:16px}
+}
 
-/* 다중 품번 순차 입력 팝업 */
-.multiEntryOverlay{
-  position:fixed;inset:0;z-index:11050;display:none;align-items:center;justify-content:center;
-  padding:18px;background:rgba(15,23,42,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)
+
+.mainMultiWrap{display:none}
+.mainMultiWrap.show{display:block}
+.mainMultiRows{
+  margin-top:8px;border:1px solid #e0e6ee;border-radius:18px;background:#fff;
+  overflow:hidden;box-shadow:0 7px 20px rgba(34,58,88,.05)
 }
-.multiEntryOverlay.show{display:flex}
-.multiEntryBox{
-  width:min(92vw,410px);max-height:calc(100dvh - 36px);overflow:auto;
-  background:#fff;border-radius:25px;box-shadow:0 28px 80px rgba(15,23,42,.30);
-  padding:20px 18px 17px;animation:multiEntryIn .18s ease-out
+.mainMultiRow{
+  display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;
+  min-height:48px;border-bottom:1px solid #edf1f5
 }
-@keyframes multiEntryIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
-.multiEntryTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.multiEntryTitle{font-size:21px;font-weight:1000;color:#17324b}
-.multiEntryCount{margin-top:4px;color:#16895b;font-size:11px;font-weight:950}
-.multiEntryX{width:36px;height:36px;border:0;border-radius:50%;background:#eef2f6;color:#667085;font-size:21px;font-weight:950}
-.multiStepBadge{display:inline-flex;margin-top:15px;padding:6px 10px;border-radius:999px;background:#eaf9f1;color:#16895b;font-size:11px;font-weight:950}
-.multiEntryInput{width:100%;margin-top:9px;padding:15px 14px;border:1px solid #cbd8e7;border-radius:14px;outline:0;background:#fff;color:#183c71;font-size:18px;font-weight:950;text-transform:uppercase}
-.multiEntryInput:focus{border-color:#28b779;box-shadow:0 0 0 4px rgba(40,183,121,.12)}
-.multiEntryHelp{margin-top:7px;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45}
-.multiSavedTitle{margin-top:16px;color:#526174;font-size:11px;font-weight:950}
-.multiSavedList{display:flex;flex-direction:column;gap:6px;margin-top:7px;max-height:190px;overflow:auto}
-.multiSavedEmpty{padding:13px;text-align:center;border:1px dashed #dbe3ed;border-radius:12px;color:#9aa4b2;font-size:11px;font-weight:850}
-.multiSavedItem{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:8px 9px;border:1px solid #e2e8ef;border-radius:12px;background:#fafcfe}
-.multiSavedNo{color:#8190a4;font-size:10px;font-weight:950;text-align:center}
-.multiSavedCode{min-width:0;color:#183c71;font-size:13px;font-weight:950;word-break:break-all}
-.multiSavedEdit,.multiSavedDel{border:0;border-radius:9px;padding:7px 8px;font-size:10px;font-weight:950}
-.multiSavedEdit{background:#eaf3ff;color:#1769e0}.multiSavedDel{background:#fff0f0;color:#c92a2a}
-.multiEntryActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.multiEntryBtn{min-height:47px;border:0;border-radius:13px;font-size:13px;font-weight:1000}
-.multiEntryBtn.next{background:#eaf3ff;color:#1769e0}
-.multiEntryBtn.search{background:linear-gradient(135deg,#28b779,#159765);color:#fff;box-shadow:0 7px 16px rgba(40,183,121,.20)}
-body.multiEntryOpen{overflow:hidden}
-@media(max-width:520px){.mainSearchTabs{margin-top:18px}.mainSearchTab{min-height:43px;font-size:13px}.multiEntryBox{padding:18px 15px 15px}.multiEntryTitle{font-size:19px}}
+.mainMultiRow:last-child{border-bottom:0}
+.mainMultiNo{
+  text-align:center;color:#8190a4;font-size:12px;font-weight:950;
+  border-right:1px solid #edf1f5
+}
+.mainMultiField{
+  width:100%;border:0;outline:0;padding:12px 13px;background:transparent;
+  color:#26364f;font-size:16px;text-transform:uppercase
+}
+.mainMultiAdd{
+  width:100%;min-height:42px;margin-top:8px;border:1px dashed #c9d6e6;
+  border-radius:13px;background:#f8fafc;color:#5f6f84;font-size:12px;font-weight:900
+}
+.mainMultiSearchBtn{
+  width:100%;min-height:50px;margin-top:10px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,#0aa3df,#168fd0);color:#fff;
+  font-size:15px;font-weight:1000;box-shadow:0 7px 18px rgba(0,143,207,.18)
+}
+.mainMultiSearchBtn:active{transform:translateY(1px)}
+@media(max-width:520px){
+  .mainMultiRow{min-height:46px}
+  .mainMultiField{font-size:15px;padding:11px 12px}
+}
 
 </style>
 
@@ -407,19 +417,231 @@ body.incomingPopupOpen{overflow:hidden}
   .calendar.hasIncoming::after{top:10px;right:11px;font-size:9px;padding:4px 7px}
   .calendar.hasIncoming p{padding:6px 8px}
 }
-</style></head><body><div class="v11Splash" id="v11Splash" aria-hidden="true"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div>
-<div class="mainSearchTabs" role="tablist" aria-label="검색 방식">
-  <button class="mainSearchTab active" id="mainSingleTab" type="button" role="tab" aria-selected="true">단일 품번 검색</button>
-  <button class="mainSearchTab" id="mainMultiTab" type="button" role="tab" aria-selected="false">다중 품번 조회</button>
+
+
+/* 2026-08-03 상단 검색 탭 + 다중 품번 조회 팝업 */
+.rsSearchTabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  margin-top:22px;
+  border:1px solid #e1e6ee;
+  border-radius:22px 22px 0 0;
+  overflow:hidden;
+  background:#fff;
+}
+.rsSearchTab{
+  position:relative;
+  min-height:54px;
+  border:0;
+  background:#fff;
+  color:#6f7888;
+  font-size:14px;
+  font-weight:950;
+}
+.rsSearchTab+.rsSearchTab{border-left:1px solid #edf0f4}
+.rsSearchTab::after{
+  content:"";
+  position:absolute;
+  left:16%;right:16%;bottom:0;
+  height:3px;border-radius:999px;
+  transform:scaleX(0);
+  transition:transform .15s ease;
+}
+.rsSearchTab.single.active{color:#078fc9;background:#f3fbff}
+.rsSearchTab.single.active::after{background:#08a2dc;transform:scaleX(1)}
+.rsSearchTab.multi.active{color:#16895b;background:#f2fbf6}
+.rsSearchTab.multi.active::after{background:#28b779;transform:scaleX(1)}
+.rsSearchTab.location.active{color:#5b39d2;background:#f5f2ff}
+.rsSearchTab.location.active::after{background:#5b39d2;transform:scaleX(1)}
+
+.rsSearchWrap{
+  border:1px solid #e1e6ee;
+  border-top:0;
+  border-radius:0 0 22px 22px;
+  background:#fff;
+  padding:18px 18px 15px;
+  box-shadow:0 8px 24px rgba(31,57,88,.06);
+}
+.rsSearchWrap .search{margin-top:0}
+.rsSearchDesc{
+  margin-top:10px;
+  text-align:center;
+  color:#7f8899;
+  font-size:11px;
+  font-weight:800;
+}
+.rsLocationBox{display:none}
+.rsLocationBox.show{display:block}
+.rsLocationForm{
+  display:grid;
+  grid-template-columns:42px 1fr auto;
+  align-items:center;
+  min-height:64px;
+  border:1px solid #dfe5ed;
+  border-radius:20px;
+  background:#fff;
+  padding:0 12px 0 14px;
+}
+.rsLocationForm .ico{font-size:27px;color:#7f8899}
+.rsLocationForm input{
+  border:0;outline:0;min-width:0;
+  font-size:17px;color:#26364f;
+}
+.rsLocationForm button{
+  border:0;border-radius:12px;
+  padding:10px 13px;
+  background:#5b39d2;color:#fff;
+  font-size:12px;font-weight:950;
+}
+
+/* 다중 품번 조회 팝업 */
+.rsMultiOverlay{
+  position:fixed;inset:0;z-index:12000;
+  display:none;align-items:center;justify-content:center;
+  padding:18px;
+  background:rgba(15,23,42,.52);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.rsMultiOverlay.show{display:flex}
+.rsMultiBox{
+  width:min(92vw,410px);
+  max-height:min(86dvh,calc(100dvh - 24px));
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  background:#fff;
+  border-radius:24px;
+  box-shadow:0 28px 80px rgba(15,23,42,.30);
+}
+.rsMultiHead{
+  display:flex;justify-content:space-between;gap:12px;
+  padding:18px 18px 12px;
+  border-bottom:1px solid #edf0f4;
+}
+.rsMultiTitle{font-size:20px;font-weight:1000;color:#183c71}
+.rsMultiCount{margin-top:4px;color:#16895b;font-size:11px;font-weight:950}
+.rsMultiClose{
+  width:36px;height:36px;border:0;border-radius:50%;
+  background:#eef2f6;color:#667085;font-size:21px;
+}
+.rsMultiBody{padding:14px 18px;overflow:auto;overscroll-behavior:contain}
+.rsMultiStep{
+  display:inline-flex;padding:6px 10px;border-radius:999px;
+  background:#eaf9f1;color:#16895b;
+  font-size:11px;font-weight:950;
+}
+.rsMultiInput{
+  width:100%;margin-top:9px;
+  padding:14px;border:1px solid #cbd8e7;border-radius:14px;
+  outline:0;background:#fff;
+  color:#183c71;font-size:18px;font-weight:950;
+  text-transform:uppercase;
+  scroll-margin-bottom:100px;
+}
+.rsMultiInput:focus{
+  border-color:#28b779;
+  box-shadow:0 0 0 4px rgba(40,183,121,.12);
+}
+.rsMultiHelp{margin-top:7px;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45}
+.rsMultiListTitle{margin-top:15px;color:#526174;font-size:11px;font-weight:950}
+.rsMultiList{display:flex;flex-direction:column;gap:6px;margin-top:7px}
+.rsMultiEmpty{
+  padding:12px;text-align:center;
+  border:1px dashed #dbe3ed;border-radius:12px;
+  color:#9aa4b2;font-size:11px;font-weight:850;
+}
+.rsMultiItem{
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr) auto auto;
+  align-items:center;gap:6px;
+  padding:8px;border:1px solid #e2e8ef;border-radius:12px;
+  background:#fafcfe;
+}
+.rsMultiNo{font-size:10px;font-weight:950;color:#8190a4;text-align:center}
+.rsMultiCode{min-width:0;font-size:13px;font-weight:950;color:#183c71;word-break:break-all}
+.rsMultiEdit,.rsMultiDel{
+  border:0;border-radius:9px;
+  padding:7px 8px;font-size:10px;font-weight:950;
+}
+.rsMultiEdit{background:#eaf3ff;color:#1769e0}
+.rsMultiDel{background:#fff0f0;color:#c92a2a}
+.rsMultiFoot{
+  position:sticky;bottom:0;z-index:2;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.97);
+  border-top:1px solid #edf0f4;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.rsMultiNext,.rsMultiGo{
+  min-height:47px;border:0;border-radius:13px;
+  font-size:13px;font-weight:1000;
+}
+.rsMultiNext{background:#eaf3ff;color:#1769e0}
+.rsMultiGo{background:linear-gradient(135deg,#28b779,#159765);color:#fff}
+body.rsMultiOpen{overflow:hidden}
+
+@media(max-width:520px){
+  .rsSearchTabs{margin-top:18px}
+  .rsSearchTab{min-height:49px;font-size:12px}
+  .rsSearchWrap{padding:14px 12px 13px}
+}
+@supports(height:100svh){
+  .rsMultiBox{max-height:min(86svh,calc(100svh - 24px))}
+}
+
+</style></head><body>
+
+<div class="rsMultiOverlay" id="rsMultiOverlay" role="dialog" aria-modal="true" aria-labelledby="rsMultiTitle">
+  <div class="rsMultiBox">
+    <div class="rsMultiHead">
+      <div>
+        <div class="rsMultiTitle" id="rsMultiTitle">다중 품번 조회</div>
+        <div class="rsMultiCount" id="rsMultiCount">0개 입력됨</div>
+      </div>
+      <button class="rsMultiClose" id="rsMultiClose" type="button" aria-label="닫기">×</button>
+    </div>
+
+    <div class="rsMultiBody">
+      <div class="rsMultiStep" id="rsMultiStep">1번째 품번</div>
+      <input class="rsMultiInput" id="rsMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
+      <div class="rsMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 실제 하이픈 형식으로 맞춰집니다.</div>
+
+      <div class="rsMultiListTitle">입력 목록</div>
+      <div class="rsMultiList" id="rsMultiList"></div>
+    </div>
+
+    <div class="rsMultiFoot">
+      <button class="rsMultiNext" id="rsMultiNext" type="button">다음 품번</button>
+      <button class="rsMultiGo" id="rsMultiGo" type="button">조회하기</button>
+    </div>
+  </div>
 </div>
-<form class="search" id="mainSearch" action="search.html" method="get">
-  <span class="searchIcon">⌕</span>
-  <input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
-</form>
-<div class="mainSearchHint" id="mainSearchHint">품번 또는 품명을 검색하세요.</div>
-<button class="mainMultiAdd" id="mainMultiAdd" type="button">＋ 품번 한 줄 추가</button>
-  <button class="mainMultiSearchBtn" id="mainMultiSearchBtn" type="button">다중 품번 조회</button>
+<div class="v11Splash" id="v11Splash" aria-hidden="true"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div>
+<div class="rsSearchTabs" role="tablist" aria-label="검색 방식">
+  <button class="rsSearchTab single active" id="rsSingleTab" type="button" role="tab" aria-selected="true">단일 검색</button>
+  <button class="rsSearchTab multi" id="rsMultiTab" type="button" role="tab" aria-selected="false">다중 품번 조회</button>
+  <button class="rsSearchTab location" id="rsLocationTab" type="button" role="tab" aria-selected="false">위치 검색</button>
 </div>
+
+<div class="rsSearchWrap">
+  <form class="search" id="mainSearch" action="search.html" method="get">
+    <span class="searchIcon">⌕</span>
+    <input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
+  </form>
+
+  <div class="rsLocationBox" id="rsLocationBox">
+    <form class="rsLocationForm" id="rsLocationForm">
+      <span class="ico">⌕</span>
+      <input id="rsLocationQ" type="text" placeholder="위치 입력 (예: 3L2-3)" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <button type="submit">검색</button>
+    </form>
+  </div>
+
+  <div class="rsSearchDesc" id="rsSearchDesc">품번 또는 품명을 입력하고 검색하세요.</div>
+</div>
+
 <section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
 <a class="hero blue" href="search.html"><div class="bigIcon">⌑⌕</div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
 <a class="hero green" href="sn.html"><div class="bigIcon">▥</div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
@@ -447,25 +669,6 @@ body.incomingPopupOpen{overflow:hidden}
   <div class="dbDashTime" id="dbSyncTime">마지막 확인 · 확인 중</div>
 </section>
 <div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><span>전체 보기 ›</span></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><span>전체 보기 ›</span></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><div class="foot">© RAY Corp. All rights reserved.</div></main></div>
-
-
-<div class="multiEntryOverlay" id="multiEntryOverlay" role="dialog" aria-modal="true" aria-labelledby="multiEntryTitle">
-  <div class="multiEntryBox">
-    <div class="multiEntryTop">
-      <div><div class="multiEntryTitle" id="multiEntryTitle">다중 품번 조회</div><div class="multiEntryCount" id="multiEntryCount">0개 입력됨</div></div>
-      <button class="multiEntryX" id="multiEntryX" type="button" aria-label="닫기">×</button>
-    </div>
-    <div class="multiStepBadge" id="multiStepBadge">1번째 품번</div>
-    <input class="multiEntryInput" id="multiEntryInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
-    <div class="multiEntryHelp">소문자는 자동으로 대문자로 바뀌며, DB에 있는 품번은 하이픈도 자동으로 맞춰집니다.</div>
-    <div class="multiSavedTitle">입력 목록</div>
-    <div class="multiSavedList" id="multiSavedList"></div>
-    <div class="multiEntryActions">
-      <button class="multiEntryBtn next" id="multiEntryNext" type="button">다음 품번</button>
-      <button class="multiEntryBtn search" id="multiEntrySearch" type="button">조회하기</button>
-    </div>
-  </div>
-</div>
 
 <div class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog" aria-modal="true" aria-labelledby="incomingTodayTitle">
   <div class="incomingTodayBox">
@@ -573,13 +776,19 @@ let MAIN_SEARCH_MULTI=false;
 let MAIN_MULTI_ITEMS=[];
 let MAIN_MULTI_EDIT=-1;
 
-function mainUpper(value){return String(value||'').toUpperCase();}
-function mainFormatPartToken(value){
+function mainUpper(value){
+  return String(value||'').toUpperCase();
+}
+function mainFormatPart(value){
   const upper=mainUpper(value).replace(/\s+/g,'');
   const compact=mainNorm(upper);
   if(!compact)return '';
-  const exact=MAIN_MATERIAL.find(r=>mainNorm(r.code)===compact);
-  return exact?String(exact.code||'').toUpperCase():upper;
+
+  const exact=Array.isArray(MAIN_MATERIAL)
+    ? MAIN_MATERIAL.find(r=>mainNorm(r.code)===compact)
+    : null;
+
+  return exact ? String(exact.code||'').toUpperCase() : upper;
 }
 function bindMainSingleInput(){
   const input=document.getElementById('mainQ');
@@ -591,93 +800,211 @@ function bindMainSingleInput(){
       e.target.value=upper;
       try{e.target.setSelectionRange(pos,pos)}catch{}
     }
-    if(!e.target.value.trim())document.getElementById('mainResults').classList.remove('show');
+    if(!e.target.value.trim()){
+      document.getElementById('mainResults').classList.remove('show');
+    }
   });
 }
+function setRsSearchTab(kind){
+  const single=document.getElementById('rsSingleTab');
+  const multi=document.getElementById('rsMultiTab');
+  const location=document.getElementById('rsLocationTab');
+  const mainSearch=document.getElementById('mainSearch');
+  const locBox=document.getElementById('rsLocationBox');
+  const desc=document.getElementById('rsSearchDesc');
+
+  [single,multi,location].forEach(x=>{
+    x.classList.remove('active');
+    x.setAttribute('aria-selected','false');
+  });
+
+  if(kind==='single'){
+    single.classList.add('active');
+    single.setAttribute('aria-selected','true');
+    mainSearch.style.display='grid';
+    locBox.classList.remove('show');
+    desc.textContent='품번 또는 품명을 입력하고 검색하세요.';
+  }else if(kind==='multi'){
+    multi.classList.add('active');
+    multi.setAttribute('aria-selected','true');
+    mainSearch.style.display='none';
+    locBox.classList.remove('show');
+    desc.textContent='품번을 하나씩 입력한 뒤 조회하세요.';
+  }else{
+    location.classList.add('active');
+    location.setAttribute('aria-selected','true');
+    mainSearch.style.display='none';
+    locBox.classList.add('show');
+    desc.textContent='보관 위치를 입력하면 해당 위치 자재를 확인합니다.';
+  }
+}
+
 function renderMainMultiList(){
-  const list=document.getElementById('multiSavedList');
-  document.getElementById('multiEntryCount').textContent=`${MAIN_MULTI_ITEMS.length}개 입력됨`;
-  document.getElementById('multiStepBadge').textContent=MAIN_MULTI_EDIT>=0?`${MAIN_MULTI_EDIT+1}번째 품번 수정`:`${MAIN_MULTI_ITEMS.length+1}번째 품번`;
+  const list=document.getElementById('rsMultiList');
+  document.getElementById('rsMultiCount').textContent=`${MAIN_MULTI_ITEMS.length}개 입력됨`;
+  document.getElementById('rsMultiStep').textContent=
+    MAIN_MULTI_EDIT>=0
+      ? `${MAIN_MULTI_EDIT+1}번째 품번 수정`
+      : `${MAIN_MULTI_ITEMS.length+1}번째 품번`;
+
   if(!MAIN_MULTI_ITEMS.length){
-    list.innerHTML='<div class="multiSavedEmpty">아직 입력한 품번이 없습니다.</div>';
+    list.innerHTML='<div class="rsMultiEmpty">아직 입력한 품번이 없습니다.</div>';
     return;
   }
+
   list.innerHTML=MAIN_MULTI_ITEMS.map((code,i)=>`
-    <div class="multiSavedItem">
-      <div class="multiSavedNo">${i+1}.</div>
-      <div class="multiSavedCode">${esc(code)}</div>
-      <button class="multiSavedEdit" type="button" data-multi-edit="${i}">수정</button>
-      <button class="multiSavedDel" type="button" data-multi-del="${i}">삭제</button>
-    </div>`).join('');
+    <div class="rsMultiItem">
+      <div class="rsMultiNo">${i+1}.</div>
+      <div class="rsMultiCode">${esc(code)}</div>
+      <button class="rsMultiEdit" type="button" data-rs-edit="${i}">수정</button>
+      <button class="rsMultiDel" type="button" data-rs-del="${i}">삭제</button>
+    </div>
+  `).join('');
 }
 function openMainMultiPopup(){
   MAIN_SEARCH_MULTI=true;
-  document.getElementById('mainSingleTab').classList.remove('active');
-  document.getElementById('mainMultiTab').classList.add('active');
-  document.getElementById('mainSingleTab').setAttribute('aria-selected','false');
-  document.getElementById('mainMultiTab').setAttribute('aria-selected','true');
-  document.getElementById('mainSearchHint').textContent='팝업에서 품번을 하나씩 입력한 뒤 조회하세요.';
   MAIN_MULTI_EDIT=-1;
-  document.getElementById('multiEntryInput').value='';
+  document.getElementById('rsMultiInput').value='';
   renderMainMultiList();
-  document.getElementById('multiEntryOverlay').classList.add('show');
-  document.body.classList.add('multiEntryOpen');
-  setTimeout(()=>document.getElementById('multiEntryInput').focus(),80);
+  setRsSearchTab('multi');
+  document.getElementById('rsMultiOverlay').classList.add('show');
+  document.body.classList.add('rsMultiOpen');
+  setTimeout(()=>document.getElementById('rsMultiInput').focus(),70);
 }
-function closeMainMultiPopup(revert=false){
-  document.getElementById('multiEntryOverlay').classList.remove('show');
-  document.body.classList.remove('multiEntryOpen');
-  if(revert){
+function closeMainMultiPopup(revertToSingle=true){
+  document.getElementById('rsMultiOverlay').classList.remove('show');
+  document.body.classList.remove('rsMultiOpen');
+  if(revertToSingle){
     MAIN_SEARCH_MULTI=false;
-    document.getElementById('mainMultiTab').classList.remove('active');
-    document.getElementById('mainSingleTab').classList.add('active');
-    document.getElementById('mainMultiTab').setAttribute('aria-selected','false');
-    document.getElementById('mainSingleTab').setAttribute('aria-selected','true');
-    document.getElementById('mainSearchHint').textContent='품번 또는 품명을 검색하세요.';
+    setRsSearchTab('single');
   }
 }
 function saveCurrentMainMulti(){
-  const input=document.getElementById('multiEntryInput');
-  const formatted=mainFormatPartToken(input.value);
+  const input=document.getElementById('rsMultiInput');
+  const formatted=mainFormatPart(input.value);
   if(!formatted)return false;
+
   const normalized=mainNorm(formatted);
-  const duplicateIndex=MAIN_MULTI_ITEMS.findIndex((x,i)=>mainNorm(x)===normalized && i!==MAIN_MULTI_EDIT);
-  if(duplicateIndex>=0){
-    input.value='';MAIN_MULTI_EDIT=-1;renderMainMultiList();return true;
+  const duplicate=MAIN_MULTI_ITEMS.findIndex(
+    (x,i)=>mainNorm(x)===normalized && i!==MAIN_MULTI_EDIT
+  );
+
+  if(duplicate>=0){
+    input.value='';
+    MAIN_MULTI_EDIT=-1;
+    renderMainMultiList();
+    return true;
   }
-  if(MAIN_MULTI_EDIT>=0)MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]=formatted;
-  else MAIN_MULTI_ITEMS.push(formatted);
-  MAIN_MULTI_EDIT=-1;input.value='';renderMainMultiList();return true;
+
+  if(MAIN_MULTI_EDIT>=0){
+    MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]=formatted;
+  }else{
+    MAIN_MULTI_ITEMS.push(formatted);
+  }
+
+  MAIN_MULTI_EDIT=-1;
+  input.value='';
+  renderMainMultiList();
+  return true;
 }
-function nextMainMulti(){if(saveCurrentMainMulti())setTimeout(()=>document.getElementById('multiEntryInput').focus(),30);}
+function nextMainMulti(){
+  if(saveCurrentMainMulti()){
+    setTimeout(()=>document.getElementById('rsMultiInput').focus(),30);
+  }
+}
 function runMainMultiSearch(){
   saveCurrentMainMulti();
   if(!MAIN_MULTI_ITEMS.length)return;
   location.href='search.html?mode=multi&multi='+encodeURIComponent(MAIN_MULTI_ITEMS.join('\n'));
 }
-document.getElementById('mainSingleTab').addEventListener('click',()=>{
+
+document.getElementById('rsSingleTab').addEventListener('click',()=>{
   MAIN_SEARCH_MULTI=false;
-  document.getElementById('mainMultiTab').classList.remove('active');
-  document.getElementById('mainSingleTab').classList.add('active');
-  document.getElementById('mainMultiTab').setAttribute('aria-selected','false');
-  document.getElementById('mainSingleTab').setAttribute('aria-selected','true');
-  document.getElementById('mainSearchHint').textContent='품번 또는 품명을 검색하세요.';
+  setRsSearchTab('single');
   document.getElementById('mainQ').focus();
 });
-document.getElementById('mainMultiTab').addEventListener('click',openMainMultiPopup);
-document.getElementById('multiEntryX').addEventListener('click',()=>closeMainMultiPopup(true));
-document.getElementById('multiEntryOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMainMultiPopup(true)});
-document.getElementById('multiEntryNext').addEventListener('click',nextMainMulti);
-document.getElementById('multiEntrySearch').addEventListener('click',runMainMultiSearch);
-document.getElementById('multiEntryInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=mainUpper(e.target.value);try{e.target.setSelectionRange(pos,pos)}catch{}});
-document.getElementById('multiEntryInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextMainMulti();}});
-document.getElementById('multiSavedList').addEventListener('click',e=>{
-  const edit=e.target.closest('[data-multi-edit]'),del=e.target.closest('[data-multi-del]');
-  if(edit){MAIN_MULTI_EDIT=Number(edit.dataset.multiEdit);document.getElementById('multiEntryInput').value=MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]||'';renderMainMultiList();document.getElementById('multiEntryInput').focus();}
-  if(del){const i=Number(del.dataset.multiDel);MAIN_MULTI_ITEMS.splice(i,1);if(MAIN_MULTI_EDIT===i)MAIN_MULTI_EDIT=-1;else if(MAIN_MULTI_EDIT>i)MAIN_MULTI_EDIT--;renderMainMultiList();}
+document.getElementById('rsMultiTab').addEventListener('click',openMainMultiPopup);
+document.getElementById('rsLocationTab').addEventListener('click',()=>{
+  MAIN_SEARCH_MULTI=false;
+  setRsSearchTab('location');
+  setTimeout(()=>document.getElementById('rsLocationQ').focus(),40);
 });
+
+document.getElementById('rsLocationForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const q=document.getElementById('rsLocationQ').value.trim();
+  if(!q)return;
+  location.href='search.html?mode=location&q='+encodeURIComponent(q);
+});
+
+document.getElementById('rsMultiClose').addEventListener('click',()=>closeMainMultiPopup(true));
+document.getElementById('rsMultiOverlay').addEventListener('click',e=>{
+  if(e.target===e.currentTarget)closeMainMultiPopup(true);
+});
+document.getElementById('rsMultiNext').addEventListener('click',nextMainMulti);
+document.getElementById('rsMultiGo').addEventListener('click',runMainMultiSearch);
+
+document.getElementById('rsMultiInput').addEventListener('input',e=>{
+  const pos=e.target.selectionStart;
+  e.target.value=mainUpper(e.target.value);
+  try{e.target.setSelectionRange(pos,pos)}catch{}
+});
+document.getElementById('rsMultiInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    nextMainMulti();
+  }
+});
+document.getElementById('rsMultiList').addEventListener('click',e=>{
+  const edit=e.target.closest('[data-rs-edit]');
+  const del=e.target.closest('[data-rs-del]');
+
+  if(edit){
+    MAIN_MULTI_EDIT=Number(edit.dataset.rsEdit);
+    document.getElementById('rsMultiInput').value=MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]||'';
+    renderMainMultiList();
+    document.getElementById('rsMultiInput').focus();
+  }
+
+  if(del){
+    const i=Number(del.dataset.rsDel);
+    MAIN_MULTI_ITEMS.splice(i,1);
+    if(MAIN_MULTI_EDIT===i)MAIN_MULTI_EDIT=-1;
+    else if(MAIN_MULTI_EDIT>i)MAIN_MULTI_EDIT--;
+    renderMainMultiList();
+  }
+});
+
 bindMainSingleInput();
-document.getElementById('mainSearch').addEventListener('submit',e=>{e.preventDefault();const q=document.getElementById('mainQ').value.trim();if(!q)return;showMainResults(q);});
+setRsSearchTab('single');
+renderMainMultiList();
+
+document.getElementById('mainSearch').addEventListener('submit',e=>{
+  e.preventDefault();
+  const q=document.getElementById('mainQ').value.trim();
+  if(!q)return;
+  showMainResults(q);
+});
+
+/* iOS / Android 키보드 대응 */
+(()=>{
+  const box=document.querySelector('.rsMultiBox');
+  const input=document.getElementById('rsMultiInput');
+  if(!box||!input||!window.visualViewport)return;
+
+  const sync=()=>{
+    box.style.maxHeight=Math.max(320,visualViewport.height-20)+'px';
+  };
+  visualViewport.addEventListener('resize',sync);
+  visualViewport.addEventListener('scroll',sync);
+
+  input.addEventListener('focus',()=>{
+    sync();
+    setTimeout(()=>{
+      input.scrollIntoView({block:'center',behavior:'smooth'});
+    },100);
+  });
+})();
 
 function setDbRow(id,valueId,state,text){
   const row=document.getElementById(id);
