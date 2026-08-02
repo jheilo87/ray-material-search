@@ -248,72 +248,62 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 }
 
 
+
+/* 검색 메뉴 탭 · 단일(파랑) / 다중(초록) */
 .mainSearchTabs{
-  display:grid;grid-template-columns:1fr 1fr;gap:7px;
-  width:min(330px,100%);margin:9px auto 0;padding:4px;
-  border:1px solid #e1e7ef;border-radius:14px;background:#f5f7fa
+  display:grid;grid-template-columns:1fr 1fr;
+  margin:22px 0 0;border-bottom:1px solid #e4e9f0;
 }
 .mainSearchTab{
-  min-height:36px;border:0;border-radius:10px;background:transparent;
-  color:#7a8495;font-size:12px;font-weight:950;letter-spacing:-.2px
+  position:relative;min-height:46px;border:0;background:transparent;
+  color:#8993a3;font-size:14px;font-weight:950;letter-spacing:-.35px;
 }
-.mainSearchTab.active{
-  background:#fff;color:#078fc9;box-shadow:0 3px 10px rgba(34,58,88,.10)
+.mainSearchTab::after{
+  content:"";position:absolute;left:18%;right:18%;bottom:-1px;height:3px;
+  border-radius:999px;transform:scaleX(0);transition:transform .16s ease;
 }
-.mainSearchHint{
-  margin:7px 4px 0;text-align:center;color:#8a94a4;
-  font-size:10.5px;font-weight:800;line-height:1.45
-}
-.search.multiInput{
-  height:auto;min-height:96px;align-items:flex-start;padding-top:17px;padding-bottom:15px
-}
-.search.multiInput .searchIcon{padding-top:2px}
-.search textarea{
-  width:100%;min-height:62px;max-height:126px;resize:none;
-  border:0;outline:0;background:transparent;color:#26364f;
-  font:inherit;font-size:17px;line-height:1.45
-}
-.search textarea::placeholder{color:#8b91a0}
-@media(max-width:520px){
-  .mainSearchTabs{width:min(300px,100%);margin-top:8px}
-  .mainSearchTab{min-height:34px;font-size:11.5px}
-  .search textarea{font-size:16px}
-}
+#mainSingleTab{color:#4f86a9}
+#mainMultiTab{color:#4d9c74}
+#mainSingleTab.active{color:#078fc9;background:linear-gradient(180deg,transparent,#effaff)}
+#mainSingleTab.active::after{background:#08a2dc;transform:scaleX(1)}
+#mainMultiTab.active{color:#16895b;background:linear-gradient(180deg,transparent,#effbf5)}
+#mainMultiTab.active::after{background:#28b779;transform:scaleX(1)}
+.mainSearchHint{margin:7px 4px 0;text-align:center;color:#8a94a4;font-size:10.5px;font-weight:800;line-height:1.45}
 
-
-.mainMultiWrap{display:none}
-.mainMultiWrap.show{display:block}
-.mainMultiRows{
-  margin-top:8px;border:1px solid #e0e6ee;border-radius:18px;background:#fff;
-  overflow:hidden;box-shadow:0 7px 20px rgba(34,58,88,.05)
+/* 다중 품번 순차 입력 팝업 */
+.multiEntryOverlay{
+  position:fixed;inset:0;z-index:11050;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(15,23,42,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)
 }
-.mainMultiRow{
-  display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;
-  min-height:48px;border-bottom:1px solid #edf1f5
+.multiEntryOverlay.show{display:flex}
+.multiEntryBox{
+  width:min(92vw,410px);max-height:calc(100dvh - 36px);overflow:auto;
+  background:#fff;border-radius:25px;box-shadow:0 28px 80px rgba(15,23,42,.30);
+  padding:20px 18px 17px;animation:multiEntryIn .18s ease-out
 }
-.mainMultiRow:last-child{border-bottom:0}
-.mainMultiNo{
-  text-align:center;color:#8190a4;font-size:12px;font-weight:950;
-  border-right:1px solid #edf1f5
-}
-.mainMultiField{
-  width:100%;border:0;outline:0;padding:12px 13px;background:transparent;
-  color:#26364f;font-size:16px;text-transform:uppercase
-}
-.mainMultiAdd{
-  width:100%;min-height:42px;margin-top:8px;border:1px dashed #c9d6e6;
-  border-radius:13px;background:#f8fafc;color:#5f6f84;font-size:12px;font-weight:900
-}
-.mainMultiSearchBtn{
-  width:100%;min-height:50px;margin-top:10px;border:0;border-radius:14px;
-  background:linear-gradient(135deg,#0aa3df,#168fd0);color:#fff;
-  font-size:15px;font-weight:1000;box-shadow:0 7px 18px rgba(0,143,207,.18)
-}
-.mainMultiSearchBtn:active{transform:translateY(1px)}
-@media(max-width:520px){
-  .mainMultiRow{min-height:46px}
-  .mainMultiField{font-size:15px;padding:11px 12px}
-}
+@keyframes multiEntryIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.multiEntryTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.multiEntryTitle{font-size:21px;font-weight:1000;color:#17324b}
+.multiEntryCount{margin-top:4px;color:#16895b;font-size:11px;font-weight:950}
+.multiEntryX{width:36px;height:36px;border:0;border-radius:50%;background:#eef2f6;color:#667085;font-size:21px;font-weight:950}
+.multiStepBadge{display:inline-flex;margin-top:15px;padding:6px 10px;border-radius:999px;background:#eaf9f1;color:#16895b;font-size:11px;font-weight:950}
+.multiEntryInput{width:100%;margin-top:9px;padding:15px 14px;border:1px solid #cbd8e7;border-radius:14px;outline:0;background:#fff;color:#183c71;font-size:18px;font-weight:950;text-transform:uppercase}
+.multiEntryInput:focus{border-color:#28b779;box-shadow:0 0 0 4px rgba(40,183,121,.12)}
+.multiEntryHelp{margin-top:7px;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45}
+.multiSavedTitle{margin-top:16px;color:#526174;font-size:11px;font-weight:950}
+.multiSavedList{display:flex;flex-direction:column;gap:6px;margin-top:7px;max-height:190px;overflow:auto}
+.multiSavedEmpty{padding:13px;text-align:center;border:1px dashed #dbe3ed;border-radius:12px;color:#9aa4b2;font-size:11px;font-weight:850}
+.multiSavedItem{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:8px 9px;border:1px solid #e2e8ef;border-radius:12px;background:#fafcfe}
+.multiSavedNo{color:#8190a4;font-size:10px;font-weight:950;text-align:center}
+.multiSavedCode{min-width:0;color:#183c71;font-size:13px;font-weight:950;word-break:break-all}
+.multiSavedEdit,.multiSavedDel{border:0;border-radius:9px;padding:7px 8px;font-size:10px;font-weight:950}
+.multiSavedEdit{background:#eaf3ff;color:#1769e0}.multiSavedDel{background:#fff0f0;color:#c92a2a}
+.multiEntryActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.multiEntryBtn{min-height:47px;border:0;border-radius:13px;font-size:13px;font-weight:1000}
+.multiEntryBtn.next{background:#eaf3ff;color:#1769e0}
+.multiEntryBtn.search{background:linear-gradient(135deg,#28b779,#159765);color:#fff;box-shadow:0 7px 16px rgba(40,183,121,.20)}
+body.multiEntryOpen{overflow:hidden}
+@media(max-width:520px){.mainSearchTabs{margin-top:18px}.mainSearchTab{min-height:43px;font-size:13px}.multiEntryBox{padding:18px 15px 15px}.multiEntryTitle{font-size:19px}}
 
 </style>
 
@@ -418,18 +408,16 @@ body.incomingPopupOpen{overflow:hidden}
   .calendar.hasIncoming p{padding:6px 8px}
 }
 </style></head><body><div class="v11Splash" id="v11Splash" aria-hidden="true"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div>
-<form class="search" id="mainSearch" action="search.html" method="get">
-  <span class="searchIcon">⌕</span>
-  <input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
-</form>
 <div class="mainSearchTabs" role="tablist" aria-label="검색 방식">
   <button class="mainSearchTab active" id="mainSingleTab" type="button" role="tab" aria-selected="true">단일 품번 검색</button>
   <button class="mainSearchTab" id="mainMultiTab" type="button" role="tab" aria-selected="false">다중 품번 조회</button>
 </div>
+<form class="search" id="mainSearch" action="search.html" method="get">
+  <span class="searchIcon">⌕</span>
+  <input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
+</form>
 <div class="mainSearchHint" id="mainSearchHint">품번 또는 품명을 검색하세요.</div>
-<div class="mainMultiWrap" id="mainMultiWrap">
-  <div class="mainMultiRows" id="mainMultiRows"></div>
-  <button class="mainMultiAdd" id="mainMultiAdd" type="button">＋ 품번 한 줄 추가</button>
+<button class="mainMultiAdd" id="mainMultiAdd" type="button">＋ 품번 한 줄 추가</button>
   <button class="mainMultiSearchBtn" id="mainMultiSearchBtn" type="button">다중 품번 조회</button>
 </div>
 <section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
@@ -459,6 +447,25 @@ body.incomingPopupOpen{overflow:hidden}
   <div class="dbDashTime" id="dbSyncTime">마지막 확인 · 확인 중</div>
 </section>
 <div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><span>전체 보기 ›</span></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><span>전체 보기 ›</span></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><div class="foot">© RAY Corp. All rights reserved.</div></main></div>
+
+
+<div class="multiEntryOverlay" id="multiEntryOverlay" role="dialog" aria-modal="true" aria-labelledby="multiEntryTitle">
+  <div class="multiEntryBox">
+    <div class="multiEntryTop">
+      <div><div class="multiEntryTitle" id="multiEntryTitle">다중 품번 조회</div><div class="multiEntryCount" id="multiEntryCount">0개 입력됨</div></div>
+      <button class="multiEntryX" id="multiEntryX" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="multiStepBadge" id="multiStepBadge">1번째 품번</div>
+    <input class="multiEntryInput" id="multiEntryInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
+    <div class="multiEntryHelp">소문자는 자동으로 대문자로 바뀌며, DB에 있는 품번은 하이픈도 자동으로 맞춰집니다.</div>
+    <div class="multiSavedTitle">입력 목록</div>
+    <div class="multiSavedList" id="multiSavedList"></div>
+    <div class="multiEntryActions">
+      <button class="multiEntryBtn next" id="multiEntryNext" type="button">다음 품번</button>
+      <button class="multiEntryBtn search" id="multiEntrySearch" type="button">조회하기</button>
+    </div>
+  </div>
+</div>
 
 <div class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog" aria-modal="true" aria-labelledby="incomingTodayTitle">
   <div class="incomingTodayBox">
@@ -563,9 +570,16 @@ async function loadMainMaterial(){
 }
 function showMainResults(query){const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}const nq=mainNorm(q);const hits=MAIN_MATERIAL.filter(row=>mainNorm(row.code).includes(nq)||mainNorm(row.name).includes(nq));const shown=hits.slice(0,6);count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?q='+encodeURIComponent(q);more.style.display=hits.length?'block':'none';list.innerHTML=shown.length?shown.map(row=>`<a class="mainResult" href="search.html?q=${encodeURIComponent(row.code)}"><div><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></div><div class="mainResultLoc">📍 ${esc(row.location)}</div></a>`).join(''):`<div class="mainResultEmpty">검색되는 품번이나 품명이 없습니다.<br>다른 검색어로 다시 확인해 주세요.</div>`;box.classList.add('show');}
 let MAIN_SEARCH_MULTI=false;
+let MAIN_MULTI_ITEMS=[];
+let MAIN_MULTI_EDIT=-1;
 
-function mainUpper(value){
-  return String(value||'').toUpperCase();
+function mainUpper(value){return String(value||'').toUpperCase();}
+function mainFormatPartToken(value){
+  const upper=mainUpper(value).replace(/\s+/g,'');
+  const compact=mainNorm(upper);
+  if(!compact)return '';
+  const exact=MAIN_MATERIAL.find(r=>mainNorm(r.code)===compact);
+  return exact?String(exact.code||'').toUpperCase():upper;
 }
 function bindMainSingleInput(){
   const input=document.getElementById('mainQ');
@@ -580,101 +594,90 @@ function bindMainSingleInput(){
     if(!e.target.value.trim())document.getElementById('mainResults').classList.remove('show');
   });
 }
-function addMainMultiRow(value=''){
-  const rows=document.getElementById('mainMultiRows');
-  const row=document.createElement('div');
-  row.className='mainMultiRow';
-  row.innerHTML=`<div class="mainMultiNo"></div><input class="mainMultiField" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 입력">`;
-  const input=row.querySelector('input');
-  input.value=mainUpper(value);
-  input.addEventListener('input',()=>{
-    const pos=input.selectionStart;
-    input.value=mainUpper(input.value);
-    try{input.setSelectionRange(pos,pos)}catch{}
-  });
-  input.addEventListener('keydown',e=>{
-    if(e.key==='Enter'){
-      e.preventDefault();
-      const all=[...document.querySelectorAll('.mainMultiField')];
-      const idx=all.indexOf(input);
-      if(idx===all.length-1 && input.value.trim()){
-        addMainMultiRow('');
-        setTimeout(()=>document.querySelectorAll('.mainMultiField')[idx+1]?.focus(),0);
-      }else{
-        all[idx+1]?.focus();
-      }
-    }
-  });
-  rows.appendChild(row);
-  renumberMainMultiRows();
+function renderMainMultiList(){
+  const list=document.getElementById('multiSavedList');
+  document.getElementById('multiEntryCount').textContent=`${MAIN_MULTI_ITEMS.length}개 입력됨`;
+  document.getElementById('multiStepBadge').textContent=MAIN_MULTI_EDIT>=0?`${MAIN_MULTI_EDIT+1}번째 품번 수정`:`${MAIN_MULTI_ITEMS.length+1}번째 품번`;
+  if(!MAIN_MULTI_ITEMS.length){
+    list.innerHTML='<div class="multiSavedEmpty">아직 입력한 품번이 없습니다.</div>';
+    return;
+  }
+  list.innerHTML=MAIN_MULTI_ITEMS.map((code,i)=>`
+    <div class="multiSavedItem">
+      <div class="multiSavedNo">${i+1}.</div>
+      <div class="multiSavedCode">${esc(code)}</div>
+      <button class="multiSavedEdit" type="button" data-multi-edit="${i}">수정</button>
+      <button class="multiSavedDel" type="button" data-multi-del="${i}">삭제</button>
+    </div>`).join('');
 }
-function renumberMainMultiRows(){
-  document.querySelectorAll('.mainMultiRow').forEach((row,i)=>{
-    row.querySelector('.mainMultiNo').textContent=(i+1)+'.';
-  });
+function openMainMultiPopup(){
+  MAIN_SEARCH_MULTI=true;
+  document.getElementById('mainSingleTab').classList.remove('active');
+  document.getElementById('mainMultiTab').classList.add('active');
+  document.getElementById('mainSingleTab').setAttribute('aria-selected','false');
+  document.getElementById('mainMultiTab').setAttribute('aria-selected','true');
+  document.getElementById('mainSearchHint').textContent='팝업에서 품번을 하나씩 입력한 뒤 조회하세요.';
+  MAIN_MULTI_EDIT=-1;
+  document.getElementById('multiEntryInput').value='';
+  renderMainMultiList();
+  document.getElementById('multiEntryOverlay').classList.add('show');
+  document.body.classList.add('multiEntryOpen');
+  setTimeout(()=>document.getElementById('multiEntryInput').focus(),80);
 }
-function ensureMainMultiRows(){
-  const rows=document.getElementById('mainMultiRows');
-  if(!rows.children.length){
-    addMainMultiRow('');
-    addMainMultiRow('');
-    addMainMultiRow('');
+function closeMainMultiPopup(revert=false){
+  document.getElementById('multiEntryOverlay').classList.remove('show');
+  document.body.classList.remove('multiEntryOpen');
+  if(revert){
+    MAIN_SEARCH_MULTI=false;
+    document.getElementById('mainMultiTab').classList.remove('active');
+    document.getElementById('mainSingleTab').classList.add('active');
+    document.getElementById('mainMultiTab').setAttribute('aria-selected','false');
+    document.getElementById('mainSingleTab').setAttribute('aria-selected','true');
+    document.getElementById('mainSearchHint').textContent='품번 또는 품명을 검색하세요.';
   }
 }
-function setMainSearchMode(multi){
-  MAIN_SEARCH_MULTI=!!multi;
-  const form=document.getElementById('mainSearch');
-  const singleTab=document.getElementById('mainSingleTab');
-  const multiTab=document.getElementById('mainMultiTab');
-  const hint=document.getElementById('mainSearchHint');
-  const multiWrap=document.getElementById('mainMultiWrap');
-
-  singleTab.classList.toggle('active',!MAIN_SEARCH_MULTI);
-  multiTab.classList.toggle('active',MAIN_SEARCH_MULTI);
-  singleTab.setAttribute('aria-selected',String(!MAIN_SEARCH_MULTI));
-  multiTab.setAttribute('aria-selected',String(MAIN_SEARCH_MULTI));
-
-  form.style.display=MAIN_SEARCH_MULTI?'none':'grid';
-  multiWrap.classList.toggle('show',MAIN_SEARCH_MULTI);
-  hint.textContent=MAIN_SEARCH_MULTI
-    ?'품번을 한 줄에 하나씩 입력한 뒤 아래 조회 버튼을 눌러 주세요.'
-    :'품번 또는 품명을 검색하세요.';
-
-  document.getElementById('mainResults').classList.remove('show');
-
-  if(MAIN_SEARCH_MULTI){
-    ensureMainMultiRows();
-    setTimeout(()=>document.querySelector('.mainMultiField')?.focus(),40);
-  }else{
-    setTimeout(()=>document.getElementById('mainQ')?.focus(),40);
+function saveCurrentMainMulti(){
+  const input=document.getElementById('multiEntryInput');
+  const formatted=mainFormatPartToken(input.value);
+  if(!formatted)return false;
+  const normalized=mainNorm(formatted);
+  const duplicateIndex=MAIN_MULTI_ITEMS.findIndex((x,i)=>mainNorm(x)===normalized && i!==MAIN_MULTI_EDIT);
+  if(duplicateIndex>=0){
+    input.value='';MAIN_MULTI_EDIT=-1;renderMainMultiList();return true;
   }
+  if(MAIN_MULTI_EDIT>=0)MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]=formatted;
+  else MAIN_MULTI_ITEMS.push(formatted);
+  MAIN_MULTI_EDIT=-1;input.value='';renderMainMultiList();return true;
 }
+function nextMainMulti(){if(saveCurrentMainMulti())setTimeout(()=>document.getElementById('multiEntryInput').focus(),30);}
 function runMainMultiSearch(){
-  const qs=[...document.querySelectorAll('.mainMultiField')]
-    .map(el=>mainUpper(el.value.trim()))
-    .filter(Boolean);
-  if(!qs.length)return;
-  location.href='search.html?mode=multi&multi='+encodeURIComponent(qs.join('\n'));
+  saveCurrentMainMulti();
+  if(!MAIN_MULTI_ITEMS.length)return;
+  location.href='search.html?mode=multi&multi='+encodeURIComponent(MAIN_MULTI_ITEMS.join('\n'));
 }
-
-document.getElementById('mainSingleTab').addEventListener('click',()=>setMainSearchMode(false));
-document.getElementById('mainMultiTab').addEventListener('click',()=>setMainSearchMode(true));
-document.getElementById('mainMultiAdd').addEventListener('click',()=>{
-  addMainMultiRow('');
-  setTimeout(()=>{
-    const fields=document.querySelectorAll('.mainMultiField');
-    fields[fields.length-1]?.focus();
-  },0);
+document.getElementById('mainSingleTab').addEventListener('click',()=>{
+  MAIN_SEARCH_MULTI=false;
+  document.getElementById('mainMultiTab').classList.remove('active');
+  document.getElementById('mainSingleTab').classList.add('active');
+  document.getElementById('mainMultiTab').setAttribute('aria-selected','false');
+  document.getElementById('mainSingleTab').setAttribute('aria-selected','true');
+  document.getElementById('mainSearchHint').textContent='품번 또는 품명을 검색하세요.';
+  document.getElementById('mainQ').focus();
 });
-document.getElementById('mainMultiSearchBtn').addEventListener('click',runMainMultiSearch);
+document.getElementById('mainMultiTab').addEventListener('click',openMainMultiPopup);
+document.getElementById('multiEntryX').addEventListener('click',()=>closeMainMultiPopup(true));
+document.getElementById('multiEntryOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMainMultiPopup(true)});
+document.getElementById('multiEntryNext').addEventListener('click',nextMainMulti);
+document.getElementById('multiEntrySearch').addEventListener('click',runMainMultiSearch);
+document.getElementById('multiEntryInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=mainUpper(e.target.value);try{e.target.setSelectionRange(pos,pos)}catch{}});
+document.getElementById('multiEntryInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextMainMulti();}});
+document.getElementById('multiSavedList').addEventListener('click',e=>{
+  const edit=e.target.closest('[data-multi-edit]'),del=e.target.closest('[data-multi-del]');
+  if(edit){MAIN_MULTI_EDIT=Number(edit.dataset.multiEdit);document.getElementById('multiEntryInput').value=MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]||'';renderMainMultiList();document.getElementById('multiEntryInput').focus();}
+  if(del){const i=Number(del.dataset.multiDel);MAIN_MULTI_ITEMS.splice(i,1);if(MAIN_MULTI_EDIT===i)MAIN_MULTI_EDIT=-1;else if(MAIN_MULTI_EDIT>i)MAIN_MULTI_EDIT--;renderMainMultiList();}
+});
 bindMainSingleInput();
-
-document.getElementById('mainSearch').addEventListener('submit',e=>{
-  e.preventDefault();
-  const q=document.getElementById('mainQ').value.trim();
-  if(!q)return;
-  showMainResults(q);
-});
+document.getElementById('mainSearch').addEventListener('submit',e=>{e.preventDefault();const q=document.getElementById('mainQ').value.trim();if(!q)return;showMainResults(q);});
 
 function setDbRow(id,valueId,state,text){
   const row=document.getElementById(id);
