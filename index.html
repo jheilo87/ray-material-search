@@ -319,6 +319,11 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 
 /* 메인 화면 다중 품번 조회 결과 */
 .mainResults.multiMode .mainResultsHead strong{color:#16895b}
+.mainResultsHeadActions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.mainResultsReset{display:none;border:0;border-radius:999px;padding:7px 10px;background:#eef7f2;color:#16895b;font-size:11px;font-weight:950;white-space:nowrap}
+.mainResults.multiMode .mainResultsReset{display:inline-flex;align-items:center;justify-content:center}
+.mainResultsReset:active{transform:scale(.97);background:#e0f3e9}
+@media(max-width:520px){.mainResultsHeadActions{gap:6px}.mainResultsReset{padding:6px 9px;font-size:10.5px}}
 .mainMultiResult{
   display:grid;
   grid-template-columns:34px minmax(0,1fr) auto;
@@ -729,7 +734,18 @@ body.rsMultiOpen{overflow:hidden}
 .rsMultiBox:focus-within .rsMultiItem{padding:7px 8px;min-height:44px}
 .rsMultiBox:focus-within .rsMultiListTitle{margin-top:10px}
 
-</style></head><body>
+</style>
+<style id="rs-keyboard-v7-override">
+/* V7: 팝업을 지나치게 축소하지 않고, 목록 영역만 스크롤 */
+.rsMultiBox{min-height:0}
+.rsMultiBody{flex:1 1 auto;min-height:0}
+.rsMultiHead,.rsMultiFoot{flex:0 0 auto}
+@media(max-width:520px){
+  .rsMultiOverlay.keyboardOpen{align-items:flex-start!important;padding:8px 14px!important}
+  .rsMultiOverlay.keyboardOpen .rsMultiBox{max-height:calc(100dvh - 16px)!important}
+}
+</style>
+</head><body>
 
 <div class="rsMultiOverlay" id="rsMultiOverlay" role="dialog" aria-modal="true" aria-labelledby="rsMultiTitle">
   <div class="rsMultiBox">
@@ -780,7 +796,7 @@ body.rsMultiOpen{overflow:hidden}
   <div class="rsSearchDesc" id="rsSearchDesc">품번 또는 품명을 입력하고 검색하세요.</div>
 </div>
 
-<section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><span id="mainResultsCount"></span></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
+<section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><div class="mainResultsHeadActions"><span id="mainResultsCount"></span><button class="mainResultsReset" id="mainResultsReset" type="button">초기화</button></div></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
 <a class="hero blue" href="search.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="M4 7.5V16l5.4 3"/><path d="M20 7.5v4.2"/><path d="m12 12 3.2-1.8"/><circle cx="17.2" cy="16.7" r="3.1"/><path d="m19.5 19 2 2"/></svg></span></div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
 <a class="hero green" href="sn.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4"/><path d="M7 10v4M10 9v6M13 10v4M16 9v6"/></svg></span></div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
 <a class="calendar" id="incomingCalendarCard" href="calendar.html"><div class="ico"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17"/><path d="M8 13h3v3H8zM14 13h2.5M14 16h2.5"/></svg></span></div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
@@ -1151,6 +1167,23 @@ function showMainMultiResults(){
   box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function resetMainMultiResults(){
+  MAIN_MULTI_ITEMS=[];
+  MAIN_MULTI_EDIT=-1;
+  const box=document.getElementById('mainResults');
+  const list=document.getElementById('mainResultList');
+  const count=document.getElementById('mainResultsCount');
+  const more=document.getElementById('mainResultMore');
+  const input=document.getElementById('rsMultiInput');
+  if(list)list.innerHTML='';
+  if(count)count.textContent='';
+  if(more)more.style.display='none';
+  if(box)box.classList.remove('show','multiMode');
+  if(input)input.value='';
+  renderMainMultiList();
+  setRsSearchTab('multi');
+}
+
 function runMainMultiSearch(){
   saveCurrentMainMulti();
   if(!MAIN_MULTI_ITEMS.length)return;
@@ -1159,6 +1192,8 @@ function runMainMultiSearch(){
   showMainMultiResults();
 }
 
+
+document.getElementById('mainResultsReset')?.addEventListener('click',resetMainMultiResults);
 
 document.getElementById('mainResultList').addEventListener('click',e=>{
   const choice=e.target.closest('[data-rs-choice-code]');
@@ -1248,12 +1283,11 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
   showMainResults(q);
 });
 
-/* iOS / Android 키보드 대응 V6
-   - Galaxy/Samsung Internet/Chrome + iPhone Safari/PWA 공통 대응
-   - visualViewport의 실제 보이는 영역을 기준으로 팝업 위치/높이 계산
-   - iOS 주소창/홈 인디케이터 safe-area 반영
-   - 백그라운드 복귀/pageshow 후 늦게 바뀌는 viewport를 여러 차례 재동기화
-   - 키보드가 열린 동안 입력칸과 하단 버튼이 항상 보이는 영역 안에 유지 */
+/* iOS / Android 키보드 대응 V7
+   - Android: interactive-widget=resizes-content + 100dvh 기준으로 크게 유지
+   - iPhone Safari/PWA: visualViewport 보정만 iOS에서 사용
+   - 백그라운드 복귀 후에도 다시 계산
+   - 입력 목록은 내부 스크롤, 하단 버튼은 항상 고정 */
 (()=>{
   const overlay=document.getElementById('rsMultiOverlay');
   const box=document.querySelector('.rsMultiBox');
@@ -1262,152 +1296,115 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
   const foot=document.querySelector('.rsMultiFoot');
   if(!overlay||!box||!input)return;
 
-  const vv=window.visualViewport;
   const ua=navigator.userAgent||'';
   const isIOS=/iPad|iPhone|iPod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  const vv=window.visualViewport;
   let timers=[];
-  let lastH=0;
 
   const isOpen=()=>overlay.classList.contains('show');
   const isTyping=()=>document.activeElement===input || input.matches(':focus');
-  const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 
-  const viewport=()=>{
-    const h=Math.max(260, vv?.height || window.innerHeight || document.documentElement.clientHeight || 700);
-    const w=Math.max(280, vv?.width || window.innerWidth || document.documentElement.clientWidth || 360);
-    return {
-      h,w,
-      top:Math.max(0, vv?.offsetTop || 0),
-      left:Math.max(0, vv?.offsetLeft || 0)
-    };
-  };
+  const clearTimers=()=>{timers.forEach(clearTimeout);timers=[]};
 
-  const sync=()=>{
+  const applyAndroid=()=>{
     if(!isOpen())return;
-    const v=viewport();
     const typing=isTyping();
-    lastH=v.h;
-
-    /* layout viewport가 아니라 실제 사용자에게 보이는 visual viewport에 정확히 맞춤 */
+    overlay.classList.toggle('keyboardOpen',typing);
     overlay.style.position='fixed';
-    overlay.style.inset='auto';
-    overlay.style.top='0';
-    overlay.style.left='0';
-    overlay.style.width=v.w+'px';
-    overlay.style.height=v.h+'px';
-    overlay.style.transform=`translate3d(${v.left}px,${v.top}px,0)`;
-    overlay.style.right='auto';
-    overlay.style.bottom='auto';
+    overlay.style.inset='0';
+    overlay.style.top='';overlay.style.left='';overlay.style.right='';overlay.style.bottom='';
+    overlay.style.width='';overlay.style.height='';overlay.style.transform='';
     overlay.style.boxSizing='border-box';
     overlay.style.justifyContent='center';
+    overlay.style.alignItems=typing?'flex-start':'center';
+    overlay.style.padding=typing?'8px 14px':'14px';
 
-    if(typing){
-      overlay.classList.add('keyboardOpen');
-      overlay.style.alignItems='flex-start';
-      overlay.style.padding=isIOS
-        ? 'max(8px, env(safe-area-inset-top)) 14px max(6px, env(safe-area-inset-bottom))'
-        : '8px 14px 6px';
-
-      /* 보이는 영역 안에 머리/입력/목록/버튼이 모두 들어오도록 제한 */
-      const reserve=isIOS ? 14 : 10;
-      const maxH=clamp(v.h-reserve,260,680);
-      box.style.maxHeight=maxH+'px';
-      box.style.height='auto';
-
-      if(body){
-        body.style.minHeight='0';
-        body.style.overflowY='auto';
-        body.style.webkitOverflowScrolling='touch';
-      }
-      if(foot){
-        foot.style.flexShrink='0';
-      }
-    }else{
-      overlay.classList.remove('keyboardOpen');
-      overlay.style.alignItems='center';
-      overlay.style.padding=isIOS
-        ? 'max(10px, env(safe-area-inset-top)) 14px max(10px, env(safe-area-inset-bottom))'
-        : '10px 14px';
-      box.style.maxHeight=clamp(v.h-20,260,760)+'px';
-      box.style.height='auto';
-    }
-  };
-
-  const keepInputVisible=(smooth=false)=>{
-    if(!isOpen() || !isTyping())return;
-    try{input.scrollIntoView({block:'nearest',inline:'nearest',behavior:smooth?'smooth':'auto'})}catch{}
+    /* 키보드가 뜨면 100dvh 자체가 줄어들게 하고, 그 안을 거의 전부 사용 */
+    box.style.height='auto';
+    box.style.maxHeight=typing?'calc(100dvh - 16px)':'min(86dvh, calc(100dvh - 24px))';
     if(body){
-      const r=input.getBoundingClientRect();
-      const fr=foot?.getBoundingClientRect();
-      const limit=(fr?.top || (viewport().h-8))-12;
-      if(r.bottom>limit)body.scrollTop+=r.bottom-limit+12;
+      body.style.minHeight='0';
+      body.style.overflowY='auto';
+      body.style.webkitOverflowScrolling='touch';
     }
+    if(foot)foot.style.flexShrink='0';
   };
 
-  const syncBurst=(scrollInput=false)=>{
-    timers.forEach(clearTimeout); timers=[];
-    /* iOS는 앱 복귀/주소창 변화 후 viewport 확정이 늦는 경우가 있어 길게 추적 */
-    const waits=isIOS ? [0,40,100,180,300,500,800,1200] : [0,60,160,320,650];
-    waits.forEach((ms,idx)=>{
-      timers.push(setTimeout(()=>{
-        sync();
-        if(scrollInput && idx>=1)keepInputVisible(idx>3);
-      },ms));
+  const applyIOS=()=>{
+    if(!isOpen())return;
+    const typing=isTyping();
+    const h=Math.max(300,vv?.height||window.innerHeight||700);
+    const w=Math.max(280,vv?.width||window.innerWidth||360);
+    const top=Math.max(0,vv?.offsetTop||0);
+    const left=Math.max(0,vv?.offsetLeft||0);
+
+    overlay.classList.toggle('keyboardOpen',typing);
+    overlay.style.position='fixed';
+    overlay.style.inset='auto';
+    overlay.style.top='0';overlay.style.left='0';
+    overlay.style.right='auto';overlay.style.bottom='auto';
+    overlay.style.width=w+'px';overlay.style.height=h+'px';
+    overlay.style.transform=`translate3d(${left}px,${top}px,0)`;
+    overlay.style.boxSizing='border-box';
+    overlay.style.justifyContent='center';
+    overlay.style.alignItems=typing?'flex-start':'center';
+    overlay.style.padding=typing
+      ?'max(8px, env(safe-area-inset-top)) 14px max(6px, env(safe-area-inset-bottom))'
+      :'max(10px, env(safe-area-inset-top)) 14px max(10px, env(safe-area-inset-bottom))';
+
+    box.style.height='auto';
+    box.style.maxHeight=Math.max(280,h-(typing?14:20))+'px';
+    if(body){
+      body.style.minHeight='0';
+      body.style.overflowY='auto';
+      body.style.webkitOverflowScrolling='touch';
+    }
+    if(foot)foot.style.flexShrink='0';
+  };
+
+  const sync=()=> isIOS ? applyIOS() : applyAndroid();
+
+  const keepVisible=()=>{
+    if(!isOpen()||!isTyping())return;
+    requestAnimationFrame(()=>{
+      try{input.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'})}catch{}
     });
   };
 
+  const burst=(keep=true)=>{
+    clearTimers();
+    const waits=isIOS?[0,50,120,220,380,650,1000]:[0,60,160,320,600];
+    waits.forEach(ms=>timers.push(setTimeout(()=>{sync();if(keep)keepVisible()},ms)));
+  };
+
   const reset=()=>{
-    timers.forEach(clearTimeout); timers=[];
+    clearTimers();
     overlay.classList.remove('keyboardOpen');
-    overlay.style.position='';
-    overlay.style.inset='';
-    overlay.style.top='';
-    overlay.style.left='';
-    overlay.style.width='';
-    overlay.style.height='';
-    overlay.style.transform='';
-    overlay.style.right='';
-    overlay.style.bottom='';
-    overlay.style.padding='';
-    overlay.style.alignItems='';
-    overlay.style.justifyContent='';
-    overlay.style.boxSizing='';
-    box.style.maxHeight='';
-    box.style.height='';
+    ['position','inset','top','left','right','bottom','width','height','transform','boxSizing','justifyContent','alignItems','padding'].forEach(k=>overlay.style[k]='');
+    box.style.height='';box.style.maxHeight='';
     if(body){body.style.minHeight='';body.style.overflowY='';body.style.webkitOverflowScrolling=''}
     if(foot)foot.style.flexShrink='';
   };
 
-  vv?.addEventListener('resize',()=>syncBurst(true));
-  vv?.addEventListener('scroll',()=>syncBurst(true));
-  window.addEventListener('resize',()=>syncBurst(true));
-  window.addEventListener('orientationchange',()=>syncBurst(true));
-  window.addEventListener('pageshow',e=>{
-    if(isOpen())syncBurst(true);
-  });
-  window.addEventListener('focus',()=>{if(isOpen())syncBurst(true)});
-
+  if(isIOS){
+    vv?.addEventListener('resize',()=>burst(true));
+    vv?.addEventListener('scroll',()=>burst(true));
+  }else{
+    window.addEventListener('resize',()=>burst(true));
+  }
+  window.addEventListener('orientationchange',()=>burst(true));
+  window.addEventListener('pageshow',()=>{if(isOpen())burst(true)});
+  window.addEventListener('focus',()=>{if(isOpen())burst(true)});
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible' && isOpen()){
-      syncBurst(true);
-      /* iOS PWA/Safari에서 포커스는 살아있는데 화면만 원위치되는 케이스 재보정 */
-      if(isIOS && isTyping()){
-        setTimeout(()=>keepInputVisible(false),90);
-        setTimeout(()=>keepInputVisible(false),350);
-      }
-    }
+    if(document.visibilityState==='visible'&&isOpen())burst(true);
   });
 
-  input.addEventListener('focus',()=>syncBurst(true));
-  input.addEventListener('click',()=>syncBurst(true));
-  input.addEventListener('input',()=>{sync();keepInputVisible(false)});
-  input.addEventListener('blur',()=>setTimeout(()=>{
-    if(!isOpen())reset();
-    else syncBurst(false);
-  },120));
-
-  document.getElementById('rsMultiTab')?.addEventListener('click',()=>syncBurst(true));
-  document.getElementById('rsMultiNext')?.addEventListener('click',()=>setTimeout(()=>syncBurst(true),20));
+  input.addEventListener('focus',()=>burst(true));
+  input.addEventListener('click',()=>burst(true));
+  input.addEventListener('input',()=>{sync();keepVisible()});
+  input.addEventListener('blur',()=>setTimeout(()=>isOpen()?burst(false):reset(),120));
+  document.getElementById('rsMultiTab')?.addEventListener('click',()=>burst(true));
+  document.getElementById('rsMultiNext')?.addEventListener('click',()=>setTimeout(()=>burst(true),20));
   document.getElementById('rsMultiClose')?.addEventListener('click',reset);
 })();
 
