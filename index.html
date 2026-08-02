@@ -382,6 +382,10 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 .mainMultiChoiceCode{font-size:14px;font-weight:950;color:#8a5700;word-break:break-all}
 .mainMultiChoiceName{margin-top:3px;font-size:11px;color:#6f7888;line-height:1.35}
 .mainMultiChoiceLoc{white-space:nowrap;border-radius:999px;padding:6px 8px;background:#f2efff;color:#5b39d2;font-size:11px;font-weight:950}
+.mainMultiChoiceRight{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.mainMultiSelectBtn{display:inline-flex;align-items:center;justify-content:center;min-width:50px;min-height:32px;padding:7px 11px;border-radius:10px;background:linear-gradient(135deg,#28b779,#159765);color:#fff;font-size:11px;font-weight:1000;box-shadow:0 4px 10px rgba(21,151,101,.18)}
+.mainMultiChoice:active .mainMultiSelectBtn{transform:scale(.97)}
+@media(max-width:420px){.mainMultiChoice{gap:7px;padding:10px}.mainMultiChoiceRight{gap:5px}.mainMultiChoiceLoc{padding:5px 7px;font-size:10px}.mainMultiSelectBtn{min-width:46px;min-height:30px;padding:6px 9px;font-size:10px}}
 @media(max-width:520px){
   .mainMultiResult{grid-template-columns:30px minmax(0,1fr);align-items:start}
   .mainMultiResultLoc{grid-column:2;margin-top:2px;justify-self:start}
@@ -706,6 +710,11 @@ body.rsMultiOpen{overflow:hidden}
   .rsMultiHelp{font-size:9.5px}
 }
 
+/* 2026-08-03 다중 품번 입력 목록: 키보드 표시 중 최신 입력 자동 노출 */
+.rsMultiBox:focus-within .rsMultiList{gap:5px}
+.rsMultiBox:focus-within .rsMultiItem{padding:7px 8px;min-height:44px}
+.rsMultiBox:focus-within .rsMultiListTitle{margin-top:10px}
+
 </style></head><body>
 
 <div class="rsMultiOverlay" id="rsMultiOverlay" role="dialog" aria-modal="true" aria-labelledby="rsMultiTitle">
@@ -975,6 +984,12 @@ function renderMainMultiList(){
       <button class="rsMultiDel" type="button" data-rs-del="${i}">삭제</button>
     </div>
   `).join('');
+
+  // 키보드가 열린 작은 화면에서도 방금 추가한 마지막 품번이 항상 보이도록 목록을 아래로 맞춤
+  requestAnimationFrame(()=>{
+    const body=list.closest('.rsMultiBody');
+    if(body) body.scrollTop=body.scrollHeight;
+  });
 }
 function openMainMultiPopup(){
   MAIN_SEARCH_MULTI=true;
@@ -1091,7 +1106,10 @@ function showMainMultiResults(){
             <div class="mainMultiChoiceCode">${esc(row.code)}</div>
             <div class="mainMultiChoiceName">${esc(row.name||'품명 정보 없음')}</div>
           </div>
-          <div class="mainMultiChoiceLoc">📍 ${esc(row.location||'N/A')}</div>
+          <div class="mainMultiChoiceRight">
+            <div class="mainMultiChoiceLoc">📍 ${esc(row.location||'N/A')}</div>
+            <span class="mainMultiSelectBtn">선택</span>
+          </div>
         </button>`).join('');
       return `
         <div class="mainMultiResult ambiguous" data-rs-ambiguous="${item.index}">
@@ -1216,28 +1234,65 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
   showMainResults(q);
 });
 
-/* iOS / Android 키보드 대응: 다중 품번 팝업을 키보드 위의 실제 보이는 영역에 맞춤 */
+/* iOS / Android 키보드 대응 V4
+   - 키보드가 떠 있을 때 팝업을 무조건 화면 상단에 배치
+   - 앱이 백그라운드에서 돌아온 뒤 visualViewport 값이 늦게 갱신되는 경우 재동기화
+   - 포커스가 남아 있는 상태에서도 입력칸/하단 버튼이 키보드에 가려지지 않도록 보정 */
 (()=>{
   const overlay=document.getElementById('rsMultiOverlay');
   const box=document.querySelector('.rsMultiBox');
   const input=document.getElementById('rsMultiInput');
-  if(!overlay||!box||!input||!window.visualViewport)return;
+  if(!overlay||!box||!input)return;
 
   const vv=window.visualViewport;
+  let timers=[];
+  const isOpen=()=>overlay.classList.contains('show');
+  const isTyping=()=>document.activeElement===input || input.matches(':focus');
+
   const sync=()=>{
-    const h=Math.max(280, vv.height);
-    overlay.style.top=vv.offsetTop+'px';
-    overlay.style.left=vv.offsetLeft+'px';
-    overlay.style.width=vv.width+'px';
-    overlay.style.height=h+'px';
+    if(!isOpen())return;
+
+    const typing=isTyping();
+    const viewH=Math.max(300, vv?.height || window.innerHeight || document.documentElement.clientHeight || 700);
+    const viewW=Math.max(280, vv?.width || window.innerWidth || document.documentElement.clientWidth || 360);
+    const offTop=Math.max(0, vv?.offsetTop || 0);
+    const offLeft=Math.max(0, vv?.offsetLeft || 0);
+
+    overlay.style.top=offTop+'px';
+    overlay.style.left=offLeft+'px';
+    overlay.style.width=viewW+'px';
+    overlay.style.height=viewH+'px';
     overlay.style.right='auto';
     overlay.style.bottom='auto';
-    overlay.style.padding='10px 14px';
-    overlay.style.alignItems='center';
-    box.style.maxHeight=Math.max(260,h-20)+'px';
+    overlay.style.justifyContent='center';
+
+    if(typing){
+      /* 삼성 키보드가 viewport를 덮는 방식이어도 상단 고정으로 안전하게 유지 */
+      overlay.style.alignItems='flex-start';
+      overlay.style.padding='8px 14px';
+      const safeMax=Math.min(650, Math.max(300, viewH-16));
+      box.style.maxHeight=safeMax+'px';
+    }else{
+      overlay.style.alignItems='center';
+      overlay.style.padding='10px 14px';
+      box.style.maxHeight=Math.max(260,viewH-20)+'px';
+    }
+  };
+
+  const syncBurst=(scrollInput=false)=>{
+    timers.forEach(clearTimeout); timers=[];
+    [0,60,160,320,650].forEach((ms,idx)=>{
+      timers.push(setTimeout(()=>{
+        sync();
+        if(scrollInput && idx>=1 && isTyping()){
+          try{input.scrollIntoView({block:'nearest',behavior:idx===1?'auto':'smooth'})}catch{}
+        }
+      },ms));
+    });
   };
 
   const reset=()=>{
+    timers.forEach(clearTimeout); timers=[];
     overlay.style.top='';
     overlay.style.left='';
     overlay.style.width='';
@@ -1246,26 +1301,32 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
     overlay.style.bottom='';
     overlay.style.padding='';
     overlay.style.alignItems='';
+    overlay.style.justifyContent='';
     box.style.maxHeight='';
   };
 
-  vv.addEventListener('resize',sync);
-  vv.addEventListener('scroll',sync);
-  window.addEventListener('orientationchange',()=>setTimeout(sync,120));
+  vv?.addEventListener('resize',()=>syncBurst(true));
+  vv?.addEventListener('scroll',()=>syncBurst(false));
+  window.addEventListener('resize',()=>syncBurst(true));
+  window.addEventListener('orientationchange',()=>syncBurst(true));
+  window.addEventListener('pageshow',()=>syncBurst(true));
+  window.addEventListener('focus',()=>syncBurst(true));
 
-  input.addEventListener('focus',()=>{
-    sync();
-    setTimeout(()=>{
-      sync();
-      input.scrollIntoView({block:'nearest',behavior:'smooth'});
-    },80);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible' && isOpen()){
+      /* 백그라운드 복귀 직후에는 키보드/viewport 갱신이 늦어 여러 번 보정 */
+      syncBurst(true);
+    }
   });
 
+  input.addEventListener('focus',()=>syncBurst(true));
+  input.addEventListener('click',()=>syncBurst(true));
   input.addEventListener('blur',()=>setTimeout(()=>{
-    if(!document.getElementById('rsMultiOverlay')?.classList.contains('show')) reset();
-    else sync();
+    if(!isOpen())reset();
+    else syncBurst(false);
   },120));
 
+  document.getElementById('rsMultiTab')?.addEventListener('click',()=>syncBurst(true));
   document.getElementById('rsMultiClose')?.addEventListener('click',reset);
 })();
 
