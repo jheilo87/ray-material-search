@@ -44,7 +44,7 @@ box-shadow:0 8px 18px rgba(40,183,121,.35);
 .liveStatus{margin-top:9px;padding:10px 11px;border-radius:11px;background:#f5f7fa;color:#526174;font-size:12px;font-weight:850;line-height:1.45}.liveStatus.busy{background:#fff8e8;color:#9a6700}.liveStatus.ok{background:#eaf8ef;color:var(--ok)}.liveStatus.bad{background:#fff0f0;color:var(--bad)}
 .previewGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.previewItem{position:relative;overflow:hidden;border-radius:11px;background:#eef2f7;cursor:pointer;box-shadow:0 2px 7px rgba(20,40,70,.08)}.previewItem img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.previewBadge{position:absolute;left:6px;top:6px;min-width:25px;height:25px;padding:0 7px;display:grid;place-items:center;border-radius:999px;background:rgba(15,33,58,.82);color:#fff;font-size:12px;font-weight:950;box-shadow:0 2px 6px rgba(0,0,0,.18)}.previewZoom{position:absolute;right:6px;bottom:6px;width:25px;height:25px;display:grid;place-items:center;border-radius:999px;background:rgba(255,255,255,.9);color:#1e6fa7;font-size:13px;font-weight:950}
 .progress{display:none}.progress.show{display:block}.progressTop{display:flex;align-items:center;justify-content:space-between;gap:10px}.progressText{font-size:14px;font-weight:900;color:#294d7f}.count{padding:5px 9px;border-radius:999px;background:#eaf3ff;color:var(--brand);font-size:12px;font-weight:900}.bar{height:10px;margin-top:10px;background:#e8eef8;border-radius:999px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--brand),#58a8ff);transition:width .2s}
-.resultHead{display:flex;align-items:center;justify-content:space-between}.empty{text-align:center;padding:24px 10px;color:#8a94a6;font-size:13px}.list{display:flex;flex-direction:column;gap:8px;margin-top:11px}.row{display:grid;grid-template-columns:34px minmax(0,1fr) auto 38px;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fbfdff}.no{text-align:center;color:#8a94a6;font-size:11px}.value{width:100%;min-width:0;border:0;background:transparent;color:#183c71;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.value.edited{color:#b15c00}.value.invalid{color:#b42318}.saveEdit{min-width:48px;height:34px;border:0;border-radius:9px;padding:0 10px;background:#eaf8ef;color:#137a43;font-size:11px;font-weight:950}.saveEdit:disabled{opacity:.4}.del{width:34px;height:34px;border:0;border-radius:9px;background:#eef2f7;color:#64748b;font-weight:950}.formatHelp{grid-column:2/-1;margin-top:-2px;color:#7a879d;font-size:9px;font-weight:800;line-height:1.35}.formatHelp.ok{color:#137a43}.formatHelp.bad{color:#b42318}@media(max-width:430px){.row{grid-template-columns:34px minmax(0,1fr) 44px 36px;gap:5px;padding:7px}.saveEdit{min-width:44px;padding:0 7px}.value{font-size:14px}}
+.resultHead{display:flex;align-items:center;justify-content:space-between}.empty{text-align:center;padding:24px 10px;color:#8a94a6;font-size:13px}.list{display:flex;flex-direction:column;gap:8px;margin-top:11px}.row{display:grid;grid-template-columns:58px minmax(0,1fr) auto 38px;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fbfdff}.no{text-align:center;color:#8a94a6;font-size:11px;white-space:nowrap}.photoLink{white-space:nowrap}.value{width:100%;min-width:0;border:0;background:transparent;color:#183c71;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.value.edited{color:#b15c00}.value.invalid{color:#b42318}.saveEdit{min-width:48px;height:34px;border:0;border-radius:9px;padding:0 10px;background:#eaf8ef;color:#137a43;font-size:11px;font-weight:950}.saveEdit:disabled{opacity:.4}.del{width:34px;height:34px;border:0;border-radius:9px;background:#eef2f7;color:#64748b;font-weight:950}.formatHelp{grid-column:2/-1;margin-top:-2px;color:#7a879d;font-size:9px;font-weight:800;line-height:1.35}.formatHelp.ok{color:#137a43}.formatHelp.bad{color:#b42318}@media(max-width:430px){.row{grid-template-columns:54px minmax(0,1fr) 44px 36px;gap:5px;padding:7px}.saveEdit{min-width:44px;padding:0 7px}.value{font-size:14px}.photoLink{font-size:10px}}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action{border:0;border-radius:13px;padding:13px 8px;font-size:15px;font-weight:950}.copy{background:#eaf3ff;color:var(--brand)}.share{background:#1769e0;color:#fff}.clear{background:#eef2f7;color:#526174}.resetAll{grid-column:1/-1;background:#fff1f1;color:#b42318;border:1px solid #ffd4d4}
 .catalogSyncCard{
   grid-column:1/-1;
@@ -746,6 +746,18 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   </div>
 </div>
 
+<div class="rsModal" id="resumeExtractModal" role="dialog" aria-modal="true" aria-labelledby="resumeExtractTitle">
+  <div class="rsModalBox">
+    <div class="rsModalIcon">↻</div>
+    <div class="rsModalTitle" id="resumeExtractTitle">이어서 추출할까요?</div>
+    <div class="rsModalText" id="resumeExtractText" style="text-align:center"></div>
+    <div class="rsModalActions">
+      <button class="rsModalBtn cancel" id="resumeExtractCancel" type="button">나중에</button>
+      <button class="rsModalBtn primary" id="resumeExtractContinue" type="button">이어서 추출</button>
+    </div>
+  </div>
+</div>
+
 <div class="rsModal" id="albumDateModal" role="dialog" aria-modal="true" aria-labelledby="albumDateTitle">
  <div class="rsModalBox">
   <div class="rsModalIcon">🕒</div><div class="rsModalTitle" id="albumDateTitle">다른 날짜의 사진이 있어요</div>
@@ -774,6 +786,11 @@ let pendingDeletePhotoId=null;
 let nextPhotoId=1;
 let shareResetTimer=null;
 let shareResetRemaining=0;
+let activeBatchId='';
+let activeBatchTotal=0;
+let activeBatchIndex=0;
+let activeBatchMode='';
+let activeBatchWasHidden=false;
 
 /* GitHub/동일 폴더의 sn_products.json에서 자동 불러옵니다.
    연결 실패 시 마지막 성공 목록(localStorage)을 사용합니다. */
@@ -923,7 +940,16 @@ function vendorLogoHtml(vendor){
   if(vendor==='i3system')return '<span class="vendorGroupLogo i3">i3</span>';
   return '<span class="vendorGroupLogo unknown">?</span>';
 }
+function detectVendorFromSerialOnly(serials=[]){
+  const vals=serials.map(x=>String(x||'').toUpperCase());
+  if(vals.some(v=>/^ED[A-Z0-9]{16,}$/i.test(v)))return 'iRay';
+  if(vals.some(v=>/^[A-Z0-9]{7}$/i.test(v)))return 'Dell';
+  if(vals.some(v=>/^VPX[0-9]{5,}$/i.test(v)))return 'Vieworks';
+  return '';
+}
 async function detectPhotoVendor(source,serials=[]){
+  const quickVendor=detectVendorFromSerialOnly(serials);
+  if(quickVendor)return quickVendor;
   try{
     setLive('업체 로고·문구 확인 중…','busy');
     const rec=await Tesseract.recognize(source,'eng');
@@ -1605,6 +1631,7 @@ function deletePendingPhoto(){
 
 
 function resetEverything(){
+  clearBatchStore();
   cancelShareAutoReset(false);
   try{stopCamera()}catch{}
 
@@ -1699,6 +1726,121 @@ function startShareAutoReset(){
   },1000);
 }
 
+
+const BATCH_DB_NAME='RaySmartSNBatchDB';
+const BATCH_DB_STORE='batchFiles';
+const BATCH_META_KEY='raySnBatchMetaV1';
+
+function openBatchDb(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(BATCH_DB_NAME,1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(BATCH_DB_STORE)){
+        db.createObjectStore(BATCH_DB_STORE,{keyPath:'id'});
+      }
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function clearBatchStore(){
+  try{
+    const db=await openBatchDb();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(BATCH_DB_STORE,'readwrite');
+      tx.objectStore(BATCH_DB_STORE).clear();
+      tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+    });
+    db.close();
+  }catch{}
+  try{localStorage.removeItem(BATCH_META_KEY)}catch{}
+}
+async function persistBatchFiles(files,mode){
+  const batchId=`batch-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const db=await openBatchDb();
+  await new Promise((resolve,reject)=>{
+    const tx=db.transaction(BATCH_DB_STORE,'readwrite');
+    const store=tx.objectStore(BATCH_DB_STORE);
+    store.clear();
+    files.forEach((file,index)=>{
+      store.put({
+        id:index,
+        batchId,
+        name:file.name||`photo-${index+1}.jpg`,
+        type:file.type||'image/jpeg',
+        lastModified:file.lastModified||Date.now(),
+        blob:file
+      });
+    });
+    tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+  });
+  db.close();
+  const meta={batchId,total:files.length,index:0,mode,status:'running',updatedAt:Date.now()};
+  localStorage.setItem(BATCH_META_KEY,JSON.stringify(meta));
+  activeBatchId=batchId; activeBatchTotal=files.length; activeBatchIndex=0; activeBatchMode=mode;
+  return meta;
+}
+async function updateBatchMeta(patch={}){
+  try{
+    const current=JSON.parse(localStorage.getItem(BATCH_META_KEY)||'{}');
+    const next={...current,...patch,updatedAt:Date.now()};
+    localStorage.setItem(BATCH_META_KEY,JSON.stringify(next));
+    return next;
+  }catch{return null}
+}
+function getBatchMeta(){
+  try{
+    const meta=JSON.parse(localStorage.getItem(BATCH_META_KEY)||'null');
+    return meta&&typeof meta==='object'?meta:null;
+  }catch{return null}
+}
+async function loadBatchFilesFrom(startIndex=0){
+  const db=await openBatchDb();
+  const rows=await new Promise((resolve,reject)=>{
+    const tx=db.transaction(BATCH_DB_STORE,'readonly');
+    const req=tx.objectStore(BATCH_DB_STORE).getAll();
+    req.onsuccess=()=>resolve(req.result||[]);
+    req.onerror=()=>reject(req.error);
+  });
+  db.close();
+  return rows
+    .filter(x=>x.id>=startIndex)
+    .sort((a,b)=>a.id-b.id)
+    .map(x=>new File([x.blob],x.name,{type:x.type,lastModified:x.lastModified}));
+}
+function showResumeExtractPrompt(meta){
+  if(!meta||meta.status!=='running'||!meta.total||meta.index>=meta.total)return;
+  $('resumeExtractText').innerHTML=`전체 <b>${meta.total}장</b> 중 <b>${meta.index}장</b>까지 완료했습니다.<br><b>${meta.index+1}번째 사진</b>부터 이어서 추출할 수 있습니다.`;
+  openModal('resumeExtractModal');
+}
+async function resumeSavedBatch(){
+  const meta=getBatchMeta();
+  if(!meta||meta.status!=='running')return closeModal('resumeExtractModal');
+  closeModal('resumeExtractModal');
+  try{
+    const files=await loadBatchFilesFrom(meta.index);
+    if(!files.length){
+      await clearBatchStore();
+      return;
+    }
+    activeBatchId=meta.batchId||'';
+    activeBatchTotal=meta.total||files.length;
+    activeBatchIndex=meta.index||0;
+    activeBatchMode=meta.mode||'Auto';
+    const previousVendor=selectedVendor;
+    selectedVendor=activeBatchMode==='Auto'?'Auto':activeBatchMode;
+    setStatus(`${activeBatchIndex}장까지 완료 · ${activeBatchIndex+1}번째부터 이어서 추출합니다.`,'ok');
+    try{
+      await processFiles(files,{resume:true,startIndex:activeBatchIndex,totalOverride:activeBatchTotal});
+    }finally{
+      selectedVendor=previousVendor;
+    }
+  }catch(err){
+    setStatus('이어서 추출을 준비하지 못했습니다. 사진을 다시 선택해 주세요.','bad');
+  }
+}
+
 function saveSession(){
   try{
     sessionStorage.setItem('raySnResults',JSON.stringify(results));
@@ -1767,35 +1909,85 @@ async function checkAlbumDateOutliers(files){
 }
 function finishAlbumDateCheck(go){closeModal('albumDateModal');clearAlbumDatePreviews();const r=pendingAlbumDateResolve;pendingAlbumDateResolve=null;if(r)r(go)}
 
-async function processFiles(files){
+async function processFiles(files,opts={}){
   if(!files.length)return;
-  $('progressCard').classList.add('show');resetFailedImages();
-  let addedTotal=0,failed=0;
-  for(let i=0;i<files.length;i++){
-    $('progressText').textContent=`${i+1}번째 사진 추출 중…`;
-    $('progressCount').textContent=`${i+1}/${files.length}`;
-    $('progressFill').style.width=`${Math.round(i/files.length*100)}%`;
-    const autoAlbum=selectedVendor==='Auto';
-    const item=createPhotoItem(files[i],autoAlbum?'Unknown':selectedVendor);
-    try{
-      const found=await extractSerial(files[i]);
-      item.serials=unique(found);
-      if(autoAlbum && item.serials.length){
-        $('progressText').textContent=`${i+1}번째 사진 업체 확인 중…`;
-        item.vendor=await detectPhotoVendor(files[i],item.serials);
-      }
-      addedTotal+=item.serials.length;
-      if(!item.serials.length){failed++;addFailedImage(files[i],item.id)}
-    }
-    catch{failed++;addFailedImage(files[i],item.id)}
-    render();
+  const resume=!!opts.resume;
+  const startIndex=Number(opts.startIndex||0);
+  const totalOverride=Number(opts.totalOverride||0);
+  const batchMode=selectedVendor==='Auto'?'Auto':selectedVendor;
+
+  if(!resume){
+    try{await persistBatchFiles(files,batchMode)}catch{}
   }
-  $('progressFill').style.width='100%';$('progressText').textContent='추출 완료';
-  const vendorCounts={};photoItems.forEach(x=>{if(x.serials.length)vendorCounts[x.vendor||'Unknown']=(vendorCounts[x.vendor||'Unknown']||0)+x.serials.length});
-  const vendorSummary=Object.entries(vendorCounts).map(([v,c])=>`${vendorLabel(v)} ${c}`).join(' · ');
-  setStatus(`완료 · 새 S/N ${addedTotal}개${vendorSummary?' · '+vendorSummary:''} · 미인식/오류 ${failed}장${failed?' · 눌러서 사진 확인':''}`,failed?'bad':'ok');
-  if(failed)makeStatusErrorClickable();
-  setTimeout(()=>$('progressCard').classList.remove('show'),1200);
+
+  const total=totalOverride||files.length;
+  $('progressCard').classList.add('show');
+  if(!resume)resetFailedImages();
+
+  let addedTotal=0,failed=0;
+  for(let localIndex=0;localIndex<files.length;localIndex++){
+    const globalIndex=startIndex+localIndex;
+    activeBatchIndex=globalIndex;
+    activeBatchTotal=total;
+
+    $('progressText').textContent=`${globalIndex+1}번째 사진 추출 중…`;
+    $('progressCount').textContent=`${globalIndex+1}/${total}`;
+    $('progressFill').style.width=`${Math.round(globalIndex/Math.max(1,total)*100)}%`;
+
+    const autoAlbum=selectedVendor==='Auto';
+    const item=createPhotoItem(files[localIndex],autoAlbum?'Unknown':selectedVendor);
+
+    try{
+      const found=await extractSerial(files[localIndex]);
+      item.serials=unique(found);
+
+      if(autoAlbum && item.serials.length){
+        $('progressText').textContent=`${globalIndex+1}번째 사진 업체 확인 중…`;
+        item.vendor=await detectPhotoVendor(files[localIndex],item.serials);
+      }
+
+      addedTotal+=item.serials.length;
+      if(!item.serials.length){
+        failed++;
+        addFailedImage(files[localIndex],item.id);
+      }
+    }catch{
+      failed++;
+      addFailedImage(files[localIndex],item.id);
+    }
+
+    rebuildResults();
+    renderPreviews();
+    render();
+    saveSession();
+
+    const completed=globalIndex+1;
+    activeBatchIndex=completed;
+    await updateBatchMeta({index:completed,status:completed>=total?'done':'running'});
+    $('progressCount').textContent=`${completed}/${total}`;
+    $('progressFill').style.width=`${Math.round(completed/Math.max(1,total)*100)}%`;
+
+    // 브라우저가 숨겨졌다 돌아온 경우에도 현재 작업은 그대로 이어갑니다.
+    // 기기가 백그라운드 작업을 중단하더라도 위 체크포인트부터 복구할 수 있습니다.
+    await new Promise(resolve=>setTimeout(resolve,0));
+  }
+
+  $('progressText').textContent=`추출 완료 · ${total}장`;
+  $('progressCount').textContent=`${total}/${total}`;
+  $('progressFill').style.width='100%';
+
+  rebuildResults();
+  renderPreviews();
+  render();
+  saveSession();
+  setStatus(
+    failed
+      ?`추출 완료 · 코드 ${addedTotal}개 · 미인식 ${failed}장`
+      :`추출 완료 · 코드 ${addedTotal}개`,
+    failed?'':'ok'
+  );
+  await updateBatchMeta({index:total,status:'done'});
+  await clearBatchStore();
 }
 
 function addManualSerial(){
@@ -1914,6 +2106,30 @@ $('openCameraBtn').addEventListener('click',()=>{
   openModal('shootGuideModal');
 });
 $('vendorRequiredClose').addEventListener('click',()=>closeModal('vendorRequiredModal'));
+$('resumeExtractCancel').addEventListener('click',()=>closeModal('resumeExtractModal'));
+$('resumeExtractContinue').addEventListener('click',resumeSavedBatch);
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    activeBatchWasHidden=true;
+    if(activeBatchTotal>activeBatchIndex){
+      updateBatchMeta({index:activeBatchIndex,status:'running'});
+    }
+  }else if(activeBatchWasHidden){
+    activeBatchWasHidden=false;
+    if(activeBatchTotal>activeBatchIndex){
+      setStatus(`추출 계속 진행 중 · ${activeBatchIndex}/${activeBatchTotal} 완료`,'ok');
+    }
+  }
+});
+window.addEventListener('pageshow',()=>{
+  setTimeout(()=>{
+    if(busy)return;
+    const meta=getBatchMeta();
+    if(meta&&meta.status==='running'&&meta.index<meta.total){
+      showResumeExtractPrompt(meta);
+    }
+  },500);
+});
 $('shootGuideCancel').addEventListener('click',()=>closeModal('shootGuideModal'));
 $('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checked)localStorage.setItem('raySnShootGuideSkip','1');closeModal('shootGuideModal');captureInput.click()});
 $('captureBtn').addEventListener('click',captureAndExtract);
