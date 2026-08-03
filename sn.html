@@ -109,6 +109,10 @@ box-shadow:0 8px 18px rgba(40,183,121,.35);
   #errorViewerModal .zoomViewport{max-height:39dvh}
   #errorViewerModal.keyboardOpen .zoomViewport{max-height:24dvh}
 }
+
+/* Teams 자기 채팅 바로가기 */
+.teamsSelfBar{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-top:2px;padding:10px 11px;border:1px solid #d9e5f2;border-radius:13px;background:#f8fbff}.teamsSelfInfo{min-width:0}.teamsSelfTitle{font-size:11px;font-weight:1000;color:#34506f}.teamsSelfValue{margin-top:3px;font-size:11px;font-weight:850;color:#7a8798;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.teamsSelfBar.ready{border-color:#b9e3cf;background:#f5fcf8}.teamsSelfBar.ready .teamsSelfTitle{color:#17734d}.teamsSelfBar.ready .teamsSelfValue{color:#43816a}.teamsSelfSetup{border:0;border-radius:10px;padding:9px 11px;background:#eaf3ff;color:#1769e0;font-size:11px;font-weight:950;white-space:nowrap}.teamsSelfBar.ready .teamsSelfSetup{background:#e4f6ec;color:#16895b}.teamsSelfHint{margin-top:9px;padding:9px 10px;border-radius:11px;background:#f5f7fa;color:#68778a;font-size:11px;font-weight:800;line-height:1.5}.teamsEmailInput{width:100%;margin-top:11px;border:1px solid #cfdbea;border-radius:12px;padding:13px 12px;background:#fff;color:#183c71;font-size:14px;font-weight:900;outline:none}.teamsEmailInput:focus{border-color:#28b779;box-shadow:0 0 0 3px rgba(40,183,121,.12)}.teamsModalSub{margin-top:8px;color:#6e7c90;font-size:12px;line-height:1.55;text-align:center}.teamsModalStored{margin-top:10px;padding:9px 10px;border-radius:11px;background:#f5f8fa;color:#526174;font-size:11px;font-weight:850;word-break:break-all}.teamsModalActions3{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.teamsModalActions3 .wide{grid-column:1/-1}.teamsNativeFallback{border:0;border-radius:12px;padding:12px 10px;background:#eef2f7;color:#526174;font-size:12px;font-weight:950}.teamsDeleteBtn{border:0;border-radius:12px;padding:12px 10px;background:#fff1f1;color:#b42318;font-size:12px;font-weight:950}@media(max-width:430px){.teamsSelfBar{grid-template-columns:minmax(0,1fr) auto}.teamsSelfSetup{padding:9px 9px}.teamsSelfValue{font-size:10.5px}}
+
 </style>
 
 <style id="raysmart-sn-theme">
@@ -670,6 +674,14 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
     <button class="action copy" id="copyBtn">전체 복사</button>
     <button class="action share" id="shareBtn">Teams로 보내기</button>
     <button class="action clear" id="clearBtn">목록 비우기</button>
+
+    <div class="teamsSelfBar" id="teamsSelfBar">
+      <div class="teamsSelfInfo">
+        <div class="teamsSelfTitle">내 Teams 바로가기</div>
+        <div class="teamsSelfValue" id="teamsSelfValue">미설정 · 처음 한 번만 내 계정을 저장하세요</div>
+      </div>
+      <button class="teamsSelfSetup" id="teamsSelfSetupBtn" type="button">설정</button>
+    </div>
     <div class="catalogSyncCard" id="catalogSyncCard" aria-live="polite">
       <div class="catalogSyncIcon" id="catalogSyncIcon">↻</div>
       <div class="catalogSyncCopy">
@@ -817,6 +829,24 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   <div class="rsModalActions"><button class="rsModalBtn cancel" id="albumDateCancel" type="button">선택 취소</button><button class="rsModalBtn primary" id="albumDateContinue" type="button">그래도 계속 추출</button></div>
  </div>
 </div>
+
+<div class="rsModal" id="teamsSelfModal" role="dialog" aria-modal="true" aria-labelledby="teamsSelfTitle">
+  <div class="rsModalBox">
+    <div class="rsModalIcon">💬</div>
+    <div class="rsModalTitle" id="teamsSelfTitle">내 Teams 바로가기 설정</div>
+    <div class="teamsModalSub">회사 Teams에서 사용하는 <b>내 이메일 주소</b>를 한 번만 저장하면,<br>다음부터는 이름 검색 없이 내 채팅으로 바로 이동합니다.</div>
+    <input class="teamsEmailInput" id="teamsSelfEmail" type="email" inputmode="email" autocomplete="email" placeholder="예: name@company.com">
+    <div class="teamsSelfHint">이 값은 이 휴대폰의 RaySmart에만 저장됩니다. 다른 팀원의 폰에는 각자 자기 계정을 따로 저장하면 됩니다.</div>
+    <div class="teamsModalStored" id="teamsSelfStored">현재 저장된 계정: 없음</div>
+    <div class="teamsModalActions3">
+      <button class="rsModalBtn cancel" id="teamsSelfCancel" type="button">취소</button>
+      <button class="rsModalBtn primary" id="teamsSelfSave" type="button">저장</button>
+      <button class="teamsNativeFallback wide" id="teamsNativeShare" type="button">기존 공유창으로 보내기</button>
+      <button class="teamsDeleteBtn wide" id="teamsSelfDelete" type="button">저장된 계정 삭제</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script>
 (()=>{
@@ -835,9 +865,11 @@ let pendingDeletePhotoId=null;
 let nextPhotoId=1;
 let shareResetTimer=null;
 let shareResetRemaining=0;
-let shareResetDeadline=0;
 let shareResetPendingReturn=false;
 let currentInputMode='';
+
+let pendingTeamsShareText='';
+const TEAMS_SELF_UPN_KEY='raySmartTeamsSelfUpn';
 let activeBatchId='';
 let activeBatchTotal=0;
 let activeBatchIndex=0;
@@ -1791,11 +1823,10 @@ function clearAllSnData(message='목록이 초기화되었습니다. 새로운 �
 
 function cancelShareAutoReset(showMessage=true){
   if(shareResetTimer){
-    clearTimeout(shareResetTimer);
+    clearInterval(shareResetTimer);
     shareResetTimer=null;
   }
   shareResetRemaining=0;
-  shareResetDeadline=0;
   closeModal('shareResetModal');
   if(showMessage){
     toast('자동 초기화를 취소했습니다');
@@ -1806,23 +1837,25 @@ function cancelShareAutoReset(showMessage=true){
 function startShareAutoReset(){
   cancelShareAutoReset(false);
   shareResetRemaining=5;
-  shareResetDeadline=Date.now()+5000;
   $('shareResetCount').textContent='5';
   $('shareResetSeconds').textContent='5초';
   $('shareResetSummary').textContent=`총 ${results.length}개의 S/N · 촬영 사진 ${photoItems.length}장`;
+
   openModal('shareResetModal');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>$('shareResetModal')?.classList.add('show')));
   if(navigator.vibrate)navigator.vibrate(80);
 
-  const tick=()=>{
-    if(!shareResetDeadline)return;
-    const msLeft=shareResetDeadline-Date.now();
-    const next=Math.max(0,Math.ceil(msLeft/1000));
-    shareResetRemaining=next;
+  // 핵심: 공유 화면에서 RaySmart로 완전히 돌아온 뒤부터 5초를 셉니다.
+  // 앱이 숨겨진 동안에는 숫자를 줄이지 않아 1부터 보이거나 멈추는 현상을 방지합니다.
+  shareResetTimer=setInterval(()=>{
+    if(document.hidden || document.visibilityState!=='visible') return;
 
-    if(next<=0){
-      if(shareResetTimer)clearTimeout(shareResetTimer);
+    shareResetRemaining -= 1;
+
+    if(shareResetRemaining<=0){
+      clearInterval(shareResetTimer);
       shareResetTimer=null;
-      shareResetDeadline=0;
+      shareResetRemaining=0;
       closeModal('shareResetModal');
       clearAllSnData('목록이 자동으로 초기화되었습니다. 새로운 촬영을 시작하세요.');
       toast('목록이 초기화되었습니다');
@@ -1830,12 +1863,9 @@ function startShareAutoReset(){
       return;
     }
 
-    $('shareResetCount').textContent=String(next);
-    $('shareResetSeconds').textContent=`${next}초`;
-    shareResetTimer=setTimeout(tick,200);
-  };
-
-  shareResetTimer=setTimeout(tick,200);
+    $('shareResetCount').textContent=String(shareResetRemaining);
+    $('shareResetSeconds').textContent=`${shareResetRemaining}초`;
+  },1000);
 }
 
 function queueShareResetForReturn(){
@@ -1863,7 +1893,6 @@ function runPendingShareReset(){
   toast('✓ 공유되었습니다');
   setStatus('공유되었습니다. 5초 후 목록과 추출 완료 표시가 자동으로 초기화됩니다.','ok');
   startShareAutoReset();
-  requestAnimationFrame(()=>requestAnimationFrame(()=>$('shareResetModal')?.classList.add('show')));
 }
 
 
@@ -2225,6 +2254,64 @@ function buildGroupedShareText(){
 }
 async function copyAll(){const text=results.filter(Boolean).join('\n');if(!text)return toast('복사할 S/N이 없어요');try{await navigator.clipboard.writeText(text)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}toast('전체 복사 완료')}
 
+
+function getTeamsSelfUpn(){return (localStorage.getItem(TEAMS_SELF_UPN_KEY)||'').trim()}
+function isValidTeamsUpn(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value||'').trim())}
+function updateTeamsSelfUi(){
+  const upn=getTeamsSelfUpn();
+  const bar=$('teamsSelfBar'), value=$('teamsSelfValue'), stored=$('teamsSelfStored'), del=$('teamsSelfDelete');
+  if(value)value.textContent=upn||'미설정 · 처음 한 번만 내 계정을 저장하세요';
+  if(stored)stored.textContent=`현재 저장된 계정: ${upn||'없음'}`;
+  bar?.classList.toggle('ready',!!upn);
+  if($('teamsSelfSetupBtn'))$('teamsSelfSetupBtn').textContent=upn?'변경':'설정';
+  if(del)del.style.display=upn?'block':'none';
+}
+function openTeamsSelfSettings(shareText=''){
+  pendingTeamsShareText=shareText||'';
+  const upn=getTeamsSelfUpn();
+  $('teamsSelfEmail').value=upn;
+  updateTeamsSelfUi();
+  openModal('teamsSelfModal');
+  setTimeout(()=>$('teamsSelfEmail')?.focus(),180);
+}
+async function writeShareClipboard(text){
+  try{await navigator.clipboard.writeText(text);return true}catch{}
+  try{
+    const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();return true;
+  }catch{return false}
+}
+async function nativeShareText(text){
+  try{
+    if(navigator.share){
+      await navigator.share({title:'RaySmart S/N 추출 결과',text});
+      queueShareResetForReturn();
+      return true;
+    }
+    const copied=await writeShareClipboard(text);
+    if(copied){toast('공유용 내용을 복사했습니다');setStatus('공유용 내용이 복사되었습니다. Teams에 붙여넣어 주세요.','ok')}
+    return copied;
+  }catch(e){
+    if(e?.name==='AbortError'){toast('공유가 취소되었습니다');setStatus('공유가 취소되었습니다. 현재 목록은 그대로 유지됩니다.','');return false}
+    toast('공유 중 오류가 발생했습니다');setStatus('공유 중 오류가 발생했습니다. 목록은 그대로 유지됩니다.','bad');return false;
+  }
+}
+async function openTeamsSelfChat(text){
+  const upn=getTeamsSelfUpn();
+  if(!upn){openTeamsSelfSettings(text);return}
+  const base=`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(upn)}`;
+  const withMessage=`${base}&message=${encodeURIComponent(text)}`;
+  // URL이 지나치게 길면 메시지는 클립보드에 복사하고 채팅방만 엽니다.
+  const usePrefill=withMessage.length<6500;
+  if(!usePrefill)await writeShareClipboard(text);
+  setStatus(usePrefill?'내 Teams 채팅을 여는 중… 전송 버튼만 눌러주세요.':'내 Teams 채팅을 여는 중… 내용이 복사되어 있습니다. 붙여넣어 주세요.','ok');
+  toast('내 Teams로 이동합니다');
+  // 직접 Teams로 이동하는 경우에도 RaySmart 복귀 후 기존 공유 완료/자동초기화 안내를 이어갑니다.
+  shareResetPendingReturn=true;
+  try{sessionStorage.setItem('raySnShareResetPending','1')}catch{}
+  setTimeout(()=>{window.location.href=usePrefill?withMessage:base},80);
+}
+
 function setInputMode(mode=''){
   currentInputMode=mode;
   $('openCameraBtn')?.classList.toggle('activeMode',mode==='camera');
@@ -2312,41 +2399,38 @@ $('shareBtn').addEventListener('click',async()=>{
     setStatus(shareData.message,'bad');
     return;
   }
-  const text=shareData.text;
-
-  setStatus('Teams 공유 준비 중…','');
   $('shareBtn').disabled=true;
-
   try{
-    if(navigator.share){
-      await navigator.share({title:'RaySmart S/N 추출 결과',text});
-      queueShareResetForReturn();
-      return;
-    }
-
-    try{
-      await navigator.clipboard.writeText(text);
-    }catch{
-      const ta=document.createElement('textarea');
-      ta.value=text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-    }
-    toast('업체명·수량과 함께 복사했습니다');
-    setStatus('공유용 내용이 복사되었습니다. Teams에 붙여넣은 뒤 목록 비우기를 눌러주세요.','ok');
-  }catch(e){
-    if(e?.name==='AbortError'){
-      toast('공유가 취소되었습니다');
-      setStatus('공유가 취소되었습니다. 현재 목록은 그대로 유지됩니다.','');
-    }else{
-      toast('공유 중 오류가 발생했습니다');
-      setStatus('공유 중 오류가 발생했습니다. 목록은 그대로 유지됩니다.','bad');
-    }
+    await openTeamsSelfChat(shareData.text);
   }finally{
     $('shareBtn').disabled=false;
   }
+});
+$('teamsSelfSetupBtn').addEventListener('click',()=>openTeamsSelfSettings(''));
+$('teamsSelfCancel').addEventListener('click',()=>{pendingTeamsShareText='';closeModal('teamsSelfModal')});
+$('teamsSelfSave').addEventListener('click',async()=>{
+  const upn=$('teamsSelfEmail').value.trim();
+  if(!isValidTeamsUpn(upn)){toast('Teams 이메일 주소를 확인해 주세요');$('teamsSelfEmail').focus();return}
+  localStorage.setItem(TEAMS_SELF_UPN_KEY,upn);
+  updateTeamsSelfUi();
+  closeModal('teamsSelfModal');
+  toast('내 Teams 계정을 저장했습니다');
+  const text=pendingTeamsShareText;pendingTeamsShareText='';
+  if(text)await openTeamsSelfChat(text);
+});
+$('teamsSelfDelete').addEventListener('click',()=>{
+  localStorage.removeItem(TEAMS_SELF_UPN_KEY);
+  $('teamsSelfEmail').value='';
+  pendingTeamsShareText='';
+  updateTeamsSelfUi();
+  toast('저장된 Teams 계정을 삭제했습니다');
+});
+$('teamsNativeShare').addEventListener('click',async()=>{
+  let text=pendingTeamsShareText;
+  if(!text && results.length){const d=buildGroupedShareText();if(d.ok)text=d.text}
+  closeModal('teamsSelfModal');pendingTeamsShareText='';
+  if(!text)return toast('보낼 S/N이 없어요');
+  await nativeShareText(text);
 });
 $('clearBtn').addEventListener('click',()=>{if(!results.length&&!photoItems.length)return toast('비울 목록이 없어요');openModal('clearConfirmModal')});
 $('resetAllBtn').addEventListener('click',()=>openModal('resetAllConfirmModal'));
@@ -2397,23 +2481,22 @@ window.addEventListener('pagehide',()=>{
   // 모바일에서 앨범/카메라/공유 화면으로 잠시 이동할 때도 pagehide가 발생할 수 있습니다.
   // 이때 미리보기용 Blob URL을 해제하면 돌아왔을 때 일부 썸네일이 깨질 수 있으므로
   // 여기서는 카메라 스트림과 타이머만 정리하고, 사진 URL은 목록 삭제/초기화 시에만 해제합니다.
-  // 공유 완료 카운트다운은 실제 시간(deadline) 기준으로 동작하므로
-  // pagehide에서 강제로 중지하지 않습니다. 돌아왔을 때 남은 시간에 맞춰 계속 진행됩니다.
+  // 공유 완료 카운트다운은 화면이 보일 때만 감소하도록 했기 때문에
+  // pagehide에서 강제로 종료하지 않습니다.
   stopCamera();
 });
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&stream)stopCamera();
-  if(!document.hidden && shareResetDeadline){
-    const next=Math.max(0,Math.ceil((shareResetDeadline-Date.now())/1000));
-    if(next>0){
-      shareResetRemaining=next;
-      $('shareResetCount').textContent=String(next);
-      $('shareResetSeconds').textContent=`${next}초`;
-    }
+  if(!document.hidden && shareResetTimer && shareResetRemaining>0){
+    $('shareResetCount').textContent=String(shareResetRemaining);
+    $('shareResetSeconds').textContent=`${shareResetRemaining}초`;
   }
 });
 loadSession();
 loadProductCatalog();
+/* Teams 자기 채팅 UI 초기화 */
+updateTeamsSelfUi();
+
 })();
 </script>
 
