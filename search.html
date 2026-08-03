@@ -103,7 +103,28 @@ main{padding:16px}.card{background:rgba(255,255,255,.96);border:1px solid var(--
 .upload{display:flex;align-items:center;justify-content:space-between;gap:10px}.upload strong{font-size:14px}.upload small{display:block;color:var(--muted);margin-top:4px;line-height:1.4;font-size:11px}.filebtn{white-space:nowrap;background:#eaf3ff;color:var(--brand);border:1px solid #c9ddff;border-radius:13px;padding:10px 12px;font-weight:900}#file{display:none}.status{font-size:12px;color:var(--muted);margin:0 3px 12px;line-height:1.55}
 .resultTop{display:flex;justify-content:space-between;align-items:center;margin:5px 2px 10px}.count{font-weight:950}.clear{border:0;background:transparent;color:#64748b;font-weight:750}.empty{text-align:center;padding:38px 14px;color:var(--muted)}.emptyIcon{font-size:36px;margin-bottom:9px}.emptyTitle{font-size:18px;color:#2e3e5c;font-weight:950;margin-bottom:7px}
 .item{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:10px;box-shadow:0 5px 15px #1b4e890a}.code{font-size:19px;font-weight:950;word-break:break-all;color:#183c71}.desc{font-size:13px;color:#667085;margin-top:6px;word-break:break-all;line-height:1.45}.supplier{display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:6px 9px;border-radius:10px;background:#edf5ff;color:#1769e0;font-size:12px;font-weight:850}.itemHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.fav{border:0;background:#f1f5f9;color:#a3afc1;border-radius:11px;min-width:40px;height:40px;font-size:19px}.fav.on{background:#fff6e6;color:#f59e0b}
-.quickTitle{font-size:13px;font-weight:950;margin:2px 2px 8px;color:#475569}.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px}.chip{border:1px solid #cfdaea;background:#fff;border-radius:999px;padding:8px 11px;white-space:nowrap;font-size:12px;color:#334155}.chip.emptyChip{color:#94a3b8}.locrow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px dashed #d9e3f1}.locLabel{font-size:11px;color:#8290a7;font-weight:800;margin-bottom:3px}.loc{font-size:29px;font-weight:950;letter-spacing:.2px;color:#142c50;line-height:1.15}.badge{display:flex;align-items:center;justify-content:center;min-width:104px;height:86px;font-size:38px;font-weight:950;padding:10px 18px;border-radius:22px;line-height:1;box-shadow:0 7px 18px #1b4e8918;flex-shrink:0}.f1{background:#dcfce7;color:#166534}.f3{background:#dbeafe;color:#1d4ed8}.f4{background:#f3e8ff;color:#7e22ce}.f5{background:#ffedd5;color:#c2410c}.na{background:#e5e7eb;color:#4b5563}.footerNote{font-size:11px;color:#7b8790;text-align:center;padding:12px;line-height:1.6}
+.quickTitle{font-size:13px;font-weight:950;margin:2px 2px 8px;color:#475569}
+.quickHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 8px}
+.quickHead .quickTitle{margin:0}
+.quickAllBtn{border:0;background:transparent;color:#7c8391;padding:5px 2px;font-size:12px;font-weight:850;white-space:nowrap}
+.quickAllBtn:active{color:#1769e0;transform:scale(.98)}
+.quickAllOverlay{position:fixed;inset:0;z-index:100300;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.quickAllOverlay.show{display:flex}
+.quickAllPanel{width:min(92vw,420px);max-height:min(82dvh,720px);display:flex;flex-direction:column;overflow:hidden;background:#fff;border-radius:23px;box-shadow:0 26px 75px rgba(15,23,42,.30)}
+.quickAllHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px 13px;border-bottom:1px solid #e8edf4}
+.quickAllTitle{font-size:19px;font-weight:950;color:#183c71}
+.quickAllMeta{margin-top:3px;color:#7a8798;font-size:11px;font-weight:850}
+.quickAllClose{width:37px;height:37px;border:0;border-radius:11px;background:#edf4ff;color:#526174;font-size:21px;font-weight:900}
+.quickAllList{overflow:auto;padding:10px 12px 14px}
+.quickAllItem{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;border:0;border-bottom:1px solid #edf1f5;background:#fff;padding:13px 10px;text-align:left;color:#26364f}
+.quickAllItem:last-child{border-bottom:0}
+.quickAllItem:active{background:#f5f9ff}
+.quickAllItemCode{min-width:0;font-size:14px;font-weight:900;word-break:break-all}
+.quickAllItemMode{display:block;margin-top:3px;color:#8a94a6;font-size:10px;font-weight:800}
+.quickAllGo{color:#1769e0;font-size:22px;font-weight:900}
+.quickAllEmpty{padding:28px 12px;text-align:center;color:#8a94a6;font-size:13px;font-weight:850}
+body.quickAllOpen{overflow:hidden}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px}.chip{border:1px solid #cfdaea;background:#fff;border-radius:999px;padding:8px 11px;white-space:nowrap;font-size:12px;color:#334155}.chip.emptyChip{color:#94a3b8}.locrow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px dashed #d9e3f1}.locLabel{font-size:11px;color:#8290a7;font-weight:800;margin-bottom:3px}.loc{font-size:29px;font-weight:950;letter-spacing:.2px;color:#142c50;line-height:1.15}.badge{display:flex;align-items:center;justify-content:center;min-width:104px;height:86px;font-size:38px;font-weight:950;padding:10px 18px;border-radius:22px;line-height:1;box-shadow:0 7px 18px #1b4e8918;flex-shrink:0}.f1{background:#dcfce7;color:#166534}.f3{background:#dbeafe;color:#1d4ed8}.f4{background:#f3e8ff;color:#7e22ce}.f5{background:#ffedd5;color:#c2410c}.na{background:#e5e7eb;color:#4b5563}.footerNote{font-size:11px;color:#7b8790;text-align:center;padding:12px;line-height:1.6}
 @media (max-width:480px){header{padding-top:18px}h1{font-size:34px}main{padding:12px}.go{min-width:72px}.stats{gap:5px}.stat{font-size:10px;padding:6px 8px}.badge{min-width:96px;height:80px;font-size:35px}.loc{font-size:29px}.locrow{align-items:center}}
 
 .modal{position:fixed;inset:0;z-index:9000;display:none;align-items:flex-end;justify-content:center;background:rgba(15,23,42,.48);padding:14px}
@@ -673,7 +694,25 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
     <button class="snBtn soft" id="snClearContinuous" type="button" style="width:100%;margin-top:10px">S/N 목록 초기화</button>
   </div>
 </section>
-<section class="card searchOnly" id="quickBox"><div class="quickTitle">최근 검색</div><div class="chips" id="recentChips"></div><div class="quickTitle" style="margin-top:12px">즐겨찾기</div><div class="chips" id="favoriteChips"></div></section>
+<section class="card searchOnly" id="quickBox">
+  <div class="quickHead"><div class="quickTitle">최근 검색</div><button class="quickAllBtn" id="recentAllBtn" type="button">전체 보기 ›</button></div>
+  <div class="chips" id="recentChips"></div>
+  <div class="quickHead" style="margin-top:12px"><div class="quickTitle">즐겨찾기</div><button class="quickAllBtn" id="favoriteAllBtn" type="button">전체 보기 ›</button></div>
+  <div class="chips" id="favoriteChips"></div>
+</section>
+<div class="quickAllOverlay" id="quickAllOverlay" role="dialog" aria-modal="true" aria-labelledby="quickAllTitle">
+  <div class="quickAllPanel">
+    <div class="quickAllHead">
+      <div>
+        <div class="quickAllTitle" id="quickAllTitle">전체 보기</div>
+        <div class="quickAllMeta" id="quickAllMeta"></div>
+      </div>
+      <button class="quickAllClose" id="quickAllClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="quickAllList" id="quickAllList"></div>
+  </div>
+</div>
+
 <section class="card upload searchOnly" id="uploadCard">
   <div class="uploadInfo">
     <strong>DB 상태</strong>
@@ -884,6 +923,69 @@ function addRecent(q){
   RECENTS=RECENTS.filter(x=>!(x.q===q && x.mode===mode));
   RECENTS.unshift({q,mode}); RECENTS=RECENTS.slice(0,10); saveQuick(); drawQuick();
 }
+
+function openSearchQuickAll(kind){
+  const overlay=$('#quickAllOverlay');
+  const title=$('#quickAllTitle');
+  const meta=$('#quickAllMeta');
+  const list=$('#quickAllList');
+  const isRecent=kind==='recent';
+
+  if(isRecent){
+    const items=Array.isArray(RECENTS)?RECENTS:[];
+    title.textContent='최근 검색 전체';
+    meta.textContent=`총 ${items.length}개`;
+    list.innerHTML=items.length
+      ?items.map(x=>{
+          const q=String(x?.q??'').trim();
+          const itemMode=x?.mode==='location'?'location':'part';
+          const label=itemMode==='part'?'품번 검색':'위치 검색';
+          return `<button class="quickAllItem" type="button" data-quick-q="${esc(q)}" data-quick-mode="${itemMode}">
+            <span><span class="quickAllItemCode">${esc(q)}</span><span class="quickAllItemMode">${label}</span></span>
+            <span class="quickAllGo">›</span>
+          </button>`;
+        }).join('')
+      :'<div class="quickAllEmpty">최근 검색 기록이 없습니다.</div>';
+  }else{
+    const items=Array.isArray(FAVORITES)?FAVORITES:[];
+    title.textContent='즐겨찾기 전체';
+    meta.textContent=`총 ${items.length}개`;
+    list.innerHTML=items.length
+      ?items.map(code=>`<button class="quickAllItem" type="button" data-quick-q="${esc(code)}" data-quick-mode="part">
+          <span><span class="quickAllItemCode">★ ${esc(code)}</span><span class="quickAllItemMode">품번 검색</span></span>
+          <span class="quickAllGo">›</span>
+        </button>`).join('')
+      :'<div class="quickAllEmpty">즐겨찾기가 없습니다.</div>';
+  }
+
+  overlay.classList.add('show');
+  document.body.classList.add('quickAllOpen');
+}
+
+function closeSearchQuickAll(){
+  $('#quickAllOverlay')?.classList.remove('show');
+  document.body.classList.remove('quickAllOpen');
+}
+
+$('#recentAllBtn')?.addEventListener('click',()=>openSearchQuickAll('recent'));
+$('#favoriteAllBtn')?.addEventListener('click',()=>openSearchQuickAll('favorite'));
+$('#quickAllClose')?.addEventListener('click',closeSearchQuickAll);
+$('#quickAllOverlay')?.addEventListener('click',e=>{
+  if(e.target===e.currentTarget)closeSearchQuickAll();
+});
+$('#quickAllList')?.addEventListener('click',e=>{
+  const item=e.target.closest('[data-quick-q]');
+  if(!item)return;
+  const q=item.dataset.quickQ||'';
+  const nextMode=item.dataset.quickMode==='location'?'location':'part';
+  closeSearchQuickAll();
+  mode=nextMode;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));
+  setSearchKeyboard();
+  $('#q').value=q;
+  search();
+});
+
 
 
 
