@@ -581,6 +581,10 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
   color:#fff!important;
 }
 </style>
+<style id="next-capture-style">
+.nextCaptureBtn{display:none;position:sticky;bottom:12px;z-index:120;margin:12px auto 2px;width:calc(100% - 8px);min-height:58px;border:0;border-radius:16px;background:linear-gradient(135deg,#28b779,#169f66);color:#fff;font-size:17px;font-weight:1000;box-shadow:0 10px 24px rgba(32,167,110,.28);cursor:pointer}
+.nextCaptureBtn.show{display:block}.nextCaptureBtn:active{transform:scale(.985)}
+</style>
 </head>
 <body>
 <div class="app">
@@ -692,6 +696,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
     <button class="action resetAll" id="resetAllBtn">전체 초기화</button>
   </div>
   <div class="status" id="status">자동 인식 또는 업체를 선택하고 촬영을 시작하세요.</div>
+  <button class="nextCaptureBtn" id="nextCaptureBtn" type="button">📷 다음 촬영</button>
 </section>
 </main>
 <div class="adminFooter"><button class="adminOpenBtn" id="adminOpenBtn" type="button">🔒 관리자 모드</button></div>
@@ -1038,7 +1043,6 @@ function vendorLogoHtml(vendor){
 function detectVendorFromSerialOnly(serials=[]){
   const vals=serials.map(x=>String(x||'').toUpperCase());
   if(vals.some(v=>/^ED[A-Z0-9]{16,}$/i.test(v)))return 'iRay';
-  if(vals.some(v=>/^DIB[A-Z0-9]{4,20}$/i.test(v)))return 'i3system';
   if(vals.some(v=>/^[A-Z0-9]{7}$/i.test(v)))return 'Dell';
   if(vals.some(v=>/^VPX[0-9]{5,}$/i.test(v)))return 'Vieworks';
   return '';
@@ -1209,18 +1213,7 @@ async function extractSerial(source){
   if(selectedVendor==='Auto'){
     const normalized=barcodes.map(code=>{
       const vieworksSn=extractVieworksGs1(code);
-      if(vieworksSn)return vieworksSn;
-
-      // 앨범 자동인식에서도 업체 확정 전부터 i3System 원본 코드가
-      // XID-...-DIB2733 형태이면 결과에는 DIB2733만 바로 저장합니다.
-      const raw=String(code||'').toUpperCase();
-      const plain=plainSerial(raw);
-      if(plain.startsWith('XID')){
-        const i3Sn=normalizeI3Serial(raw);
-        if(/^DIB[A-Z0-9]{4,20}$/.test(i3Sn))return i3Sn;
-      }
-
-      return clean(code);
+      return vieworksSn || clean(code);
     });
     return unique(normalized).slice(0,20);
   }
@@ -2153,6 +2146,16 @@ async function processFiles(files,opts={}){
       const found=await extractSerial(files[localIndex]);
       item.serials=unique(found);
 
+      // i3System은 입력 방식과 관계없이 결과에 넣기 전에 항상 DIB 번호만 남깁니다.
+      // 연속촬영(i3 선택)과 앨범 자동인식이 같은 방식으로 동작하도록 한 번 더 보정합니다.
+      if(item.vendor==='i3system' && item.serials.length){
+        item.serials=unique(
+          item.serials
+            .map(normalizeI3Serial)
+            .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
+        );
+      }
+
       if(autoAlbum && item.serials.length){
         $('progressText').textContent=`${globalIndex+1}번째 사진 업체 확인 중…`;
         item.vendor=await detectPhotoVendor(files[localIndex],item.serials);
@@ -2431,6 +2434,20 @@ $('shootGuideCancel').addEventListener('click',()=>closeModal('shootGuideModal')
 $('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checked)localStorage.setItem('raySnShootGuideSkip','1');closeModal('shootGuideModal');captureInput.click()});
 $('captureBtn').addEventListener('click',captureAndExtract);
 $('finishBtn').addEventListener('click',()=>{stopCamera();$('cameraPanel').classList.remove('show');setStatus('촬영을 종료했습니다. 결과를 확인하세요.','ok')});
+const nextCaptureBtn=$('nextCaptureBtn');
+function showNextCapture(){
+  if(nextCaptureBtn && selectedVendor && selectedVendor!=='Auto') nextCaptureBtn.classList.add('show');
+}
+function hideNextCapture(){ if(nextCaptureBtn) nextCaptureBtn.classList.remove('show'); }
+nextCaptureBtn?.addEventListener('click',()=>{
+  if(busy)return;
+  if(!selectedVendor || selectedVendor==='Auto'){ toast('업체를 먼저 선택해 주세요'); return; }
+  hideNextCapture();
+  setInputMode('camera');
+  captureInput.value='';
+  captureInput.click();
+});
+
 captureInput.addEventListener('change',async()=>{
   const file=captureInput.files?.[0];
   if(!file){
@@ -2440,6 +2457,7 @@ captureInput.addEventListener('change',async()=>{
   }
 
   // 카메라에서 돌아온 직후에는 추출보다 "사진 수신"을 먼저 확정합니다.
+  hideNextCapture();
   setInputMode('camera');
   setStatus('촬영 사진을 받는 중…');
 
@@ -2462,9 +2480,10 @@ captureInput.addEventListener('change',async()=>{
   }finally{
     // 모든 처리가 끝난 뒤에 input을 비워 같은 대상도 다시 촬영할 수 있게 합니다.
     captureInput.value='';
+    showNextCapture();
   }
 });
-imageInput.addEventListener('change',async()=>{const files=[...(imageInput.files||[])];imageInput.value='';if(!files.length)return;setInputMode('gallery');setStatus('선택한 사진의 촬영/저장 날짜를 확인하고 있습니다…');const go=await checkAlbumDateOutliers(files);if(!go){setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');return;}const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
+imageInput.addEventListener('change',async()=>{hideNextCapture();const files=[...(imageInput.files||[])];imageInput.value='';if(!files.length)return;setInputMode('gallery');setStatus('선택한 사진의 촬영/저장 날짜를 확인하고 있습니다…');const go=await checkAlbumDateOutliers(files);if(!go){setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');return;}const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
 $('albumDateCancel').addEventListener('click',()=>finishAlbumDateCheck(false));
 $('albumDateContinue').addEventListener('click',()=>finishAlbumDateCheck(true));
 $('copyBtn').addEventListener('click',copyAll);
