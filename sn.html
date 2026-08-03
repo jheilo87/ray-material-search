@@ -2095,6 +2095,9 @@ async function processFiles(files,opts={}){
   const batchMode=selectedVendor==='Auto'?'Auto':selectedVendor;
   const skipPersist=!!opts.skipPersist;
   const immediatePreview=!!opts.immediatePreview;
+  // 연속촬영은 한 장씩 processFiles가 호출되므로 진행 표시만 누적 촬영 장수 기준으로 계산합니다.
+  const cumulativeProgress=!!opts.cumulativeProgress;
+  const progressBase=cumulativeProgress?photoItems.length:0;
 
   // 앨범 다중 추출은 기존 복구용 저장을 유지합니다.
   // 기본 카메라에서 막 찍은 1장은 이미 메모리에 있으므로 불필요한 IndexedDB 저장을 건너뜁니다.
@@ -2112,9 +2115,11 @@ async function processFiles(files,opts={}){
     activeBatchIndex=globalIndex;
     activeBatchTotal=total;
 
-    $('progressText').textContent=`${globalIndex+1}번째 사진 추출 중…`;
-    $('progressCount').textContent=`${globalIndex+1}/${total}`;
-    $('progressFill').style.width=`${Math.round(globalIndex/Math.max(1,total)*100)}%`;
+    const displayCurrent=cumulativeProgress?progressBase+localIndex+1:globalIndex+1;
+    const displayTotal=cumulativeProgress?progressBase+files.length:total;
+    $('progressText').textContent=`${displayCurrent}번째 사진 추출 중…`;
+    $('progressCount').textContent=`${displayCurrent}/${displayTotal}`;
+    $('progressFill').style.width=`${Math.round((displayCurrent-1)/Math.max(1,displayTotal)*100)}%`;
 
     const autoAlbum=selectedVendor==='Auto';
     const item=createPhotoItem(files[localIndex],autoAlbum?'Unknown':selectedVendor);
@@ -2125,7 +2130,7 @@ async function processFiles(files,opts={}){
       renderPreviews();
       render();
       $('progressText').textContent=`사진 받음 · S/N 추출 준비 중…`;
-      $('progressCount').textContent=`0/${total}`;
+      $('progressCount').textContent=cumulativeProgress?`${progressBase}/${progressBase+files.length}`:`0/${total}`;
       $('progressFill').style.width='8%';
       setStatus('사진을 정상적으로 받았습니다 · 이제 S/N을 추출합니다.','ok');
       await new Promise(resolve=>setTimeout(resolve,60));
@@ -2165,16 +2170,19 @@ async function processFiles(files,opts={}){
     const completed=globalIndex+1;
     activeBatchIndex=completed;
     if(!skipPersist)await updateBatchMeta({index:completed,status:completed>=total?'done':'running'});
-    $('progressCount').textContent=`${completed}/${total}`;
-    $('progressFill').style.width=`${Math.round(completed/Math.max(1,total)*100)}%`;
+    const displayCompleted=cumulativeProgress?progressBase+localIndex+1:completed;
+    const displayCompletedTotal=cumulativeProgress?progressBase+files.length:total;
+    $('progressCount').textContent=`${displayCompleted}/${displayCompletedTotal}`;
+    $('progressFill').style.width=`${Math.round(displayCompleted/Math.max(1,displayCompletedTotal)*100)}%`;
 
     // 브라우저가 숨겨졌다 돌아온 경우에도 현재 작업은 그대로 이어갑니다.
     // 기기가 백그라운드 작업을 중단하더라도 위 체크포인트부터 복구할 수 있습니다.
     await new Promise(resolve=>setTimeout(resolve,0));
   }
 
-  $('progressText').textContent=`추출 완료 · ${total}장`;
-  $('progressCount').textContent=`${total}/${total}`;
+  const finalDisplayTotal=cumulativeProgress?progressBase+files.length:total;
+  $('progressText').textContent=`추출 완료 · ${finalDisplayTotal}장`;
+  $('progressCount').textContent=`${finalDisplayTotal}/${finalDisplayTotal}`;
   $('progressFill').style.width='100%';
 
   rebuildResults();
@@ -2430,7 +2438,8 @@ captureInput.addEventListener('change',async()=>{
     // 단, 연속촬영 1장은 복구용 임시저장을 생략하고 사진을 먼저 화면에 표시합니다.
     await processFiles([file],{
       skipPersist:true,
-      immediatePreview:true
+      immediatePreview:true,
+      cumulativeProgress:true
     });
 
     if(results.length){
