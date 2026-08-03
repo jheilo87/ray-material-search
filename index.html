@@ -744,6 +744,25 @@ body.rsMultiOpen{overflow:hidden}
   .rsMultiOverlay.keyboardOpen{align-items:flex-start!important;padding:8px 14px!important}
   .rsMultiOverlay.keyboardOpen .rsMultiBox{max-height:calc(100dvh - 16px)!important}
 }
+
+/* 최근 검색 / 즐겨찾기 전체 보기 팝업 */
+.quickAllBtn{border:0;background:transparent;color:#7c8391;font-size:14px;font-weight:850;padding:6px 0;cursor:pointer}
+.quickAllBtn:active{color:#28b779;transform:scale(.98)}
+.quickAllOverlay{position:fixed;inset:0;z-index:13000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.quickAllOverlay.show{display:flex}
+.quickAllBox{width:min(92vw,420px);max-height:min(82dvh,680px);display:flex;flex-direction:column;overflow:hidden;background:#fff;border-radius:24px;box-shadow:0 28px 80px rgba(15,23,42,.30)}
+.quickAllHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 18px 14px;border-bottom:1px solid #edf0f4}
+.quickAllTitle{font-size:20px;font-weight:1000;color:#183c71}
+.quickAllMeta{margin-top:4px;color:#7b8798;font-size:11px;font-weight:850}
+.quickAllClose{width:38px;height:38px;border:0;border-radius:50%;background:#eef2f6;color:#667085;font-size:22px;font-weight:900}
+.quickAllList{overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.quickAllItem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;text-decoration:none;color:#26364f;padding:13px 14px;border:1px solid #e2e8ef;border-radius:14px;background:#fbfdff}
+.quickAllItem:active{background:#f1faf5;transform:scale(.995)}
+.quickAllCode{font-size:15px;font-weight:950;word-break:break-all}
+.quickAllGo{color:#28b779;font-size:20px;font-weight:1000}
+.quickAllEmpty{padding:34px 16px;text-align:center;color:#9aa4b2;font-size:14px;font-weight:850}
+body.quickAllOpen{overflow:hidden}
+@media(max-width:520px){.quickAllBox{max-height:86dvh}.quickAllTitle{font-size:18px}.quickAllItem{padding:12px 13px}.quickAllCode{font-size:14px}}
 </style>
 </head><body>
 
@@ -822,7 +841,17 @@ body.rsMultiOpen{overflow:hidden}
   </div>
   <div class="dbDashTime" id="dbSyncTime">마지막 확인 · 확인 중</div>
 </section>
-<div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><span>전체 보기 ›</span></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><span>전체 보기 ›</span></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><div class="foot">© RAY Corp. All rights reserved.</div></main></div>
+<div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><button class="quickAllBtn" id="recentAllBtn" type="button">전체 보기 ›</button></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><button class="quickAllBtn" id="favoriteAllBtn" type="button">전체 보기 ›</button></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><div class="foot">© RAY Corp. All rights reserved.</div></main></div>
+
+<div class="quickAllOverlay" id="quickAllOverlay" role="dialog" aria-modal="true" aria-labelledby="quickAllTitle">
+  <div class="quickAllBox">
+    <div class="quickAllHead">
+      <div><div class="quickAllTitle" id="quickAllTitle">전체 보기</div><div class="quickAllMeta" id="quickAllMeta"></div></div>
+      <button class="quickAllClose" id="quickAllClose" type="button" aria-label="닫기">×</button>
+    </div>
+    <div class="quickAllList" id="quickAllList"></div>
+  </div>
+</div>
 
 <div class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog" aria-modal="true" aria-labelledby="incomingTodayTitle">
   <div class="incomingTodayBox">
@@ -909,7 +938,15 @@ document.getElementById('incomingTodayX')?.addEventListener('click',closeIncomin
 document.getElementById('incomingTodayOverlay')?.addEventListener('click',e=>{
   if(e.target===e.currentTarget)closeIncomingTodayPopup();
 });
-function renderQuick(){let rs=[],fs=[];try{rs=JSON.parse(localStorage.getItem('rayRecents')||'[]');fs=JSON.parse(localStorage.getItem('rayFavorites')||'[]')}catch(e){}document.getElementById('recent').innerHTML=rs.length?rs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x.q)}">${esc(x.q)}</a>`).join(''):'<span class="empty">검색 기록 없음</span>';document.getElementById('favorite').innerHTML=fs.length?fs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x)}">★ ${esc(x)}</a>`).join(''):'<span class="empty">즐겨찾기 없음</span>'}
+function getQuickData(){let rs=[],fs=[];try{rs=JSON.parse(localStorage.getItem('rayRecents')||'[]');fs=JSON.parse(localStorage.getItem('rayFavorites')||'[]')}catch(e){}return {rs:Array.isArray(rs)?rs:[],fs:Array.isArray(fs)?fs:[]}}
+function renderQuick(){const {rs,fs}=getQuickData();document.getElementById('recent').innerHTML=rs.length?rs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x?.q||'')}">${esc(x?.q||'')}</a>`).join(''):'<span class="empty">검색 기록 없음</span>';document.getElementById('favorite').innerHTML=fs.length?fs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x)}">★ ${esc(x)}</a>`).join(''):'<span class="empty">즐겨찾기 없음</span>'}
+function openQuickAll(kind){const {rs,fs}=getQuickData();const isRecent=kind==='recent';const items=isRecent?rs.map(x=>String(x?.q||'').trim()).filter(Boolean):fs.map(x=>String(x||'').trim()).filter(Boolean);const overlay=document.getElementById('quickAllOverlay'),title=document.getElementById('quickAllTitle'),meta=document.getElementById('quickAllMeta'),list=document.getElementById('quickAllList');title.textContent=isRecent?'최근 검색 전체':'즐겨찾기 전체';meta.textContent=`총 ${items.length}개`;list.innerHTML=items.length?items.map((q,i)=>`<a class="quickAllItem" href="search.html?q=${encodeURIComponent(q)}"><span class="quickAllCode">${isRecent?'': '★ '}${esc(q)}</span><span class="quickAllGo">›</span></a>`).join(''):`<div class="quickAllEmpty">${isRecent?'최근 검색 기록이 없습니다.':'즐겨찾기가 없습니다.'}</div>`;overlay.classList.add('show');document.body.classList.add('quickAllOpen')}
+function closeQuickAll(){document.getElementById('quickAllOverlay')?.classList.remove('show');document.body.classList.remove('quickAllOpen')}
+document.getElementById('recentAllBtn')?.addEventListener('click',()=>openQuickAll('recent'));
+document.getElementById('favoriteAllBtn')?.addEventListener('click',()=>openQuickAll('favorite'));
+document.getElementById('quickAllClose')?.addEventListener('click',closeQuickAll);
+document.getElementById('quickAllOverlay')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeQuickAll()});
+
 let MAIN_MATERIAL=[];
 const mainNorm=value=>String(value??'').toLowerCase().replace(/\s+/g,'').replace(/[-_.]/g,'');
 const mainPickHeader=(headers,names)=>headers.findIndex(h=>names.some(name=>String(h??'').replace(/\s/g,'').toUpperCase().includes(String(name).replace(/\s/g,'').toUpperCase())));
