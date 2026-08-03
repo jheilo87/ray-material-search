@@ -792,10 +792,10 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
     <div class="rsModalIcon">✅</div>
     <div class="rsModalTitle" id="shareResetTitle">공유되었습니다</div>
     <div class="shareResetBox">
-      <div class="shareResetText">공유한 내용을 확인하셨다면 <b>확인</b>을 눌러 현재 목록을 초기화하세요.</div>
+      <div class="shareResetText">공유가 완료되었습니다.<br>현재 목록을 초기화하고 새 작업을 시작할까요?</div>
       <div class="shareResetSummary" id="shareResetSummary"></div>
-      <button class="rsModalBtn primary" id="shareResetConfirm" type="button" style="width:100%;margin-top:15px">확인 · 목록 초기화</button>
-      <button class="shareResetCancel" id="shareResetCancel" type="button">초기화 취소</button>
+      <button class="rsModalBtn primary" id="shareResetConfirm" type="button" style="width:100%;margin-top:15px">목록 초기화</button>
+      <button class="shareResetCancel" id="shareResetCancel" type="button">목록 유지</button>
     </div>
   </div>
 </div>
@@ -1264,9 +1264,11 @@ function rebuildResults(){
   // i3System은 업체 지정 순간 XID-24DC-DIB2741 같은 원본을 DIB2741로 정리합니다.
   // 이때 변환 전 값이 results에 남아 [기존 목록]으로 다시 나타나지 않도록
   // 현재 i3 사진에 연결된 DIB 값과 같은 원본/변형 값은 기존 목록에서 제거합니다.
+  // 업체 자동인식/수동지정 상태와 관계없이, 현재 사진에서 DIB...가 추출됐다면
+  // 예전 세션에 남아 있던 XID-24DC-DIB... 같은 원본값은 같은 S/N으로 봅니다.
+  // 따라서 [기존 목록]으로 중복 표시되지 않게 현재 사진 전체를 기준으로 비교합니다.
   const linkedI3Canonical=new Set(
     photoItems
-      .filter(item=>item.vendor==='i3system')
       .flatMap(item=>item.serials)
       .map(normalizeI3Serial)
       .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
@@ -1867,13 +1869,14 @@ function cancelShareAutoReset(showMessage=true){
 
 function startShareAutoReset(){
   // 기존 5초 자동 초기화는 사용하지 않습니다.
-  // 공유 후 사용자가 직접 확인 또는 초기화 취소를 선택합니다.
+  // 공유 후 사용자가 직접 확인 또는 목록 유지를 선택합니다.
   if(shareResetTimer){
     clearInterval(shareResetTimer);
     shareResetTimer=null;
   }
   shareResetRemaining=0;
-  $('shareResetSummary').textContent=`총 ${results.length}개의 S/N · 촬영 사진 ${photoItems.length}장`;
+  const currentShareCount=unique(photoItems.flatMap(item=>item.serials)).length;
+  $('shareResetSummary').textContent=`총 ${currentShareCount}개의 S/N · 촬영 사진 ${photoItems.length}장`;
   openModal('shareResetModal');
   if(navigator.vibrate)navigator.vibrate(80);
 }
@@ -1899,7 +1902,7 @@ function runPendingShareReset(){
   shareResetPendingReturn=false;
   try{sessionStorage.removeItem('raySnShareResetPending')}catch{}
   toast('✓ 공유되었습니다');
-  setStatus('공유되었습니다. 확인을 누르면 목록이 초기화되며, 초기화 취소를 누르면 그대로 유지됩니다.','ok');
+  setStatus('공유되었습니다. 확인을 누르면 목록이 초기화되며, 목록 유지를 누르면 그대로 유지됩니다.','ok');
   startShareAutoReset();
 }
 
@@ -2248,13 +2251,9 @@ function buildGroupedShareText(){
     groups.get(vendor).push(...item.serials);
   });
 
-  const linked=new Set(photoItems.flatMap(item=>item.serials));
-  results.filter(code=>!linked.has(code)).forEach(code=>{
-    const assigned=legacyVendorAssignments[code];
-    const vendor=['iRay','Dell','Vieworks','i3system'].includes(assigned)?assigned:'Legacy';
-    if(!groups.has(vendor))groups.set(vendor,[]);
-    groups.get(vendor).push(code);
-  });
+  // Teams 공유는 이번 작업에서 사진에 연결된 S/N만 사용합니다.
+  // sessionStorage/results에 남아 있는 과거 값은 [기존 목록]으로 다시 붙이지 않습니다.
+  // 수동 입력도 미인식 사진에 연결되어 저장된 경우 photoItems에 포함되므로 정상 공유됩니다.
 
   const missing=[];
   order.forEach(vendor=>{
@@ -2266,7 +2265,8 @@ function buildGroupedShareText(){
     return {ok:false,message:`${missing.join(', ')} 품목을 먼저 선택해 주세요.`,text:''};
   }
 
-  const lines=['RaySmart S/N 출고 공유',`총 ${results.length}개`,''];
+  const shareTotal=unique([...groups.values()].flat()).length;
+  const lines=['RaySmart S/N 출고 공유',`총 ${shareTotal}개`,''];
   order.forEach(vendor=>{
     const codes=unique(groups.get(vendor)||[]);
     if(!codes.length)return;
