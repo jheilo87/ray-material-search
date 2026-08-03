@@ -790,12 +790,12 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 <div class="rsModal" id="shareResetModal" role="dialog" aria-modal="true" aria-labelledby="shareResetTitle">
   <div class="rsModalBox">
     <div class="rsModalIcon">✅</div>
-    <div class="rsModalTitle" id="shareResetTitle">공유 처리가 완료되었습니다</div>
+    <div class="rsModalTitle" id="shareResetTitle">공유되었습니다</div>
     <div class="shareResetBox">
-      <div class="shareResetCount" id="shareResetCount">✓</div>
-      <div class="shareResetText">공유가 완료되었습니다.<br><b>확인</b>을 누르면 목록이 초기화됩니다.</div>
+      <div class="shareResetText">공유한 내용을 확인하셨다면 <b>확인</b>을 눌러 현재 목록을 초기화하세요.</div>
       <div class="shareResetSummary" id="shareResetSummary"></div>
-      <button class="shareResetCancel" id="shareResetCancel" type="button">확인</button>
+      <button class="rsModalBtn primary" id="shareResetConfirm" type="button" style="width:100%;margin-top:15px">확인 · 목록 초기화</button>
+      <button class="shareResetCancel" id="shareResetCancel" type="button">초기화 취소</button>
     </div>
   </div>
 </div>
@@ -1259,7 +1259,29 @@ async function extractSerial(source){
 
 function rebuildResults(){
   const linked=photoItems.flatMap(item=>item.serials);
-  const legacy=results.filter(x=>!linked.includes(x) && !photoItems.some(item=>item.serials.includes(x)));
+  const linkedSet=new Set(linked);
+
+  // i3System은 업체 지정 순간 XID-24DC-DIB2741 같은 원본을 DIB2741로 정리합니다.
+  // 이때 변환 전 값이 results에 남아 [기존 목록]으로 다시 나타나지 않도록
+  // 현재 i3 사진에 연결된 DIB 값과 같은 원본/변형 값은 기존 목록에서 제거합니다.
+  const linkedI3Canonical=new Set(
+    photoItems
+      .filter(item=>item.vendor==='i3system')
+      .flatMap(item=>item.serials)
+      .map(normalizeI3Serial)
+      .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
+  );
+
+  const legacy=results.filter(code=>{
+    if(linkedSet.has(code))return false;
+    const normalized=normalizeI3Serial(code);
+    if(/^DIB[A-Z0-9]{4,20}$/.test(normalized) && linkedI3Canonical.has(normalized)){
+      delete legacyVendorAssignments[code];
+      return false;
+    }
+    return true;
+  });
+
   results=unique([...legacy,...linked]);
 }
 
@@ -1838,28 +1860,29 @@ function cancelShareAutoReset(showMessage=true){
   shareResetRemaining=0;
   closeModal('shareResetModal');
   if(showMessage){
-    toast('자동 초기화를 취소했습니다');
-    setStatus('자동 초기화를 취소했습니다. 현재 목록은 그대로 유지됩니다.','ok');
+    toast('초기화를 취소했습니다');
+    setStatus('초기화를 취소했습니다. 현재 S/N 목록은 그대로 유지됩니다.','ok');
   }
 }
 
 function startShareAutoReset(){
-  cancelShareAutoReset(false);
-  $('shareResetCount').textContent='✓';
+  // 기존 5초 자동 초기화는 사용하지 않습니다.
+  // 공유 후 사용자가 직접 확인 또는 초기화 취소를 선택합니다.
+  if(shareResetTimer){
+    clearInterval(shareResetTimer);
+    shareResetTimer=null;
+  }
+  shareResetRemaining=0;
   $('shareResetSummary').textContent=`총 ${results.length}개의 S/N · 촬영 사진 ${photoItems.length}장`;
-
   openModal('shareResetModal');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>$('shareResetModal')?.classList.add('show')));
   if(navigator.vibrate)navigator.vibrate(80);
 }
 
 function queueShareResetForReturn(){
   shareResetPendingReturn=true;
   try{sessionStorage.setItem('raySnShareResetPending','1')}catch{}
-  setStatus('공유되었습니다. RaySmart로 돌아오면 확인 후 목록을 초기화할 수 있습니다.','ok');
+  setStatus('공유되었습니다. RaySmart로 돌아오면 확인 후 초기화할 수 있습니다.','ok');
 
-  // Android 공유창에서 RaySmart로 복귀한 직후 팝업이 확실히 보이도록
-  // visibilitychange/pageshow가 오지 않는 경우를 대비해 약간 여유를 두고 한 번 더 확인합니다.
   setTimeout(()=>{
     if(shareResetPendingReturn && !document.hidden && document.visibilityState==='visible'){
       runPendingShareReset();
@@ -1876,10 +1899,9 @@ function runPendingShareReset(){
   shareResetPendingReturn=false;
   try{sessionStorage.removeItem('raySnShareResetPending')}catch{}
   toast('✓ 공유되었습니다');
-  setStatus('공유되었습니다. 확인을 누르면 목록과 추출 완료 표시가 초기화됩니다.','ok');
+  setStatus('공유되었습니다. 확인을 누르면 목록이 초기화되며, 초기화 취소를 누르면 그대로 유지됩니다.','ok');
   startShareAutoReset();
 }
-
 
 const BATCH_DB_NAME='RaySmartSNBatchDB';
 const BATCH_DB_STORE='batchFiles';
@@ -2317,7 +2339,7 @@ async function openTeamsSelfChat(text){
   if(!usePrefill)await writeShareClipboard(text);
   setStatus(usePrefill?'내 Teams 채팅을 여는 중… 전송 버튼만 눌러주세요.':'내 Teams 채팅을 여는 중… 내용이 복사되어 있습니다. 붙여넣어 주세요.','ok');
   toast('내 Teams로 이동합니다');
-  // 직접 Teams로 이동하는 경우에도 RaySmart 복귀 후 기존 공유 완료/자동초기화 안내를 이어갑니다.
+  // 직접 Teams로 이동하는 경우에도 RaySmart 복귀 후 공유 완료/확인 후 초기화 안내를 이어갑니다.
   shareResetPendingReturn=true;
   try{sessionStorage.setItem('raySnShareResetPending','1')}catch{}
   setTimeout(()=>{window.location.href=usePrefill?withMessage:base},80);
@@ -2518,7 +2540,13 @@ $('previewNext').addEventListener('click',()=>showPreviewImage(previewViewerInde
 $('previewClose').addEventListener('click',()=>closeModal('previewViewerModal'));
 $('itemDeleteCancel').addEventListener('click',()=>{pendingDeletePhotoId=null;closeModal('itemDeleteModal')});
 $('itemDeleteConfirm').addEventListener('click',deletePendingPhoto);
-$('shareResetCancel').addEventListener('click',()=>{ closeModal('shareResetModal'); clearAllSnData('목록이 초기화되었습니다. 새로운 촬영을 시작하세요.'); toast('목록이 초기화되었습니다'); if(navigator.vibrate)navigator.vibrate([70,50,70]); });
+$('shareResetConfirm').addEventListener('click',()=>{
+  closeModal('shareResetModal');
+  clearAllSnData('목록이 초기화되었습니다. 새로운 촬영을 시작하세요.');
+  toast('목록이 초기화되었습니다');
+  if(navigator.vibrate)navigator.vibrate([70,50,70]);
+});
+$('shareResetCancel').addEventListener('click',()=>cancelShareAutoReset(true));
 ['shootGuideModal','clearConfirmModal','resetAllConfirmModal','errorViewerModal','previewViewerModal','itemDeleteModal'].forEach(id=>$(id).addEventListener('click',e=>{if(e.target===$(id))closeModal(id)}));
 window.addEventListener('pagehide',()=>{
   // 모바일에서 앨범/카메라/공유 화면으로 잠시 이동할 때도 pagehide가 발생할 수 있습니다.
