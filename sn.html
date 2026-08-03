@@ -1038,6 +1038,7 @@ function vendorLogoHtml(vendor){
 function detectVendorFromSerialOnly(serials=[]){
   const vals=serials.map(x=>String(x||'').toUpperCase());
   if(vals.some(v=>/^ED[A-Z0-9]{16,}$/i.test(v)))return 'iRay';
+  if(vals.some(v=>/^DIB[A-Z0-9]{4,20}$/i.test(v)))return 'i3system';
   if(vals.some(v=>/^[A-Z0-9]{7}$/i.test(v)))return 'Dell';
   if(vals.some(v=>/^VPX[0-9]{5,}$/i.test(v)))return 'Vieworks';
   return '';
@@ -1208,7 +1209,18 @@ async function extractSerial(source){
   if(selectedVendor==='Auto'){
     const normalized=barcodes.map(code=>{
       const vieworksSn=extractVieworksGs1(code);
-      return vieworksSn || clean(code);
+      if(vieworksSn)return vieworksSn;
+
+      // 앨범 자동인식에서도 업체 확정 전부터 i3System 원본 코드가
+      // XID-...-DIB2733 형태이면 결과에는 DIB2733만 바로 저장합니다.
+      const raw=String(code||'').toUpperCase();
+      const plain=plainSerial(raw);
+      if(plain.startsWith('XID')){
+        const i3Sn=normalizeI3Serial(raw);
+        if(/^DIB[A-Z0-9]{4,20}$/.test(i3Sn))return i3Sn;
+      }
+
+      return clean(code);
     });
     return unique(normalized).slice(0,20);
   }
