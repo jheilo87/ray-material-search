@@ -333,6 +333,34 @@
   line-height:1;
   font-weight:900;
 }
+.adminLogoutWrap{
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid var(--line);
+}
+.adminLogoutBtn{
+  width:100%;
+  min-height:52px;
+  border:1px solid #f0caca;
+  border-radius:14px;
+  background:#fff7f7;
+  color:#b42318;
+  font-size:14px;
+  font-weight:1000;
+  box-shadow:0 5px 14px rgba(180,35,24,.06);
+}
+.adminLogoutBtn:active{
+  transform:translateY(1px) scale(.99);
+  background:#ffeded;
+}
+.adminLogoutHint{
+  margin-top:7px;
+  text-align:center;
+  color:#8a6a6a;
+  font-size:10px;
+  font-weight:800;
+  line-height:1.45;
+}
 .adminModalBody{
   overflow-y:auto;
   overscroll-behavior:contain;
@@ -456,6 +484,11 @@ input,select,textarea{font-size:max(16px,1em);}
     <button class="vacationAddBtn" id="vacationAdd" type="button">휴가 기간 추가</button>
   </div>
   <div class="vacationSavedList" id="vacationSavedList"></div>
+</div>
+
+<div class="adminLogoutWrap">
+  <button class="adminLogoutBtn" id="adminLogoutBtn" type="button">🔒 관리자 모드 끄기</button>
+  <div class="adminLogoutHint">관리자 권한을 종료하고 일반 모드로 돌아갑니다.</div>
 </div>
     </div>
   </div>
@@ -1176,6 +1209,37 @@ function closeAdminPanel(){
 }
 adminOpen.onclick=openAdminPanel;
 adminModalClose?.addEventListener('click',closeAdminPanel);
+
+$('adminLogoutBtn')?.addEventListener('click',async()=>{
+  const ok=await appDialog({
+    title:'관리자 모드 끄기',
+    message:'관리자 권한을 종료하고 일반 모드로 돌아갈까요?',
+    icon:'🔒',
+    confirmText:'관리자 모드 끄기',
+    cancelText:'취소'
+  });
+  if(!ok)return;
+
+  try{localStorage.removeItem('rayAdminLoggedIn')}catch{}
+  adminMode=false;
+  document.body.classList.remove('adminUnlocked');
+  closeAdminPanel();
+
+  // 같은 기기의 메인 화면에서도 즉시 일반 모드로 보이도록 상태를 동기화합니다.
+  try{
+    window.dispatchEvent(new StorageEvent('storage',{
+      key:'rayAdminLoggedIn',
+      oldValue:'1',
+      newValue:null,
+      storageArea:localStorage
+    }));
+  }catch{}
+
+  if(typeof window.showAppToast==='function'){
+    window.showAppToast('🔒 관리자 모드를 종료했습니다.','success');
+  }
+});
+
 adminPanel?.addEventListener('click',e=>{if(e.target===adminPanel) closeAdminPanel();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&adminPanel?.classList.contains('show')) closeAdminPanel();});
 window.addEventListener('storage',e=>{if(e.key==='rayAdminLoggedIn')syncAdminAccess();});
