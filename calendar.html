@@ -496,6 +496,7 @@ function vendorShort(v){
   return v==='오지인터팩코리아'?'오지인터팩':v;
 }
 function vendorDisplay(v){
+  if(v==='제이에스티') return vendorShort(v);
   const type=vendorTypes[v];
   return type?`${vendorShort(v)} (${type})`:vendorShort(v);
 }

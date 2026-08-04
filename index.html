@@ -462,6 +462,30 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 body.incomingPopupOpen{overflow:hidden}
 </style>
 
+
+<style id="incoming-vendor-color-style">
+/* 입고 캘린더와 동일한 업체별 색상 */
+.incomingVendorText{font-weight:1000}
+.incomingVendorText.v0{color:#14743d}
+.incomingVendorText.v1{color:#1769e0}
+.incomingVendorText.v2{color:#b15c00}
+.incomingVendorText.v3{color:#7e22ce}
+.incomingVendorText.v4{color:#087f8c}
+
+.incomingTodayItem.v0{background:#e8f7ee!important;border-color:#cce9d7!important;color:#14743d!important}
+.incomingTodayItem.v1{background:#e9f2ff!important;border-color:#d5e6ff!important;color:#1769e0!important}
+.incomingTodayItem.v2{background:#fff3df!important;border-color:#f5dfb8!important;color:#b15c00!important}
+.incomingTodayItem.v3{background:#f3eaff!important;border-color:#e3d1ff!important;color:#7e22ce!important}
+.incomingTodayItem.v4{background:#e8fbfb!important;border-color:#c9eeee!important;color:#087f8c!important}
+
+/* 메인 입고 카드의 오늘 일정도 업체별 색상으로 표시 */
+.calendar.hasIncoming p .incomingVendorText{
+  display:inline;
+  padding:0;
+  background:transparent;
+}
+</style>
+
 <style id="incoming-card-highlight-style">
 .calendar.hasIncoming{
   border-color:#8a74e8!important;
@@ -903,12 +927,19 @@ function normalizeIncomingVendor(v){
   if(n.includes('오지')||n.includes('ojinterpack'))return '오지인터팩코리아';
   if(n.includes('일신'))return '일신포장산업';
   if(n.includes('동진'))return '동진물류포장';
+  if(n.includes('제이에스티')||n.includes('jst'))return '제이에스티';
   return String(v||'').trim();
 }
 function incomingVendorDisplay(v){
   const vendor=normalizeIncomingVendor(v);
   const short=vendor==='오지인터팩코리아'?'오지인터팩':vendor;
   return incomingVendorTypes[vendor]?`${short} (${incomingVendorTypes[vendor]})`:short;
+}
+function incomingVendorClass(v){
+  const vendor=normalizeIncomingVendor(v);
+  const order=['세진팩','오지인터팩코리아','일신포장산업','동진물류포장','제이에스티'];
+  const i=order.indexOf(vendor);
+  return 'v'+(i>=0?i:0);
 }
 function koreanWeekday(date){
   return ['일','월','화','수','목','금','토'][date.getDay()];
@@ -941,7 +972,9 @@ function showIncomingTodayPopup(vendors, now){
 
   if(dont)dont.checked=false;
   dateEl.textContent=`${now.getMonth()+1}월 ${now.getDate()}일(${koreanWeekday(now)})`;
-  listEl.innerHTML=vendors.map(v=>`<div class="incomingTodayItem">${esc(v)}</div>`).join('');
+  listEl.innerHTML=vendors.map(v=>
+    `<div class="incomingTodayItem ${incomingVendorClass(v)}">${esc(incomingVendorDisplay(v))}</div>`
+  ).join('');
 
   // 앱 시작 스플래시가 사라진 뒤 자연스럽게 표시
   setTimeout(()=>{
@@ -1495,10 +1528,15 @@ async function loadCalendarDashboard(){
       });
     });
     const dateLabel=`${now.getMonth()+1}월 ${now.getDate()}일(${koreanWeekday(now)})`;
-    const todayVendors=[...new Set(vendors.map(incomingVendorDisplay).filter(Boolean))];
-    document.getElementById('todayText').textContent=todayVendors.length
-      ?`${dateLabel} ${todayVendors.join(' · ')}`
-      :`${dateLabel} 입고 없습니다.`;
+    const todayVendors=[...new Set(vendors.map(normalizeIncomingVendor).filter(Boolean))];
+    const todayText=document.getElementById('todayText');
+    if(todayVendors.length){
+      todayText.innerHTML=`${esc(dateLabel)} `+todayVendors.map(v=>
+        `<span class="incomingVendorText ${incomingVendorClass(v)}">${esc(incomingVendorDisplay(v))}</span>`
+      ).join(' · ');
+    }else{
+      todayText.textContent=`${dateLabel} 입고 없습니다.`;
+    }
 
     const calendarCard=document.getElementById('incomingCalendarCard');
     calendarCard?.classList.toggle('hasIncoming',todayVendors.length>0);
