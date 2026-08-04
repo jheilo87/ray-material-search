@@ -561,6 +561,20 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 #searchCard{padding:18px!important}.tabs{background:#f1f5f9!important;border-radius:14px!important;padding:4px!important}.tab{border-radius:11px!important}.tab.active{background:#fff!important;color:var(--rs-blue)!important;box-shadow:0 3px 10px #17324d12!important}.searchrow{margin-top:14px!important}.searchrow input{height:58px!important;border-radius:15px!important;border:1px solid #d8e0e9!important;font-size:18px!important}.searchrow .go{height:58px!important;border-radius:15px!important;background:linear-gradient(135deg,#06a5df,#078fd1)!important}.upload,.status,.adminFooter{border-radius:20px!important}.modalPanel{border-radius:24px!important}
 @media(max-width:520px){#appHeader{padding:22px 16px 16px!important}.headerBrand{padding:0 48px!important}.headerTitle{font-size:32px!important}.rsNavBtn{top:2px;width:37px;height:37px}.rsBack{left:15px}.rsHome{right:15px}.headerStateSub{font-size:11px!important}}
 </style>
+
+<style id="ios-safari-compat">
+/* iPhone / iOS Safari compatibility — existing features unchanged */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{min-height:100vh;min-height:100dvh;}
+button,a,label,input,select,textarea{touch-action:manipulation;}
+input,select,textarea{font-size:max(16px,1em);}
+@supports(padding:max(0px)){body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);}}
+@supports(-webkit-touch-callout:none){
+  .app{min-height:-webkit-fill-available;}
+  input,textarea,select{-webkit-appearance:none;appearance:none;}
+  input[type="checkbox"],input[type="radio"]{-webkit-appearance:auto;appearance:auto;}
+}
+</style>
 </head>
 <body>
 <div id="splash" aria-hidden="true" style="display:none"><div class="splashInner"><div class="rayMark">Ray</div><div class="splashTitle">자재검색</div><div class="splashSub">빠르고 정확하게 자재 위치를 찾습니다.</div><div class="splashVer">V 1.0</div></div></div>
