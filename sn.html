@@ -609,7 +609,7 @@ input,select,textarea{font-size:max(16px,1em);}
 <main>
 <section class="card">
   <div class="cardTitle">1. 인식 방식 선택</div>
-  <div class="sub">연속촬영은 선택한 업체 방식으로, 앨범선택은 자동인식으로 처리합니다.</div>
+  <div class="sub">업체를 선택하지 않으면 앨범은 자동인식, 업체를 선택하면 해당 업체 방식으로 처리합니다.</div>
   <div class="vendors vendorLogoGrid">
     <button class="vendor" data-vendor="iRay">
       <span class="vendorMark irayMark">iR</span>
@@ -658,14 +658,14 @@ input,select,textarea{font-size:max(16px,1em);}
         </svg>
       </span>
       <span class="modeCopy">
-        <strong>앨범선택 (자동인식)</strong>
-        <small>여러 업체 사진 함께 불러오기</small>
+        <strong id="galleryModeTitle">앨범선택 (자동인식)</strong>
+        <small id="galleryModeSub">여러 업체 사진 함께 불러오기</small>
       </span>
     </label>
   </div>
   <input class="hiddenInput" id="captureInput" type="file" accept="image/*" capture="environment">
   <input class="hiddenInput" id="imageInput" type="file" accept="image/*" multiple>
-  <div class="note">※ 앨범선택은 자동인식으로 동작합니다. 여러 업체 사진을 함께 선택할 수 있으며, 연속촬영 후에도 기존 S/N 목록은 유지됩니다.</div>
+  <div class="note">※ 업체 미선택 시 앨범은 자동인식으로 처리합니다. 업체를 선택한 뒤 앨범을 열면 선택한 업체 방식으로 고정 인식하며, 기존 S/N 목록은 유지됩니다.</div>
 
   <div class="cameraPanel" id="cameraPanel">
     <div class="videoWrap">
@@ -2385,10 +2385,27 @@ function setInputMode(mode=''){
   document.querySelector('.galleryBtn')?.classList.toggle('activeMode',mode==='gallery');
 }
 
+function updateGalleryModeUI(){
+  const title=$('galleryModeTitle');
+  const sub=$('galleryModeSub');
+  if(!title||!sub)return;
+
+  if(selectedVendor){
+    title.textContent=`앨범선택 (${vendorLabel(selectedVendor)})`;
+    sub.textContent=`선택한 사진을 ${vendorLabel(selectedVendor)} 방식으로 인식`;
+  }else{
+    title.textContent='앨범선택 (자동인식)';
+    sub.textContent='여러 업체 사진 함께 불러오기';
+  }
+}
+
 function updateActionReadyStates(){
   $('openCameraBtn')?.classList.toggle('ready',!!selectedVendor);
   $('shareBtn')?.classList.toggle('ready',results.length>0);
+  updateGalleryModeUI();
 }
+
+updateGalleryModeUI();
 
 document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',()=>{
   const sameSelected=btn.classList.contains('active') && selectedVendor===btn.dataset.vendor;
@@ -2396,7 +2413,7 @@ document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',(
 
   if(sameSelected){
     selectedVendor='';
-    setStatus('업체 선택이 해제되었습니다. 연속촬영 시 업체를 먼저 선택해 주세요.');
+    setStatus('업체 선택이 해제되었습니다. 앨범선택은 자동인식으로 동작합니다. 연속촬영은 업체를 선택해 주세요.');
     updateActionReadyStates();
     return;
   }
@@ -2404,7 +2421,7 @@ document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',(
   btn.classList.add('active');
   selectedVendor=btn.dataset.vendor;
   updateActionReadyStates();
-  setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 촬영을 시작하세요.`);
+  setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 연속촬영과 앨범선택 모두 ${vendorLabel(selectedVendor)} 방식으로 처리됩니다.`);
 }));
 $('openCameraBtn').addEventListener('click',()=>{
   if(busy)return;
@@ -2529,7 +2546,41 @@ captureInput.addEventListener('change',async()=>{
     showNextCapture();
   }
 });
-imageInput.addEventListener('change',async()=>{hideNextCapture();const files=[...(imageInput.files||[])];imageInput.value='';if(!files.length)return;setInputMode('gallery');setStatus('선택한 사진의 촬영/저장 날짜를 확인하고 있습니다…');const go=await checkAlbumDateOutliers(files);if(!go){setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');return;}const previousVendor=selectedVendor;selectedVendor='Auto';try{await processFiles(files)}finally{selectedVendor=previousVendor}});
+imageInput.addEventListener('change',async()=>{
+  hideNextCapture();
+  const files=[...(imageInput.files||[])];
+  imageInput.value='';
+  if(!files.length)return;
+
+  setInputMode('gallery');
+  const albumMode=selectedVendor||'Auto';
+  setStatus(
+    albumMode==='Auto'
+      ? '선택한 사진의 날짜를 확인한 뒤 업체를 자동인식합니다…'
+      : `선택한 사진의 날짜를 확인한 뒤 ${vendorLabel(albumMode)} 방식으로 인식합니다…`
+  );
+
+  const go=await checkAlbumDateOutliers(files);
+  if(!go){
+    setStatus('앨범 선택을 취소했습니다. 기존 목록은 그대로 유지됩니다.');
+    return;
+  }
+
+  const previousVendor=selectedVendor;
+  selectedVendor=albumMode;
+  try{
+    await processFiles(files);
+    setStatus(
+      albumMode==='Auto'
+        ? `앨범 자동인식 완료 · 현재 총 ${results.length}건`
+        : `${vendorLabel(albumMode)} 고정 인식 완료 · 현재 총 ${results.length}건`,
+      'ok'
+    );
+  }finally{
+    selectedVendor=previousVendor;
+    updateGalleryModeUI();
+  }
+});
 $('albumDateCancel').addEventListener('click',()=>finishAlbumDateCheck(false));
 $('albumDateContinue').addEventListener('click',()=>finishAlbumDateCheck(true));
 $('copyBtn').addEventListener('click',copyAll);
