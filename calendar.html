@@ -973,42 +973,78 @@ function targetDate(value,year,month){
   return forced.getMonth()+1===month?forced:null;
 }
 function extractSejinDates(book,fileName,year,month){
-  const found=new Map();
-  let readableSheets=0;
-  const sheets=exactTargetSheets(book,month);
-  sheets.forEach(sheetName=>{
-    // 월 이름이 붙은 시트라면 선택 월과 정확히 같은 시트만 허용
-    const namedMonth=monthFromName(sheetName);
-    if(namedMonth && namedMonth!==month) return;
+  const candidates=[];
+
+  // 세진팩은 발주서 안에 과거 월 시트/수정 시트가 함께 존재할 수 있습니다.
+  // 특정 '8월 발주' 시트 이름만 믿지 않고, 실제 선택 월 날짜열과 수량이 있는
+  // 시트를 모두 검사한 뒤 가장 완성도가 높은 최신 시트를 선택합니다.
+  book.SheetNames.forEach(sheetName=>{
+    if(/금액|예상표/i.test(String(sheetName)))return;
+
     const ws=book.Sheets[sheetName];
-    if(!ws) return;
+    if(!ws)return;
+
     const a=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,cellDates:false});
-    const hi=a.findIndex(row=>row.some(v=>String(v).trim()==='품명단가')&&row.some(v=>String(v).trim()==='품명'));
-    if(hi<0) return;
-    const h=a[hi],nc=h.findIndex(v=>String(v).trim()==='품명'),dc=[];
+    if(!a.length)return;
+
+    const hi=a.findIndex(row=>{
+      const labels=row.map(v=>String(v??'').trim());
+      const hasName=labels.includes('품명');
+      const hasCode=labels.includes('품목코드')||labels.includes('도면코드')||labels.includes('SAP코드');
+      const hasTargetDate=labels.some(v=>!!targetDate(v,year,month));
+      return hasName&&hasCode&&hasTargetDate;
+    });
+    if(hi<0)return;
+
+    const h=a[hi];
+    const nc=h.findIndex(v=>String(v??'').trim()==='품명');
+    if(nc<0)return;
+
+    const dc=[];
     for(let c=nc+1;c<h.length;c++){
       const label=String(h[c]??'').trim();
-      if(/총합계|총\s*발주|금액|MOQ/i.test(label)) break;
+      if(/총합계|총\s*발주|금액|MOQ/i.test(label))break;
       const d=targetDate(h[c],year,month);
-      if(d) dc.push({c,d});
+      if(d)dc.push({c,d});
     }
-    if(!dc.length) return;
-    readableSheets++;
+    if(!dc.length)return;
+
+    const found=new Map();
     for(let r=hi+1;r<a.length;r++){
-      if(!String(a[r]?.[2]??'').trim()&&!String(a[r]?.[nc]??'').trim()) continue;
+      const row=a[r]||[];
+      const hasItem=String(row[nc]??'').trim()||
+        String(row[2]??'').trim()||
+        String(row[5]??'').trim();
+      if(!hasItem)continue;
+
       dc.forEach(({c,d})=>{
-        const q=Number(String(a[r]?.[c]??'').replace(/,/g,''));
-        if(Number.isFinite(q)&&q>0){
-          // 발주서에 표시된 입고일은 토요일·일요일도 그대로 반영합니다.
-          found.set(key(d),d);
-        }
+        const raw=String(row[c]??'').replace(/,/g,'').trim();
+        const q=Number(raw);
+        if(Number.isFinite(q)&&q>0)found.set(key(d),d);
       });
     }
+
+    const dates=[...found.values()].sort((x,y)=>x-y);
+    if(!dates.length)return;
+
+    let score=dates.length*10;
+    if(/수정|최종|확정/i.test(String(sheetName)))score+=100;
+    if(/집합포장/i.test(String(sheetName)))score+=30;
+    if(monthFromName(sheetName)===month)score+=10;
+
+    candidates.push({sheetName,dates,score});
   });
-  if(!readableSheets) throw new Error(`${month}월 세진팩 발주 시트 또는 날짜 열을 찾지 못했습니다.`);
-  const dates=[...found.values()].sort((x,y)=>x-y);
-  if(!dates.length) throw new Error(`${month}월의 0보다 큰 입고 수량을 찾지 못했습니다.`);
-  return dates;
+
+  if(!candidates.length){
+    throw new Error(`${month}월 세진팩 날짜 열과 0보다 큰 입고 수량을 찾지 못했습니다.`);
+  }
+
+  candidates.sort((a,b)=>b.score-a.score||b.dates.length-a.dates.length);
+  const best=candidates[0];
+
+  console.log('[세진팩] 선택 시트:',best.sheetName,'입고일:',best.dates.map(key));
+
+  return best.dates;
 }
 function extractOjiDates(book,fileName,year,month){
   const sheetName=book.SheetNames.find(n=>String(n).replace(/\s/g,'').includes('발주목록'))||book.SheetNames[0],ws=book.Sheets[sheetName];
