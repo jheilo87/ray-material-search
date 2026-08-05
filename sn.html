@@ -1260,14 +1260,11 @@ async function extractSerial(source){
   }
 
   if(selectedVendor==='iRay' && barcodes.length){
-    // iRay 연속촬영: 사진 안의 다른 1D 바코드(품번/LOT 등)가 함께 읽혀도
-    // S/N 한 건만 결과에 넣습니다. 실제 iRay S/N에서 확인된 ED... 형식을 최우선으로 사용하고,
-    // ED 후보가 없을 때는 읽힌 바코드 중 가장 긴 값 하나만 보조 후보로 사용합니다.
+    // iRay은 사진 한 장에 여러 개의 1D 바코드가 있을 수 있으므로
+    // 인식된 바코드를 한 건으로 제한하지 않고 모두 S/N 후보로 반환합니다.
+    // 업체 고정 선택은 인식 방식만 iRay으로 고정하며, 다중 바코드 추출 개수는 제한하지 않습니다.
     const irayCodes=unique(barcodes.map(x=>formatSerialInput(x,'iRay')).filter(Boolean));
-    const edCodes=irayCodes.filter(x=>/^ED[A-Z0-9]{16,}$/.test(x));
-    if(edCodes.length)return [edCodes.sort((a,b)=>b.length-a.length)[0]];
-    if(irayCodes.length===1)return [irayCodes[0]];
-    if(irayCodes.length>1)return [irayCodes.sort((a,b)=>b.length-a.length)[0]];
+    if(irayCodes.length)return irayCodes.slice(0,20);
   }
   if(selectedVendor==='Dell' && barcodes.length)return unique(barcodes.map(x=>formatSerialInput(x,'Dell'))).slice(0,10);
   const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
