@@ -502,7 +502,18 @@ main{padding:14px}
 .searchMultiHelp{
   margin:7px 18px 0;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45
 }
-.searchMultiListTitle{margin:15px 18px 0;color:#526174;font-size:11px;font-weight:950}
+.searchMultiListTitleRow{
+  margin:15px 18px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+.searchMultiListTitle{color:#526174;font-size:11px;font-weight:950}
+.searchMultiClearAll{
+  border:0;border-radius:9px;padding:7px 10px;
+  background:#fff0f0;color:#c92a2a;
+  font-size:10.5px;font-weight:1000;white-space:nowrap
+}
+.searchMultiClearAll:active{transform:scale(.97);background:#ffe3e3}
+.searchMultiClearAll:disabled{opacity:.38;pointer-events:none}
 .searchMultiList{
   display:flex;flex-direction:column;gap:6px;
   margin:7px 18px 0;padding-bottom:4px;overflow:auto;min-height:0
@@ -757,7 +768,10 @@ input,select,textarea{font-size:max(16px,1em);}
     <div class="searchMultiStep" id="searchMultiStep">1번째 품번</div>
     <input class="searchMultiInput" id="searchMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
     <div class="searchMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에 있는 품번은 하이픈도 자동으로 맞춰집니다.</div>
-    <div class="searchMultiListTitle">입력 목록</div>
+    <div class="searchMultiListTitleRow">
+      <div class="searchMultiListTitle">입력 목록</div>
+      <button class="searchMultiClearAll" id="searchMultiClearAll" type="button">전체 삭제</button>
+    </div>
     <div class="searchMultiList" id="searchMultiList"></div>
     <div class="searchMultiActions">
       <button class="searchMultiBtn next" id="searchMultiNext" type="button">다음 품번</button>
@@ -1010,6 +1024,8 @@ let SEARCH_MULTI_ITEMS=[];
 let SEARCH_MULTI_EDIT=-1;
 function renderSearchMultiList(){
   const list=$('#searchMultiList');
+  const clearAll=$('#searchMultiClearAll');
+  if(clearAll)clearAll.disabled=SEARCH_MULTI_ITEMS.length===0;
   $('#searchMultiCount').textContent=`${SEARCH_MULTI_ITEMS.length}개 입력됨`;
   $('#searchMultiStep').textContent=SEARCH_MULTI_EDIT>=0?`${SEARCH_MULTI_EDIT+1}번째 품번 수정`:`${SEARCH_MULTI_ITEMS.length+1}번째 품번`;
   if(!SEARCH_MULTI_ITEMS.length){list.innerHTML='<div class="searchMultiEmpty">아직 입력한 품번이 없습니다.</div>';return;}
@@ -1243,6 +1259,15 @@ $('#searchMultiX').addEventListener('click',()=>closeSearchMultiPopup(true));
 $('#searchMultiOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeSearchMultiPopup(true)});
 $('#searchMultiNext').addEventListener('click',nextSearchMulti);
 $('#searchMultiGo').addEventListener('click',runSearchMultiFromPopup);
+$('#searchMultiClearAll').addEventListener('click',()=>{
+  if(!SEARCH_MULTI_ITEMS.length)return;
+  if(!confirm(`입력한 품번 ${SEARCH_MULTI_ITEMS.length}개를 모두 삭제할까요?`))return;
+  SEARCH_MULTI_ITEMS=[];
+  SEARCH_MULTI_EDIT=-1;
+  $('#searchMultiInput').value='';
+  renderSearchMultiList();
+  setTimeout(()=>$('#searchMultiInput')?.focus(),30);
+});
 $('#searchMultiInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=String(e.target.value||'').toUpperCase();try{e.target.setSelectionRange(pos,pos)}catch{}});
 $('#searchMultiInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextSearchMulti();}});
 $('#searchMultiList').addEventListener('click',e=>{
