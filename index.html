@@ -667,7 +667,21 @@ body.incomingPopupOpen{overflow:hidden}
   box-shadow:0 0 0 4px rgba(40,183,121,.12);
 }
 .rsMultiHelp{margin-top:7px;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45}
-.rsMultiListTitle{margin-top:15px;color:#526174;font-size:11px;font-weight:950}
+.rsMultiListTitleRow{
+  margin-top:15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px
+}
+.rsMultiListTitle{color:#526174;font-size:11px;font-weight:950}
+.rsMultiClearAll{
+  border:0;border-radius:9px;padding:7px 10px;
+  background:#fff0f0;color:#c92a2a;
+  font-size:10.5px;font-weight:1000;white-space:nowrap
+}
+.rsMultiClearAll:active{transform:scale(.97);background:#ffe3e3}
+.rsMultiClearAll:disabled{opacity:.38;pointer-events:none}
 .rsMultiList{display:flex;flex-direction:column;gap:6px;margin-top:7px}
 .rsMultiEmpty{
   padding:12px;text-align:center;
@@ -759,7 +773,7 @@ body.rsMultiOpen{overflow:hidden}
 /* 2026-08-03 다중 품번 입력 목록: 키보드 표시 중 최신 입력 자동 노출 */
 .rsMultiBox:focus-within .rsMultiList{gap:5px}
 .rsMultiBox:focus-within .rsMultiItem{padding:7px 8px;min-height:44px}
-.rsMultiBox:focus-within .rsMultiListTitle{margin-top:10px}
+.rsMultiBox:focus-within .rsMultiListTitleRow{margin-top:10px}
 
 </style>
 <style id="rs-keyboard-v7-override">
@@ -822,7 +836,10 @@ input,select,textarea{font-size:max(16px,1em);}
       <input class="rsMultiInput" id="rsMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
       <div class="rsMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 실제 하이픈 형식으로 맞춰집니다.</div>
 
-      <div class="rsMultiListTitle">입력 목록</div>
+      <div class="rsMultiListTitleRow">
+        <div class="rsMultiListTitle">입력 목록</div>
+        <button class="rsMultiClearAll" id="rsMultiClearAll" type="button">전체 삭제</button>
+      </div>
       <div class="rsMultiList" id="rsMultiList"></div>
     </div>
 
@@ -1082,6 +1099,8 @@ function setRsSearchTab(kind){
 
 function renderMainMultiList(){
   const list=document.getElementById('rsMultiList');
+  const clearAllBtn=document.getElementById('rsMultiClearAll');
+  if(clearAllBtn) clearAllBtn.disabled=MAIN_MULTI_ITEMS.length===0;
   document.getElementById('rsMultiCount').textContent=`${MAIN_MULTI_ITEMS.length}개 입력됨`;
   document.getElementById('rsMultiStep').textContent=
     MAIN_MULTI_EDIT>=0
@@ -1327,6 +1346,18 @@ document.getElementById('rsMultiOverlay').addEventListener('click',e=>{
 });
 document.getElementById('rsMultiNext').addEventListener('click',nextMainMulti);
 document.getElementById('rsMultiGo').addEventListener('click',runMainMultiSearch);
+
+document.getElementById('rsMultiClearAll').addEventListener('click',()=>{
+  if(!MAIN_MULTI_ITEMS.length)return;
+  const ok=window.confirm(`입력한 품번 ${MAIN_MULTI_ITEMS.length}개를 모두 삭제할까요?`);
+  if(!ok)return;
+  MAIN_MULTI_ITEMS.splice(0,MAIN_MULTI_ITEMS.length);
+  MAIN_MULTI_EDIT=-1;
+  const input=document.getElementById('rsMultiInput');
+  input.value='';
+  renderMainMultiList();
+  setTimeout(()=>input.focus(),30);
+});
 
 document.getElementById('rsMultiInput').addEventListener('input',e=>{
   const pos=e.target.selectionStart;
