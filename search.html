@@ -563,7 +563,10 @@ body.searchMultiOpen{overflow:hidden}
 .locationMapBody{overflow:auto;padding:12px}.locationMapTarget{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;margin-bottom:10px;border:1px solid #cfe0f5;border-radius:14px;background:#fff}.locationMapTargetMain{font-size:13px;color:#667085;font-weight:850}.locationMapTargetCode{margin-top:2px;font-size:25px;font-weight:1000;color:#142c50}.locationMapFloorBadge{min-width:66px;text-align:center;padding:11px 9px;border-radius:13px;font-size:16px;font-weight:950;background:#eaf3ff;color:#1769e0}.locationMapSub{margin-top:3px;font-size:11px;color:#7a879d;font-weight:800}
 .warehouseMapScroll{width:100%;overflow:auto;border:1px solid #cbd8e9;border-radius:18px;background:#fff;-webkit-overflow-scrolling:touch}.warehouseMap{position:relative;width:100%;min-width:720px;background:#fff;overflow:hidden}.warehouseMap img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}.mapHighlight{position:absolute;border:4px solid #f5b400;background:rgba(255,224,75,.38);border-radius:8px;box-shadow:0 0 0 5px rgba(255,190,0,.18),0 4px 16px rgba(163,110,0,.28);z-index:5;pointer-events:none}.mapPin{position:absolute;left:50%;top:50%;transform:translate(-50%,-70%);font-size:30px;filter:drop-shadow(0 2px 2px #fff);z-index:6}.mapExactBadge{position:absolute;left:50%;top:50%;transform:translate(-50%,18px);z-index:6;background:#183c71;color:#fff;border:2px solid #fff;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:950;white-space:nowrap;box-shadow:0 4px 10px #0003}.warehouseMap.floor4{min-width:700px}.warehouseMap.floor3,.warehouseMap.floor5{min-width:1050px}
 .mapZone{position:absolute;display:flex;align-items:center;justify-content:center;padding:3px;border:1px solid #9bbce6;border-radius:5px;background:#e9f3ff;color:#24466f;font-size:clamp(8px,1.55vw,12px);font-weight:950;text-align:center;line-height:1.15;overflow:hidden}.mapZone.aisle{background:#f1f3f6;border-color:#d3d8df;color:#7a879d;font-weight:800}.mapZone.door{background:#e7f7e9;border-color:#9dd8a5;color:#17723a}.mapZone.case{background:#fff1c9;border-color:#e7bd51;color:#8a5a00}.mapZone.utility{background:#e8e3ff;border-color:#b9acef;color:#5c46a5}
-.facilityOverlay{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;font-size:clamp(8px,1.45vw,11px);font-weight:900;text-align:center;line-height:1.15;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}.facilityOverlay.storage{background:rgba(226,240,255,.80);border:1.5px solid #8fb7e8;color:#234a78}.facilityOverlay.exit{background:rgba(224,248,229,.88);border:1.5px solid #83c98e;color:#16723a}.facilityOverlay.cargo{background:rgba(237,232,255,.90);border:1.5px solid #a897e8;color:#604ca8}.facilityOverlay.common{background:rgba(245,246,248,.90);border:1.5px solid #c9ced6;color:#596273}.facilityOverlay.caseArea{background:rgba(255,244,207,.83);border:1.5px solid #e5bf58;color:#8b6100}
+.facilityOverlay{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;padding:5px;border-radius:5px;font-size:17px;font-weight:1000;text-align:center;line-height:1.12;letter-spacing:-.35px;pointer-events:none;text-shadow:0 1px 0 #fff;box-shadow:0 2px 7px rgba(15,23,42,.12)}.facilityOverlay.storage{background:#e7f2ff;border:3px solid #5b9ee5;color:#103d70}.facilityOverlay.exit,.facilityOverlay.roof{background:#ddf7e3;border:3px solid #45a95d;color:#075e28}.facilityOverlay.elevator{background:#e9e3ff;border:3px solid #755dcc;color:#38258d}.facilityOverlay.cargo{background:#f0edfa;border:3px solid #9d91c7;color:#544878}.facilityOverlay.common{background:#f1f3f6;border:3px solid #9aa4b2;color:#273444}.facilityOverlay.quality{background:#e4edf5;border:3px solid #71879d;color:#263c50}.facilityOverlay.office{background:#e8eef6;border:3px solid #657b93;color:#23394f}.facilityOverlay.rest{background:#fff0dc;border:3px solid #d39a4c;color:#71460d}.facilityOverlay.caseArea{background:#fff1c9;border:3px solid #d7a928;color:#6d4900}.mapStartArrow{position:absolute;z-index:9;display:flex;align-items:center;justify-content:center;color:#e53935;font-size:38px;font-weight:1000;line-height:1;text-shadow:0 2px 0 #fff,0 0 5px #fff;pointer-events:none;transform:translate(-50%,-50%)}
+.mapHighlight{z-index:7!important;border-width:5px!important;background:rgba(255,224,75,.50)!important;box-shadow:0 0 0 5px rgba(255,190,0,.22),0 5px 18px rgba(163,110,0,.30)!important}
+.mapPin{font-size:36px!important;color:#e53935!important;text-shadow:0 0 0 #fff;filter:drop-shadow(0 1px 2px #fff)}.mapExactBadge{font-size:15px!important;padding:6px 11px!important}
+.locationMapZoomBar{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0 0 8px}.locationMapZoomBtn{min-width:42px;height:38px;border:1px solid #cbd8e9;border-radius:11px;background:#fff;color:#183c71;font-size:19px;font-weight:950;box-shadow:0 2px 7px rgba(15,23,42,.06)}.locationMapZoomBtn.fit{min-width:62px;font-size:12px}.locationMapZoomValue{min-width:48px;text-align:center;color:#526174;font-size:12px;font-weight:900}.warehouseMapScroll{touch-action:pan-x pan-y}.warehouseMap{transform-origin:0 0;transition:width .15s ease}.locationMapLegend span{font-size:11px!important;font-weight:900!important;color:#43516a!important}
 .mapZone.active{z-index:8;background:#ffe76b!important;border:3px solid #f2a900!important;color:#4f3700!important;box-shadow:0 0 0 5px rgba(255,207,45,.28),0 8px 24px rgba(174,116,0,.28);animation:mapPulse 1.05s ease-in-out infinite alternate}.mapZone.active::after{content:'📍';position:absolute;right:3px;top:2px;font-size:14px}.mapZone.related{box-shadow:inset 0 0 0 2px rgba(23,105,224,.18)}
 @keyframes mapPulse{from{transform:scale(1)}to{transform:scale(1.025)}}
 .locationMapLegend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.locationMapLegend span{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#fff;border:1px solid #dce6f5;color:#64748b;font-size:10px;font-weight:850}.legendDot{width:11px;height:11px;border-radius:3px;background:#e9f3ff;border:1px solid #9bbce6}.legendDot.hit{background:#ffe76b;border:2px solid #f2a900}.legendDot.case{background:#fff1c9;border-color:#e7bd51}.legendDot.exit{background:#e0f8e5;border-color:#83c98e}.legendDot.cargo{background:#ede8ff;border-color:#a897e8}.legendDot.common{background:#f2f3f5;border-color:#c9ced6}
@@ -871,8 +874,14 @@ input,select,textarea{font-size:max(16px,1em);}
         <div><div class="locationMapTargetMain">찾는 위치</div><div class="locationMapTargetCode" id="locationMapTargetCode">-</div><div class="locationMapSub" id="locationMapSub"></div></div>
         <div class="locationMapFloorBadge" id="locationMapFloorBadge">-</div>
       </div>
-      <div class="warehouseMapScroll"><div class="warehouseMap" id="warehouseMap"></div></div>
-      <div class="locationMapLegend"><span><i class="legendDot hit"></i>찾는 위치</span><span><i class="legendDot"></i>자재 보관 구역</span><span><i class="legendDot exit"></i>비상구</span><span><i class="legendDot cargo"></i>엘리베이터</span><span><i class="legendDot common"></i>공용/기타</span><span><i class="legendDot case"></i>CASE 구역</span></div>
+      <div class="locationMapZoomBar" aria-label="도면 확대 축소">
+        <button type="button" class="locationMapZoomBtn" onclick="changeLocationMapZoom(-0.2)" aria-label="축소">−</button>
+        <span class="locationMapZoomValue" id="locationMapZoomValue">100%</span>
+        <button type="button" class="locationMapZoomBtn" onclick="changeLocationMapZoom(0.2)" aria-label="확대">＋</button>
+        <button type="button" class="locationMapZoomBtn fit" onclick="fitLocationMap()">화면맞춤</button>
+      </div>
+      <div class="warehouseMapScroll" id="warehouseMapScroll"><div class="warehouseMap" id="warehouseMap"></div></div>
+      <div class="locationMapLegend"><span><i class="legendDot hit"></i>찾는 위치</span><span><i class="legendDot"></i>자재 보관 구역</span><span><i class="legendDot exit"></i>비상구</span><span><i class="legendDot cargo"></i>엘리베이터/시설</span><span><i class="legendDot common"></i>공용/기타</span><span><i class="legendDot case"></i>CASE 구역</span></div>
     </div>
     <div class="locationMapFoot">※ 레이아웃은 업로드한 창고 레이아웃 기준입니다. 위치의 뒤 숫자(-1, -2, -3 등)는 해당 랙의 단/세부 위치로 표시합니다.</div>
   </div>
@@ -965,25 +974,25 @@ const MAP_FACILITIES = {
  '3층': [
   {label:'사무/공용',type:'common',x:0.0,y:67.8,w:15.0,h:8.8},
   {label:'비상구',type:'exit',x:15.0,y:67.8,w:8.5,h:8.8},
-  {label:'엘리베이터',type:'cargo',x:23.5,y:67.8,w:8.5,h:8.8},
+  {label:'엘리베이터',type:'elevator',x:23.5,y:67.8,w:8.5,h:8.8,start:true},
   {label:'계단',type:'common',x:32.0,y:67.8,w:7.0,h:8.8}
  ],
  '4층': [
   {label:'4F CASE',type:'caseArea',x:4.6,y:5.2,w:43.5,h:44.8},
   {label:'자재 보관 구역',type:'storage',x:48.1,y:5.2,w:25.8,h:44.8},
   {label:'비상구',type:'exit',x:4.6,y:52.0,w:8.5,h:12.5},
-  {label:'엘리베이터',type:'cargo',x:13.1,y:52.0,w:9.0,h:12.5},
-  {label:'휴게실',type:'common',x:22.1,y:52.0,w:10.5,h:12.5},
+  {label:'엘리베이터',type:'elevator',x:13.1,y:52.0,w:9.0,h:12.5,start:true},
+  {label:'휴게공간',type:'rest',x:22.1,y:52.0,w:10.5,h:12.5},
   {label:'화물 엘리베이터',type:'cargo',x:32.6,y:52.0,w:15.5,h:12.5}
  ],
  '5층': [
-  {label:'품질오피스',type:'common',x:36.3,y:0.5,w:29.5,h:11.0},
-  {label:'검사대기 (보드)',type:'common',x:36.3,y:11.5,w:14.8,h:46.7},
-  {label:'검사대기 (기구)',type:'common',x:51.1,y:11.5,w:14.7,h:46.7},
+  {label:'품질오피스',type:'office',x:36.3,y:0.5,w:29.5,h:11.0},
+  {label:'검사대기 (보드)',type:'quality',x:36.3,y:11.5,w:14.8,h:46.7},
+  {label:'검사대기 (기구)',type:'quality',x:51.1,y:11.5,w:14.7,h:46.7},
   {label:'비상구',type:'exit',x:21.6,y:77.2,w:8.8,h:9.5},
-  {label:'엘리베이터',type:'cargo',x:30.4,y:77.2,w:5.9,h:9.5},
-  {label:'휴게실',type:'common',x:36.3,y:77.2,w:17.6,h:9.5},
-  {label:'화물 엘리베이터',type:'cargo',x:48.1,y:62.7,w:17.7,h:14.4}
+  {label:'엘리베이터',type:'elevator',x:30.4,y:77.2,w:5.9,h:9.5,start:true},
+  {label:'휴게공간',type:'rest',x:36.3,y:77.2,w:17.6,h:9.5},
+  {label:'화물 엘리베이터',type:'cargo',x:48.1,y:67.6,w:17.7,h:9.5}
  ]
 };
 function addFacilityOverlays(map,floor){
@@ -991,6 +1000,7 @@ function addFacilityOverlays(map,floor){
    const el=document.createElement('div'); el.className='facilityOverlay '+f.type;
    el.style.left=f.x+'%';el.style.top=f.y+'%';el.style.width=f.w+'%';el.style.height=f.h+'%';
    el.textContent=f.label; map.appendChild(el);
+   if(f.start){const a=document.createElement('div');a.className='mapStartArrow';a.textContent='↑';a.style.left=(f.x+f.w/2)+'%';a.style.top=Math.max(1,f.y-2.2)+'%';map.appendChild(a);}
  });
 }
 function mapBaseCode(loc){
@@ -1019,21 +1029,49 @@ function findMapZone(floor,loc){
  return null;
 }
 function mapAvailable(loc){const [floor]=floorInfo(loc);return ['3층','4층','5층'].includes(floor)&&!!findMapZone(floor,loc);}
+let LOCATION_MAP_ZOOM=1;
+function locationMapBaseWidth(){
+ const map=document.getElementById('warehouseMap');
+ if(!map)return 1050;
+ return map.classList.contains('floor4')?760:1050;
+}
+function applyLocationMapZoom(keepCenter=true){
+ const map=document.getElementById('warehouseMap'), sc=document.getElementById('warehouseMapScroll');
+ if(!map||!sc)return;
+ const oldW=map.getBoundingClientRect().width||locationMapBaseWidth();
+ const centerRatio=oldW?((sc.scrollLeft+sc.clientWidth/2)/oldW):.5;
+ map.style.width=(locationMapBaseWidth()*LOCATION_MAP_ZOOM)+'px';
+ map.style.minWidth=(locationMapBaseWidth()*LOCATION_MAP_ZOOM)+'px';
+ const v=document.getElementById('locationMapZoomValue'); if(v)v.textContent=Math.round(LOCATION_MAP_ZOOM*100)+'%';
+ if(keepCenter) requestAnimationFrame(()=>{const nw=map.getBoundingClientRect().width;sc.scrollLeft=Math.max(0,centerRatio*nw-sc.clientWidth/2);});
+}
+function changeLocationMapZoom(delta){LOCATION_MAP_ZOOM=Math.max(.6,Math.min(2.2,Math.round((LOCATION_MAP_ZOOM+delta)*10)/10));applyLocationMapZoom(true);}
+function fitLocationMap(){
+ const sc=document.getElementById('warehouseMapScroll'); if(!sc)return;
+ LOCATION_MAP_ZOOM=Math.max(.6,Math.min(1,sc.clientWidth/locationMapBaseWidth())); applyLocationMapZoom(false); sc.scrollLeft=0; sc.scrollTop=0;
+}
 function openLocationMap(loc){
  const [floor]=floorInfo(loc), map=$('#warehouseMap'), code=String(loc||'N/A').trim(), zone=findMapZone(floor,code);
  $('#locationMapTargetCode').textContent=code||'N/A'; $('#locationMapFloorBadge').textContent=floor; $('#locationMapSub').textContent=mapDetailText(code);
- map.className='warehouseMap '+(floor==='3층'?'floor3':floor==='4층'?'floor4':'floor5'); map.innerHTML='';
+ map.className='warehouseMap '+(floor==='3층'?'floor3':floor==='4층'?'floor4':'floor5'); map.innerHTML=''; LOCATION_MAP_ZOOM=1; map.style.width=''; map.style.minWidth=''; const zv=document.getElementById('locationMapZoomValue'); if(zv)zv.textContent='100%';
  const src=MAP_IMAGES[floor];
  if(!src) map.innerHTML='<div class="locationMapUnavailable"><strong>레이아웃 준비 전</strong>현재 3층·4층·5층 위치만 표시할 수 있습니다.</div>';
  else {
    const img=document.createElement('img'); img.src=src; img.alt=floor+' 실제 창고 레이아웃'; map.appendChild(img);
    addFacilityOverlays(map,floor);
-   if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=zone.x+'%';h.style.top=zone.y+'%';h.style.width=zone.w+'%';h.style.height=zone.h+'%';h.innerHTML=`<div class="mapPin">📍</div><div class="mapExactBadge">${esc(code)}</div>`;map.appendChild(h);}
+   if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=zone.x+'%';h.style.top=zone.y+'%';h.style.width=zone.w+'%';h.style.height=zone.h+'%';h.innerHTML=`<div class="mapPin">●</div><div class="mapExactBadge">${esc(code)}</div>`;map.appendChild(h);}
    else {const note=document.createElement('div');note.className='locationMapUnavailable';note.style.position='absolute';note.style.inset='35% 15% auto';note.style.zIndex='20';note.style.background='rgba(255,255,255,.96)';note.style.borderRadius='14px';note.style.padding='18px';note.innerHTML=`<strong>${esc(code)}</strong>실제 도면에서 자동 매칭할 위치를 찾지 못했습니다.`;map.appendChild(note);}
  }
  $('#locationMapModal').classList.add('show'); document.body.classList.add('modalOpen');
- setTimeout(()=>{const sc=map.parentElement;if(zone&&sc){const x=(zone.x+zone.w/2)/100*map.scrollWidth-sc.clientWidth/2;sc.scrollLeft=Math.max(0,x);}},80);
+ setTimeout(()=>{const sc=document.getElementById('warehouseMapScroll');if(zone&&sc){const x=(zone.x+zone.w/2)/100*map.scrollWidth-sc.clientWidth/2;const y=(zone.y+zone.h/2)/100*map.scrollHeight-sc.clientHeight/2;sc.scrollLeft=Math.max(0,x);sc.scrollTop=Math.max(0,y);}},80);
 }
+(function(){
+ let startDist=0,startZoom=1;
+ const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+ document.addEventListener('touchstart',e=>{if(e.touches.length===2&&e.target.closest('#warehouseMapScroll')){startDist=dist(e.touches);startZoom=LOCATION_MAP_ZOOM;}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(e.touches.length===2&&startDist&&e.target.closest('#warehouseMapScroll')){e.preventDefault();LOCATION_MAP_ZOOM=Math.max(.6,Math.min(2.2,startZoom*(dist(e.touches)/startDist)));applyLocationMapZoom(true);}},{passive:false});
+ document.addEventListener('touchend',e=>{if(e.touches.length<2)startDist=0;},{passive:true});
+})();
 function closeLocationMap(){$('#locationMapModal').classList.remove('show');if(!$('#resultModal').classList.contains('show'))document.body.classList.remove('modalOpen');}
 
 function openResultModal(){
