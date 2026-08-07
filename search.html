@@ -569,6 +569,17 @@ body.searchMultiOpen{overflow:hidden}
 .locationMapFoot{padding:10px 14px 13px;background:#fff;border-top:1px solid #dce6f5;text-align:center;color:#667085;font-size:11px;line-height:1.45}.locationMapUnavailable{padding:42px 18px;text-align:center;color:#667085;font-size:14px;font-weight:850}.locationMapUnavailable strong{display:block;margin-bottom:8px;color:#183c71;font-size:21px}
 @media(max-width:520px){.locationMapModal{padding:7px}.locationMapPanel{max-height:96dvh;border-radius:18px}.locationMapBody{padding:9px}.warehouseMap.floor3,.warehouseMap.floor5{min-width:1050px}.warehouseMap.floor4{min-width:760px}.locationMapTargetCode{font-size:22px}}
 
+
+/* V1.2 실제 도면 좌표 + RaySmart 세련된 오버레이 */
+.warehouseMap img{opacity:.28;filter:grayscale(1) contrast(.82) brightness(1.22);}
+.mapSkin{position:absolute;inset:0;z-index:3;pointer-events:none;}
+.mapSkinZone{position:absolute;display:flex;align-items:center;justify-content:center;padding:4px 3px;border:1.5px solid #a9c9e8;border-radius:7px;background:rgba(235,246,255,.91);color:#21466f;font-size:clamp(9px,1.35vw,13px);font-weight:950;line-height:1.12;text-align:center;box-shadow:0 2px 7px rgba(28,79,138,.08);overflow:hidden;}
+.mapSkinZone.case{background:rgba(255,244,205,.94);border-color:#e5c465;color:#805a08;}
+.mapSkinZone.hit{z-index:4;background:#ffe98a;border:2.5px solid #f2ae00;color:#493500;box-shadow:0 0 0 5px rgba(255,202,37,.22),0 7px 20px rgba(174,116,0,.18);}
+.mapHighlight{z-index:7;background:rgba(255,224,75,.18);}
+.mapPin,.mapExactBadge{z-index:8;}
+.warehouseMap:after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(24,60,113,.08);}
+
 </style>
 
 
@@ -959,6 +970,26 @@ const MAP_ZONES = {
   {codes:['M1','M2','M3','M4'],x:71.6,y:62.8,w:11.8,h:4.9}, {codes:['M5','M6'],x:62.8,y:62.8,w:5.9,h:4.9}
  ]
 };
+function mapZoneLabel(z){
+ const c=(z.codes||[]).map(v=>String(v).replace('_',' '));
+ if(!c.length)return '';
+ if(c.length===1)return c[0];
+ const first=c[0], last=c[c.length-1];
+ const p1=first.match(/^([^0-9]*)(\d+)$/), p2=last.match(/^([^0-9]*)(\d+)$/);
+ if(p1&&p2&&p1[1]===p2[1]) return `${first}~${last}`;
+ return c.length<=4?c.join('·'):`${first}~${last}`;
+}
+function drawRaySmartMapSkin(map,floor,activeZone){
+ const skin=document.createElement('div'); skin.className='mapSkin';
+ (MAP_ZONES[floor]||[]).forEach(z=>{
+   const el=document.createElement('div');
+   const isCase=(z.codes||[]).some(c=>String(c).toUpperCase().includes('CASE'));
+   el.className='mapSkinZone'+(isCase?' case':'')+(z===activeZone?' hit':'');
+   el.style.left=z.x+'%';el.style.top=z.y+'%';el.style.width=z.w+'%';el.style.height=z.h+'%';
+   el.textContent=mapZoneLabel(z); skin.appendChild(el);
+ });
+ map.appendChild(skin);
+}
 function mapBaseCode(loc){
  let x=String(loc||'').trim().toUpperCase().replace(/_/g,' '); x=x.replace(/\s+/g,' ');
  if(x==='4F CASE'||x==='4F') return x;
@@ -993,6 +1024,7 @@ function openLocationMap(loc){
  if(!src) map.innerHTML='<div class="locationMapUnavailable"><strong>레이아웃 준비 전</strong>현재 3층·4층·5층 위치만 표시할 수 있습니다.</div>';
  else {
    const img=document.createElement('img'); img.src=src; img.alt=floor+' 실제 창고 레이아웃'; map.appendChild(img);
+   drawRaySmartMapSkin(map,floor,zone);
    if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=zone.x+'%';h.style.top=zone.y+'%';h.style.width=zone.w+'%';h.style.height=zone.h+'%';h.innerHTML=`<div class="mapPin">📍</div><div class="mapExactBadge">${esc(code)}</div>`;map.appendChild(h);}
    else {const note=document.createElement('div');note.className='locationMapUnavailable';note.style.position='absolute';note.style.inset='35% 15% auto';note.style.zIndex='20';note.style.background='rgba(255,255,255,.96)';note.style.borderRadius='14px';note.style.padding='18px';note.innerHTML=`<strong>${esc(code)}</strong>실제 도면에서 자동 매칭할 위치를 찾지 못했습니다.`;map.appendChild(note);}
  }

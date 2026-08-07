@@ -1058,6 +1058,40 @@ function vendorLogoHtml(vendor){
   if(vendor==='i3system')return '<span class="vendorGroupLogo i3">i3</span>';
   return '<span class="vendorGroupLogo unknown">?</span>';
 }
+
+function filterAutoSerialsByVendor(serials=[],vendor='Unknown'){
+  const vals=unique(serials.map(x=>clean(x)).filter(Boolean));
+
+  if(vendor==='iRay'){
+    // iRay 실사용 S/N은 긴 영숫자 코드이며 현재 확인된 형식은 끝이 X입니다.
+    // OCR/바코드 오인식으로 들어오는 짧은 일반 문자열(FACOABCOA, BRESINED 등)은 제외합니다.
+    return vals.filter(v=>/^[A-Z0-9]{15,30}X$/.test(v)).slice(0,20);
+  }
+
+  if(vendor==='Dell'){
+    // Dell은 Service Tag 7자리 하나만 사용합니다.
+    return vals.filter(v=>/^[A-Z0-9]{7}$/.test(v)).slice(0,1);
+  }
+
+  if(vendor==='Vieworks'){
+    // Auto 단계에서 GS1 (21)은 이미 실제 S/N으로 정리되어 들어옵니다.
+    return vals.filter(v=>/^[A-Z0-9]{6,30}$/.test(v)).slice(0,10);
+  }
+
+  if(vendor==='i3system'){
+    return unique(
+      vals.map(normalizeI3Serial).filter(v=>/^DIB[A-Z0-9]{4,20}$/.test(v))
+    ).slice(0,20);
+  }
+
+  // 업체 판별 실패 시에도 명백한 잡문자 대신 실제 S/N 가능성이 높은 값만 남깁니다.
+  return vals.filter(v=>
+    /^[A-Z0-9]{15,30}X$/.test(v) || // iRay 계열
+    /^[A-Z0-9]{7}$/.test(v) ||      // Dell Service Tag 후보
+    /^DIB[A-Z0-9]{4,20}$/.test(normalizeI3Serial(v))
+  ).slice(0,20);
+}
+
 function detectVendorFromSerialOnly(serials=[]){
   const vals=serials.map(x=>String(x||'').toUpperCase());
   if(vals.some(v=>/^ED[A-Z0-9]{16,}$/i.test(v)))return 'iRay';
@@ -1936,10 +1970,14 @@ function render(){
       }else{
         displayRowNo++;
         row.innerHTML=`<div class="no"><button class="photoLink" type="button">${displayRowNo} · 사진 ${entry.photoIndex+1}</button></div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="사진 ${entry.photoIndex+1} S/N ${entry.serialIndex+1}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
-        row.querySelector('.photoLink').addEventListener('click',()=>showPreviewImage(entry.photoIndex));
         const input=row.querySelector('input');
         const save=row.querySelector('.saveEdit');
         const help=row.querySelector('.formatHelp');
+        row.querySelector('.photoLink').addEventListener('click',()=>{
+          input.focus();
+          try{input.select()}catch{}
+          toast(`${displayRowNo}번 S/N을 수정할 수 있어요`);
+        });
         const original=entry.value;
         input.addEventListener('input',()=>{
           input.value=formatSerialInput(input.value,vendor);
@@ -1964,7 +2002,7 @@ function render(){
           toast('수정 저장되었습니다');
           setStatus(`${original} → ${value} 수정 저장되었습니다.`,'ok');
         });
-        row.querySelector('.del').addEventListener('click',()=>askDeletePhoto(entry.item.id,entry.photoIndex));
+        row.querySelector('.del').addEventListener('click',()=>deleteSinglePhotoSerial(entry.item,entry.serialIndex));
       }
       body.appendChild(row);
     });
@@ -1977,6 +2015,24 @@ function render(){
   });
   saveSession();
 }
+
+function deleteSinglePhotoSerial(item,serialIndex){
+  if(!item || serialIndex<0 || serialIndex>=item.serials.length)return;
+
+  const removed=item.serials[serialIndex];
+  item.serials.splice(serialIndex,1);
+  item.serials=unique(item.serials);
+
+  rebuildResults();
+  render();
+  renderPreviews();
+  saveSession();
+  updatePersistedCapturePhoto(item);
+
+  toast(`${removed} 1건을 삭제했습니다`);
+  setStatus(`S/N 1건 삭제 · 사진은 그대로 유지됩니다.`,'ok');
+}
+
 function askDeletePhoto(photoId,photoIndex){
   const item=photoItems.find(x=>x.id===photoId);if(!item)return;
   pendingDeletePhotoId=photoId;
@@ -2522,13 +2578,10 @@ async function processFiles(files,opts={}){
       if(autoAlbum && item.serials.length){
         $('progressText').textContent=`${globalIndex+1}번째 사진 업체 확인 중…`;
         item.vendor=await detectPhotoVendor(files[localIndex],item.serials);
-        if(item.vendor==='i3system'){
-          item.serials=unique(
-            item.serials
-              .map(normalizeI3Serial)
-              .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
-          );
-        }
+
+        // 자동인식은 업체를 찾은 뒤 그 업체의 실제 S/N 규칙으로 한 번 더 걸러냅니다.
+        // 일반 문구나 엉뚱한 바코드가 결과 목록에 섞이는 것을 막습니다.
+        item.serials=filterAutoSerialsByVendor(item.serials,item.vendor);
       }
 
       addedTotal+=item.serials.length;
