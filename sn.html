@@ -916,7 +916,7 @@ function refreshCaptureInput(){
   fresh.value='';
   oldInput.replaceWith(fresh);
   captureInput=fresh;
-  captureInput.addEventListener('change',handleCaptureInputChange,{once:true});
+  captureInput.addEventListener('change',handleCaptureInputChange);
   return captureInput;
 }
 
@@ -2518,10 +2518,13 @@ nextCaptureBtn?.addEventListener('click',()=>{
   openFreshNativeCamera();
 });
 
-async function handleCaptureInputChange(){
-  const file=captureInput.files?.[0];
+async function handleCaptureInputChange(event){
+  // 중요: 전역 captureInput이 아니라 실제 change 이벤트를 발생시킨 input에서 파일을 읽습니다.
+  // Android/Samsung 기본 카메라에서 다음 촬영 시 input 교체 타이밍 때문에 두 번째 사진이 누락되는 현상을 방지합니다.
+  const sourceInput=event?.currentTarget || event?.target || captureInput;
+  const file=sourceInput?.files?.[0];
   if(!file){
-    captureInput.value='';
+    if(sourceInput) sourceInput.value='';
     setStatus('촬영이 취소되었습니다. 기존 목록은 그대로 유지됩니다.');
     return;
   }
@@ -2559,13 +2562,13 @@ async function handleCaptureInputChange(){
   }finally{
     // 모든 처리가 끝난 뒤에 input을 비워 같은 대상도 다시 촬영할 수 있게 합니다.
     busy=false;
-    captureInput.value='';
+    if(sourceInput) sourceInput.value='';
     showNextCapture();
   }
 }
 
 // 첫 촬영도 새 input으로 교체되어 연결되지만, 초기 input에도 안전하게 연결해 둡니다.
-captureInput.addEventListener('change',handleCaptureInputChange,{once:true});
+captureInput.addEventListener('change',handleCaptureInputChange);
 imageInput.addEventListener('change',async()=>{
   hideNextCapture();
   const files=[...(imageInput.files||[])];
