@@ -575,6 +575,10 @@ body.searchMultiOpen{overflow:hidden}
 .mapSkin{position:absolute;inset:0;z-index:3;pointer-events:none;}
 .mapSkinZone{position:absolute;display:flex;align-items:center;justify-content:center;padding:4px 3px;border:1.5px solid #a9c9e8;border-radius:7px;background:rgba(235,246,255,.91);color:#21466f;font-size:clamp(9px,1.35vw,13px);font-weight:950;line-height:1.12;text-align:center;box-shadow:0 2px 7px rgba(28,79,138,.08);overflow:hidden;}
 .mapSkinZone.case{background:rgba(255,244,205,.94);border-color:#e5c465;color:#805a08;}
+.mapSkinZone.facility{background:rgba(241,244,248,.94);border-color:#cbd3dd;color:#667085;font-weight:900;}
+.mapSkinZone.emergency{background:rgba(229,247,232,.96);border-color:#9fd3a7;color:#18733a;}
+.mapSkinZone.freight{background:rgba(237,232,255,.96);border-color:#b9acef;color:#5c46a5;}
+.mapSkinZone.office{background:rgba(241,244,248,.94);border-color:#cbd3dd;color:#667085;}
 .mapSkinZone.hit{z-index:4;background:#ffe98a;border:2.5px solid #f2ae00;color:#493500;box-shadow:0 0 0 5px rgba(255,202,37,.22),0 7px 20px rgba(174,116,0,.18);}
 .mapHighlight{z-index:7;background:rgba(255,224,75,.18);}
 .mapPin,.mapExactBadge{z-index:8;}
@@ -979,6 +983,28 @@ function mapZoneLabel(z){
  if(p1&&p2&&p1[1]===p2[1]) return `${first}~${last}`;
  return c.length<=4?c.join('·'):`${first}~${last}`;
 }
+const MAP_FACILITIES = {
+ '3층': [
+  {label:'입구',x:0.9,y:62.8,w:3.0,h:11.8,type:'emergency'},
+  {label:'문',x:60.9,y:39.0,w:3.0,h:4.8,type:'emergency'},
+  {label:'문',x:60.9,y:67.0,w:3.0,h:5.0,type:'emergency'}
+ ],
+ '4층': [
+  {label:'비상문',x:13.1,y:76.8,w:8.8,h:14.3,type:'emergency'},
+  {label:'엘리베이터',x:21.9,y:76.8,w:26.2,h:23.2,type:'facility'},
+  {label:'화물 엘리베이터',x:65.3,y:76.8,w:26.0,h:23.2,type:'freight'}
+ ],
+ '5층': [
+  {label:'품질오피스',x:36.3,y:0.5,w:17.6,h:20.5,type:'office'},
+  {label:'검사대기 (보드)',x:36.3,y:21.0,w:8.8,h:37.2,type:'facility'},
+  {label:'검사대기 (기구)',x:45.1,y:21.0,w:8.8,h:37.2,type:'facility'},
+  {label:'비상구',x:27.4,y:67.4,w:3.0,h:9.7,type:'emergency'},
+  {label:'화장실',x:18.6,y:81.8,w:3.0,h:14.2,type:'facility'},
+  {label:'엘리베이터',x:30.4,y:86.5,w:3.0,h:9.5,type:'facility'},
+  {label:'휴게실',x:33.4,y:77.1,w:11.7,h:18.9,type:'facility'},
+  {label:'화물 엘리베이터',x:45.1,y:67.5,w:11.8,h:28.5,type:'freight'}
+ ]
+};
 function drawRaySmartMapSkin(map,floor,activeZone){
  const skin=document.createElement('div'); skin.className='mapSkin';
  (MAP_ZONES[floor]||[]).forEach(z=>{
@@ -987,6 +1013,12 @@ function drawRaySmartMapSkin(map,floor,activeZone){
    el.className='mapSkinZone'+(isCase?' case':'')+(z===activeZone?' hit':'');
    el.style.left=z.x+'%';el.style.top=z.y+'%';el.style.width=z.w+'%';el.style.height=z.h+'%';
    el.textContent=mapZoneLabel(z); skin.appendChild(el);
+ });
+ (MAP_FACILITIES[floor]||[]).forEach(f=>{
+   const el=document.createElement('div');
+   el.className='mapSkinZone facility '+(f.type||'facility');
+   el.style.left=f.x+'%';el.style.top=f.y+'%';el.style.width=f.w+'%';el.style.height=f.h+'%';
+   el.textContent=f.label; skin.appendChild(el);
  });
  map.appendChild(skin);
 }
