@@ -1178,45 +1178,102 @@ async function tryBarcode(source){
   let bitmap=null;
   try{
     bitmap=await sourceToBitmap(source);
+    const isIRay=selectedVendor==='iRay';
 
-    // 1단계: 휴대폰 기본 인식기로 원본을 가장 먼저 빠르게 검사합니다.
-    // 여기서 읽히면 ZXing은 실행하지 않아 로딩 시간을 줄입니다.
+    // iRay은 한 사진에 1D 바코드가 여러 개 붙어 있을 수 있으므로
+    // '하나라도 찾으면 즉시 종료'하지 않고 여러 영역/회전을 누적 검사합니다.
+    const found=[];
+
+    const addNative=async(canvas)=>{
+      try{ found.push(...await tryNativeBarcode(canvas)); }catch{}
+    };
+    const cleaned=()=>unique(found.map(clean).filter(x=>String(x).length>=5));
+
     const original=rotatedCanvas(bitmap,0,1);
-    let found=await tryNativeBarcode(original);
-    found=unique(found.map(clean).filter(x=>String(x).length>=5));
-    if(found.length)return found.slice(0,20);
+    await addNative(original);
 
-    // 2단계: 세로 1D 바코드를 위해 90도와 270도만 빠르게 재검사합니다.
+    // 일반 업체는 기존 속도를 유지합니다.
+    if(!isIRay && cleaned().length)return cleaned().slice(0,20);
+
+    // iRay 다중 바코드 보강:
+    // 원본 전체 + 상/중/하 영역 + 좌/우 영역을 확대해서 각각 검사합니다.
+    if(isIRay){
+      const w=original.width,h=original.height;
+      const crops=[
+        cropCanvas(original,0,0,w,Math.round(h*.48),1.55),                         // 상단
+        cropCanvas(original,0,Math.round(h*.24),w,Math.round(h*.52),1.45),        // 중앙
+        cropCanvas(original,0,Math.round(h*.52),w,Math.round(h*.48),1.55),        // 하단
+        cropCanvas(original,0,0,Math.round(w*.58),h,1.35),                        // 좌측
+        cropCanvas(original,Math.round(w*.42),0,Math.round(w*.58),h,1.35)         // 우측
+      ];
+      for(const c of crops) await addNative(c);
+    }
+
+    // 세로 방향 바코드 대비
     for(const angle of [90,270]){
       const rotated=rotatedCanvas(bitmap,angle,1);
-      found.push(...await tryNativeBarcode(rotated));
-      const quick=unique(found.map(clean).filter(x=>String(x).length>=5));
-      if(quick.length)return quick.slice(0,20);
+      await addNative(rotated);
+      if(isIRay){
+        const w=rotated.width,h=rotated.height;
+        await addNative(cropCanvas(rotated,0,0,w,Math.round(h*.52),1.35));
+        await addNative(cropCanvas(rotated,0,Math.round(h*.48),w,Math.round(h*.52),1.35));
+      }else if(cleaned().length){
+        return cleaned().slice(0,20);
+      }
     }
 
-    // 3단계: 기본 인식기가 모두 실패했을 때만 ZXing을 보조로 실행합니다.
-    // 처리 속도를 위해 원본/90도와 중앙 확대 영역만 검사합니다.
+    // iRay은 Native에서 일부만 잡혔어도 ZXing을 보조로 더 돌려 누락 바코드를 찾습니다.
+    // ZXing은 한 번에 1개만 반환할 수 있어 영역을 나눠 여러 번 검사합니다.
     if(window.ZXing){
       const zxingFound=[];
-      for(const angle of [0,90]){
-        const base=rotatedCanvas(bitmap,angle,1);
-        zxingFound.push(...tryZXingCanvas(base));
-        if(zxingFound.length)break;
+      const zAdd=(canvas)=>{
+        try{ zxingFound.push(...tryZXingCanvas(canvas)); }catch{}
+      };
 
-        const w=base.width,h=base.height;
-        const center=cropCanvas(
-          base,
-          Math.round(w*.12),Math.round(h*.08),
-          Math.round(w*.76),Math.round(h*.84),
-          1.35
+      if(isIRay){
+        const candidates=[];
+        const base0=rotatedCanvas(bitmap,0,1);
+        const w=base0.width,h=base0.height;
+        candidates.push(
+          base0,
+          cropCanvas(base0,0,0,w,Math.round(h*.42),1.65),
+          cropCanvas(base0,0,Math.round(h*.20),w,Math.round(h*.42),1.55),
+          cropCanvas(base0,0,Math.round(h*.40),w,Math.round(h*.42),1.55),
+          cropCanvas(base0,0,Math.round(h*.60),w,Math.round(h*.40),1.65),
+          cropCanvas(base0,0,0,Math.round(w*.52),h,1.45),
+          cropCanvas(base0,Math.round(w*.48),0,Math.round(w*.52),h,1.45)
         );
-        zxingFound.push(...tryZXingCanvas(center));
-        if(zxingFound.length)break;
+
+        const base90=rotatedCanvas(bitmap,90,1);
+        const w90=base90.width,h90=base90.height;
+        candidates.push(
+          base90,
+          cropCanvas(base90,0,0,w90,Math.round(h90*.52),1.45),
+          cropCanvas(base90,0,Math.round(h90*.48),w90,Math.round(h90*.52),1.45)
+        );
+
+        for(const c of candidates) zAdd(c);
+      }else if(!cleaned().length){
+        for(const angle of [0,90]){
+          const base=rotatedCanvas(bitmap,angle,1);
+          zAdd(base);
+          if(zxingFound.length)break;
+          const w=base.width,h=base.height;
+          const center=cropCanvas(
+            base,
+            Math.round(w*.12),Math.round(h*.08),
+            Math.round(w*.76),Math.round(h*.84),
+            1.35
+          );
+          zAdd(center);
+          if(zxingFound.length)break;
+        }
       }
-      return unique(zxingFound.map(clean).filter(x=>String(x).length>=5)).slice(0,20);
+
+      found.push(...zxingFound);
     }
 
-    return [];
+    return cleaned().slice(0,20);
   }catch{return []}
   finally{if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.()}
 }
