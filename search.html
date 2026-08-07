@@ -1019,6 +1019,44 @@ const MAP_FACILITIES = {
   {label:'화물 엘리베이터',type:'cargo',x:48.1,y:67.6,w:17.7,h:9.5}
  ]
 };
+
+/* 엑셀 도면은 좌표 참고용으로만 사용하고, 화면에는 안내용 벡터 도면을 새로 그린다. */
+function mapXml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[m]));}
+function zoneGuideLabel(codes){
+ const list=(codes||[]).map(String); if(!list.length)return '';
+ if(list.length===1)return list[0];
+ return `${list[0]} ~ ${list[list.length-1]}`;
+}
+function guidePalette(floor,label){
+ if(floor==='4층'&&/CASE/i.test(label))return ['#fff1b8','#d5a514','#704d00'];
+ if(floor==='3층')return ['#e8f3ff','#4c91cf','#173f67'];
+ return ['#edf5ff','#6e9bc6','#234766'];
+}
+function facilityPalette(type){
+ return ({
+  exit:['#e4f7e8','#43a45b','#0b642c'],roof:['#e4f7e8','#43a45b','#0b642c'],
+  elevator:['#eee8ff','#7a63cb','#3f2a8b'],cargo:['#f0ecfa','#9486bd','#514472'],
+  rest:['#fff1df','#ce9548','#72470f'],office:['#e6eef7','#71869b','#283e53'],
+  quality:['#e8f1f8','#7690a8','#28445d'],common:['#f1f3f5','#929ca8','#36404b'],
+  storage:['#e8f3ff','#4c91cf','#173f67'],caseArea:['#fff1b8','#d5a514','#704d00']
+ })[type]||['#f2f4f7','#98a2b3','#344054'];
+}
+function cleanFloorSvg(floor){
+ const zones=MAP_ZONES[floor]||[], facilities=MAP_FACILITIES[floor]||[];
+ if(!zones.length)return '';
+ const rect=(x,y,w,h,fill,stroke,sw=2,rx=7)=>`<rect x="${x*10}" y="${y*10}" width="${w*10}" height="${h*10}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+ const text=(label,x,y,w,h,color,size=22)=>{
+  const words=String(label).split(/\s+/), lines=[];
+  if(words.length>1&&String(label).length>10){const mid=Math.ceil(words.length/2);lines.push(words.slice(0,mid).join(' '),words.slice(mid).join(' '));}else lines.push(String(label));
+  const cy=(y+h/2)*10-(lines.length-1)*size*.55;
+  return `<text x="${(x+w/2)*10}" y="${cy}" text-anchor="middle" dominant-baseline="middle" fill="${color}" font-family="Arial,'Noto Sans KR',sans-serif" font-size="${size}" font-weight="800">${lines.map((v,i)=>`<tspan x="${(x+w/2)*10}" dy="${i?size*1.18:0}">${mapXml(v)}</tspan>`).join('')}</text>`;
+ };
+ let body='<rect x="8" y="8" width="984" height="984" rx="14" fill="#fff" stroke="#202833" stroke-width="5"/>';
+ zones.forEach(z=>{const label=zoneGuideLabel(z.codes),[fill,stroke,color]=guidePalette(floor,label);body+=rect(z.x,z.y,z.w,z.h,fill,stroke,2.4,5);const min=Math.min(z.w,z.h);const size=min<4?12:min<6?15:min<10?18:24;body+=text(label,z.x,z.y,z.w,z.h,color,size);});
+ facilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);const min=Math.min(f.w,f.h);const size=min<7?14:min<10?18:22;body+=text(f.label,f.x,f.y,f.w,f.h,color,size);});
+ body+=`<text x="28" y="975" fill="#667085" font-family="Arial,'Noto Sans KR',sans-serif" font-size="15" font-weight="700">${mapXml(floor)} 창고 안내도</text>`;
+ return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">${body}</svg>`)}`;
+}
 function addFacilityOverlays(map,floor){
  (MAP_FACILITIES[floor]||[]).forEach(f=>{
    // 시설 이름과 구역은 원본 도면에 표시되어 있으므로 다시 덮어쓰지 않는다.
@@ -1077,7 +1115,7 @@ function openLocationMap(loc){
  const [floor]=floorInfo(loc), map=$('#warehouseMap'), code=String(loc||'N/A').trim(), zone=findMapZone(floor,code);
  $('#locationMapTargetCode').textContent=code||'N/A'; $('#locationMapFloorBadge').textContent=floor; $('#locationMapSub').textContent=mapDetailText(code);
  map.className='warehouseMap '+(floor==='3층'?'floor3':floor==='4층'?'floor4':'floor5'); map.innerHTML=''; LOCATION_MAP_ZOOM=1; map.style.width=''; map.style.minWidth=''; const zv=document.getElementById('locationMapZoomValue'); if(zv)zv.textContent='100%';
- const src=MAP_IMAGES[floor];
+ const src=cleanFloorSvg(floor)||MAP_IMAGES[floor];
  if(!src) map.innerHTML='<div class="locationMapUnavailable"><strong>레이아웃 준비 전</strong>현재 3층·4층·5층 위치만 표시할 수 있습니다.</div>';
  else {
    const img=document.createElement('img'); img.src=src; img.alt=floor+' 실제 창고 레이아웃'; map.appendChild(img);
