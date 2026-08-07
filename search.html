@@ -563,26 +563,12 @@ body.searchMultiOpen{overflow:hidden}
 .locationMapBody{overflow:auto;padding:12px}.locationMapTarget{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;margin-bottom:10px;border:1px solid #cfe0f5;border-radius:14px;background:#fff}.locationMapTargetMain{font-size:13px;color:#667085;font-weight:850}.locationMapTargetCode{margin-top:2px;font-size:25px;font-weight:1000;color:#142c50}.locationMapFloorBadge{min-width:66px;text-align:center;padding:11px 9px;border-radius:13px;font-size:16px;font-weight:950;background:#eaf3ff;color:#1769e0}.locationMapSub{margin-top:3px;font-size:11px;color:#7a879d;font-weight:800}
 .warehouseMapScroll{width:100%;overflow:auto;border:1px solid #cbd8e9;border-radius:18px;background:#fff;-webkit-overflow-scrolling:touch}.warehouseMap{position:relative;width:100%;min-width:720px;background:#fff;overflow:hidden}.warehouseMap img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}.mapHighlight{position:absolute;border:4px solid #f5b400;background:rgba(255,224,75,.38);border-radius:8px;box-shadow:0 0 0 5px rgba(255,190,0,.18),0 4px 16px rgba(163,110,0,.28);z-index:5;pointer-events:none}.mapPin{position:absolute;left:50%;top:50%;transform:translate(-50%,-70%);font-size:30px;filter:drop-shadow(0 2px 2px #fff);z-index:6}.mapExactBadge{position:absolute;left:50%;top:50%;transform:translate(-50%,18px);z-index:6;background:#183c71;color:#fff;border:2px solid #fff;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:950;white-space:nowrap;box-shadow:0 4px 10px #0003}.warehouseMap.floor4{min-width:700px}.warehouseMap.floor3,.warehouseMap.floor5{min-width:1050px}
 .mapZone{position:absolute;display:flex;align-items:center;justify-content:center;padding:3px;border:1px solid #9bbce6;border-radius:5px;background:#e9f3ff;color:#24466f;font-size:clamp(8px,1.55vw,12px);font-weight:950;text-align:center;line-height:1.15;overflow:hidden}.mapZone.aisle{background:#f1f3f6;border-color:#d3d8df;color:#7a879d;font-weight:800}.mapZone.door{background:#e7f7e9;border-color:#9dd8a5;color:#17723a}.mapZone.case{background:#fff1c9;border-color:#e7bd51;color:#8a5a00}.mapZone.utility{background:#e8e3ff;border-color:#b9acef;color:#5c46a5}
+.facilityOverlay{position:absolute;z-index:3;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;font-size:clamp(8px,1.45vw,11px);font-weight:900;text-align:center;line-height:1.15;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}.facilityOverlay.storage{background:rgba(226,240,255,.80);border:1.5px solid #8fb7e8;color:#234a78}.facilityOverlay.exit{background:rgba(224,248,229,.88);border:1.5px solid #83c98e;color:#16723a}.facilityOverlay.cargo{background:rgba(237,232,255,.90);border:1.5px solid #a897e8;color:#604ca8}.facilityOverlay.common{background:rgba(245,246,248,.90);border:1.5px solid #c9ced6;color:#596273}.facilityOverlay.caseArea{background:rgba(255,244,207,.83);border:1.5px solid #e5bf58;color:#8b6100}
 .mapZone.active{z-index:8;background:#ffe76b!important;border:3px solid #f2a900!important;color:#4f3700!important;box-shadow:0 0 0 5px rgba(255,207,45,.28),0 8px 24px rgba(174,116,0,.28);animation:mapPulse 1.05s ease-in-out infinite alternate}.mapZone.active::after{content:'📍';position:absolute;right:3px;top:2px;font-size:14px}.mapZone.related{box-shadow:inset 0 0 0 2px rgba(23,105,224,.18)}
 @keyframes mapPulse{from{transform:scale(1)}to{transform:scale(1.025)}}
-.locationMapLegend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.locationMapLegend span{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#fff;border:1px solid #dce6f5;color:#64748b;font-size:10px;font-weight:850}.legendDot{width:11px;height:11px;border-radius:3px;background:#e9f3ff;border:1px solid #9bbce6}.legendDot.hit{background:#ffe76b;border:2px solid #f2a900}.legendDot.case{background:#fff1c9;border-color:#e7bd51}
+.locationMapLegend{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.locationMapLegend span{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:#fff;border:1px solid #dce6f5;color:#64748b;font-size:10px;font-weight:850}.legendDot{width:11px;height:11px;border-radius:3px;background:#e9f3ff;border:1px solid #9bbce6}.legendDot.hit{background:#ffe76b;border:2px solid #f2a900}.legendDot.case{background:#fff1c9;border-color:#e7bd51}.legendDot.exit{background:#e0f8e5;border-color:#83c98e}.legendDot.cargo{background:#ede8ff;border-color:#a897e8}.legendDot.common{background:#f2f3f5;border-color:#c9ced6}
 .locationMapFoot{padding:10px 14px 13px;background:#fff;border-top:1px solid #dce6f5;text-align:center;color:#667085;font-size:11px;line-height:1.45}.locationMapUnavailable{padding:42px 18px;text-align:center;color:#667085;font-size:14px;font-weight:850}.locationMapUnavailable strong{display:block;margin-bottom:8px;color:#183c71;font-size:21px}
 @media(max-width:520px){.locationMapModal{padding:7px}.locationMapPanel{max-height:96dvh;border-radius:18px}.locationMapBody{padding:9px}.warehouseMap.floor3,.warehouseMap.floor5{min-width:1050px}.warehouseMap.floor4{min-width:760px}.locationMapTargetCode{font-size:22px}}
-
-
-/* V1.2 실제 도면 좌표 + RaySmart 세련된 오버레이 */
-.warehouseMap img{opacity:.28;filter:grayscale(1) contrast(.82) brightness(1.22);}
-.mapSkin{position:absolute;inset:0;z-index:3;pointer-events:none;}
-.mapSkinZone{position:absolute;display:flex;align-items:center;justify-content:center;padding:4px 3px;border:1.5px solid #a9c9e8;border-radius:7px;background:rgba(235,246,255,.91);color:#21466f;font-size:clamp(9px,1.35vw,13px);font-weight:950;line-height:1.12;text-align:center;box-shadow:0 2px 7px rgba(28,79,138,.08);overflow:hidden;}
-.mapSkinZone.case{background:rgba(255,244,205,.94);border-color:#e5c465;color:#805a08;}
-.mapSkinZone.facility{background:rgba(241,244,248,.94);border-color:#cbd3dd;color:#667085;font-weight:900;}
-.mapSkinZone.emergency{background:rgba(229,247,232,.96);border-color:#9fd3a7;color:#18733a;}
-.mapSkinZone.freight{background:rgba(237,232,255,.96);border-color:#b9acef;color:#5c46a5;}
-.mapSkinZone.office{background:rgba(241,244,248,.94);border-color:#cbd3dd;color:#667085;}
-.mapSkinZone.hit{z-index:4;background:#ffe98a;border:2.5px solid #f2ae00;color:#493500;box-shadow:0 0 0 5px rgba(255,202,37,.22),0 7px 20px rgba(174,116,0,.18);}
-.mapHighlight{z-index:7;background:rgba(255,224,75,.18);}
-.mapPin,.mapExactBadge{z-index:8;}
-.warehouseMap:after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(24,60,113,.08);}
 
 </style>
 
@@ -886,7 +872,7 @@ input,select,textarea{font-size:max(16px,1em);}
         <div class="locationMapFloorBadge" id="locationMapFloorBadge">-</div>
       </div>
       <div class="warehouseMapScroll"><div class="warehouseMap" id="warehouseMap"></div></div>
-      <div class="locationMapLegend"><span><i class="legendDot hit"></i>찾는 위치</span><span><i class="legendDot"></i>자재 보관 구역</span><span><i class="legendDot case"></i>CASE 구역</span></div>
+      <div class="locationMapLegend"><span><i class="legendDot hit"></i>찾는 위치</span><span><i class="legendDot"></i>자재 보관 구역</span><span><i class="legendDot exit"></i>비상구</span><span><i class="legendDot cargo"></i>엘리베이터</span><span><i class="legendDot common"></i>공용/기타</span><span><i class="legendDot case"></i>CASE 구역</span></div>
     </div>
     <div class="locationMapFoot">※ 레이아웃은 업로드한 창고 레이아웃 기준입니다. 위치의 뒤 숫자(-1, -2, -3 등)는 해당 랙의 단/세부 위치로 표시합니다.</div>
   </div>
@@ -974,53 +960,38 @@ const MAP_ZONES = {
   {codes:['M1','M2','M3','M4'],x:71.6,y:62.8,w:11.8,h:4.9}, {codes:['M5','M6'],x:62.8,y:62.8,w:5.9,h:4.9}
  ]
 };
-function mapZoneLabel(z){
- const c=(z.codes||[]).map(v=>String(v).replace('_',' '));
- if(!c.length)return '';
- if(c.length===1)return c[0];
- const first=c[0], last=c[c.length-1];
- const p1=first.match(/^([^0-9]*)(\d+)$/), p2=last.match(/^([^0-9]*)(\d+)$/);
- if(p1&&p2&&p1[1]===p2[1]) return `${first}~${last}`;
- return c.length<=4?c.join('·'):`${first}~${last}`;
-}
+
 const MAP_FACILITIES = {
  '3층': [
-  {label:'입구',x:0.9,y:62.8,w:3.0,h:11.8,type:'emergency'},
-  {label:'문',x:60.9,y:39.0,w:3.0,h:4.8,type:'emergency'},
-  {label:'문',x:60.9,y:67.0,w:3.0,h:5.0,type:'emergency'}
+  {label:'사무/공용',type:'common',x:0.0,y:67.8,w:15.0,h:8.8},
+  {label:'비상구',type:'exit',x:15.0,y:67.8,w:8.5,h:8.8},
+  {label:'엘리베이터',type:'cargo',x:23.5,y:67.8,w:8.5,h:8.8},
+  {label:'계단',type:'common',x:32.0,y:67.8,w:7.0,h:8.8}
  ],
  '4층': [
-  {label:'비상문',x:13.1,y:76.8,w:8.8,h:14.3,type:'emergency'},
-  {label:'엘리베이터',x:21.9,y:76.8,w:26.2,h:23.2,type:'facility'},
-  {label:'화물 엘리베이터',x:65.3,y:76.8,w:26.0,h:23.2,type:'freight'}
+  {label:'4F CASE',type:'caseArea',x:4.6,y:5.2,w:43.5,h:44.8},
+  {label:'자재 보관 구역',type:'storage',x:48.1,y:5.2,w:25.8,h:44.8},
+  {label:'비상구',type:'exit',x:4.6,y:52.0,w:8.5,h:12.5},
+  {label:'엘리베이터',type:'cargo',x:13.1,y:52.0,w:9.0,h:12.5},
+  {label:'휴게실',type:'common',x:22.1,y:52.0,w:10.5,h:12.5},
+  {label:'화물 엘리베이터',type:'cargo',x:32.6,y:52.0,w:15.5,h:12.5}
  ],
  '5층': [
-  {label:'품질오피스',x:36.3,y:0.5,w:17.6,h:20.5,type:'office'},
-  {label:'검사대기 (보드)',x:36.3,y:21.0,w:8.8,h:37.2,type:'facility'},
-  {label:'검사대기 (기구)',x:45.1,y:21.0,w:8.8,h:37.2,type:'facility'},
-  {label:'비상구',x:27.4,y:67.4,w:3.0,h:9.7,type:'emergency'},
-  {label:'화장실',x:18.6,y:81.8,w:3.0,h:14.2,type:'facility'},
-  {label:'엘리베이터',x:30.4,y:86.5,w:3.0,h:9.5,type:'facility'},
-  {label:'휴게실',x:33.4,y:77.1,w:11.7,h:18.9,type:'facility'},
-  {label:'화물 엘리베이터',x:45.1,y:67.5,w:11.8,h:28.5,type:'freight'}
+  {label:'품질오피스',type:'common',x:36.3,y:0.5,w:29.5,h:11.0},
+  {label:'검사대기 (보드)',type:'common',x:36.3,y:11.5,w:14.8,h:46.7},
+  {label:'검사대기 (기구)',type:'common',x:51.1,y:11.5,w:14.7,h:46.7},
+  {label:'비상구',type:'exit',x:21.6,y:77.2,w:8.8,h:9.5},
+  {label:'엘리베이터',type:'cargo',x:30.4,y:77.2,w:5.9,h:9.5},
+  {label:'휴게실',type:'common',x:36.3,y:77.2,w:17.6,h:9.5},
+  {label:'화물 엘리베이터',type:'cargo',x:48.1,y:62.7,w:17.7,h:14.4}
  ]
 };
-function drawRaySmartMapSkin(map,floor,activeZone){
- const skin=document.createElement('div'); skin.className='mapSkin';
- (MAP_ZONES[floor]||[]).forEach(z=>{
-   const el=document.createElement('div');
-   const isCase=(z.codes||[]).some(c=>String(c).toUpperCase().includes('CASE'));
-   el.className='mapSkinZone'+(isCase?' case':'')+(z===activeZone?' hit':'');
-   el.style.left=z.x+'%';el.style.top=z.y+'%';el.style.width=z.w+'%';el.style.height=z.h+'%';
-   el.textContent=mapZoneLabel(z); skin.appendChild(el);
- });
+function addFacilityOverlays(map,floor){
  (MAP_FACILITIES[floor]||[]).forEach(f=>{
-   const el=document.createElement('div');
-   el.className='mapSkinZone facility '+(f.type||'facility');
+   const el=document.createElement('div'); el.className='facilityOverlay '+f.type;
    el.style.left=f.x+'%';el.style.top=f.y+'%';el.style.width=f.w+'%';el.style.height=f.h+'%';
-   el.textContent=f.label; skin.appendChild(el);
+   el.textContent=f.label; map.appendChild(el);
  });
- map.appendChild(skin);
 }
 function mapBaseCode(loc){
  let x=String(loc||'').trim().toUpperCase().replace(/_/g,' '); x=x.replace(/\s+/g,' ');
@@ -1056,7 +1027,7 @@ function openLocationMap(loc){
  if(!src) map.innerHTML='<div class="locationMapUnavailable"><strong>레이아웃 준비 전</strong>현재 3층·4층·5층 위치만 표시할 수 있습니다.</div>';
  else {
    const img=document.createElement('img'); img.src=src; img.alt=floor+' 실제 창고 레이아웃'; map.appendChild(img);
-   drawRaySmartMapSkin(map,floor,zone);
+   addFacilityOverlays(map,floor);
    if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=zone.x+'%';h.style.top=zone.y+'%';h.style.width=zone.w+'%';h.style.height=zone.h+'%';h.innerHTML=`<div class="mapPin">📍</div><div class="mapExactBadge">${esc(code)}</div>`;map.appendChild(h);}
    else {const note=document.createElement('div');note.className='locationMapUnavailable';note.style.position='absolute';note.style.inset='35% 15% auto';note.style.zIndex='20';note.style.background='rgba(255,255,255,.96)';note.style.borderRadius='14px';note.style.padding='18px';note.innerHTML=`<strong>${esc(code)}</strong>실제 도면에서 자동 매칭할 위치를 찾지 못했습니다.`;map.appendChild(note);}
  }
