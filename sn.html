@@ -1174,108 +1174,113 @@ function tryZXingCanvas(canvas){
   }catch{return []}
 }
 
+
+function makeScanCanvas(bitmap,maxSide=1800){
+  const bw=bitmap.width||1, bh=bitmap.height||1;
+  const ratio=Math.min(1,maxSide/Math.max(bw,bh));
+  if(ratio>=.999)return rotatedCanvas(bitmap,0,1);
+  const c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(bw*ratio));
+  c.height=Math.max(1,Math.round(bh*ratio));
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(bitmap,0,0,bw,bh,0,0,c.width,c.height);
+  return c;
+}
+
+function releaseCanvas(c){
+  try{
+    if(!c)return;
+    c.width=1;c.height=1;
+  }catch{}
+}
+
 async function tryBarcode(source){
   let bitmap=null;
+  let base=null;
   try{
     bitmap=await sourceToBitmap(source);
     const isIRay=selectedVendor==='iRay';
-
-    // iRay은 한 사진에 1D 바코드가 여러 개 붙어 있을 수 있으므로
-    // '하나라도 찾으면 즉시 종료'하지 않고 여러 영역/회전을 누적 검사합니다.
     const found=[];
 
+    // 고해상도 휴대폰 사진을 그대로 여러 Canvas로 복제하면
+    // 두 번째 촬영 때 메모리가 급증해 브라우저/PWA가 종료될 수 있습니다.
+    // 스캔용 이미지만 최대 1800px로 줄이고, 영역을 하나씩 검사한 뒤 즉시 해제합니다.
+    base=makeScanCanvas(bitmap,1800);
+
     const addNative=async(canvas)=>{
-      try{ found.push(...await tryNativeBarcode(canvas)); }catch{}
+      try{found.push(...await tryNativeBarcode(canvas))}catch{}
+    };
+    const addZXing=(canvas)=>{
+      try{found.push(...tryZXingCanvas(canvas))}catch{}
     };
     const cleaned=()=>unique(found.map(clean).filter(x=>String(x).length>=5));
 
-    const original=rotatedCanvas(bitmap,0,1);
-    await addNative(original);
-
-    // 일반 업체는 기존 속도를 유지합니다.
+    // 1. 원본
+    await addNative(base);
     if(!isIRay && cleaned().length)return cleaned().slice(0,20);
 
-    // iRay 다중 바코드 보강:
-    // 원본 전체 + 상/중/하 영역 + 좌/우 영역을 확대해서 각각 검사합니다.
     if(isIRay){
-      const w=original.width,h=original.height;
-      const crops=[
-        cropCanvas(original,0,0,w,Math.round(h*.48),1.55),                         // 상단
-        cropCanvas(original,0,Math.round(h*.24),w,Math.round(h*.52),1.45),        // 중앙
-        cropCanvas(original,0,Math.round(h*.52),w,Math.round(h*.48),1.55),        // 하단
-        cropCanvas(original,0,0,Math.round(w*.58),h,1.35),                        // 좌측
-        cropCanvas(original,Math.round(w*.42),0,Math.round(w*.58),h,1.35)         // 우측
+      const w=base.width,h=base.height;
+
+      // 2. iRay은 한 장에 여러 1D 바코드가 있으므로
+      // 상/중/하 3영역만 순차 검사합니다. Canvas는 검사 즉시 해제합니다.
+      const regions=[
+        [0,0,w,Math.round(h*.42),1.28],
+        [0,Math.round(h*.29),w,Math.round(h*.42),1.28],
+        [0,Math.round(h*.58),w,Math.round(h*.42),1.28]
       ];
-      for(const c of crops) await addNative(c);
-    }
-
-    // 세로 방향 바코드 대비
-    for(const angle of [90,270]){
-      const rotated=rotatedCanvas(bitmap,angle,1);
-      await addNative(rotated);
-      if(isIRay){
-        const w=rotated.width,h=rotated.height;
-        await addNative(cropCanvas(rotated,0,0,w,Math.round(h*.52),1.35));
-        await addNative(cropCanvas(rotated,0,Math.round(h*.48),w,Math.round(h*.52),1.35));
-      }else if(cleaned().length){
-        return cleaned().slice(0,20);
-      }
-    }
-
-    // iRay은 Native에서 일부만 잡혔어도 ZXing을 보조로 더 돌려 누락 바코드를 찾습니다.
-    // ZXing은 한 번에 1개만 반환할 수 있어 영역을 나눠 여러 번 검사합니다.
-    if(window.ZXing){
-      const zxingFound=[];
-      const zAdd=(canvas)=>{
-        try{ zxingFound.push(...tryZXingCanvas(canvas)); }catch{}
-      };
-
-      if(isIRay){
-        const candidates=[];
-        const base0=rotatedCanvas(bitmap,0,1);
-        const w=base0.width,h=base0.height;
-        candidates.push(
-          base0,
-          cropCanvas(base0,0,0,w,Math.round(h*.42),1.65),
-          cropCanvas(base0,0,Math.round(h*.20),w,Math.round(h*.42),1.55),
-          cropCanvas(base0,0,Math.round(h*.40),w,Math.round(h*.42),1.55),
-          cropCanvas(base0,0,Math.round(h*.60),w,Math.round(h*.40),1.65),
-          cropCanvas(base0,0,0,Math.round(w*.52),h,1.45),
-          cropCanvas(base0,Math.round(w*.48),0,Math.round(w*.52),h,1.45)
-        );
-
-        const base90=rotatedCanvas(bitmap,90,1);
-        const w90=base90.width,h90=base90.height;
-        candidates.push(
-          base90,
-          cropCanvas(base90,0,0,w90,Math.round(h90*.52),1.45),
-          cropCanvas(base90,0,Math.round(h90*.48),w90,Math.round(h90*.52),1.45)
-        );
-
-        for(const c of candidates) zAdd(c);
-      }else if(!cleaned().length){
-        for(const angle of [0,90]){
-          const base=rotatedCanvas(bitmap,angle,1);
-          zAdd(base);
-          if(zxingFound.length)break;
-          const w=base.width,h=base.height;
-          const center=cropCanvas(
-            base,
-            Math.round(w*.12),Math.round(h*.08),
-            Math.round(w*.76),Math.round(h*.84),
-            1.35
-          );
-          zAdd(center);
-          if(zxingFound.length)break;
-        }
+      for(const [x,y,cw,ch,s] of regions){
+        const crop=cropCanvas(base,x,y,cw,ch,s);
+        await addNative(crop);
+        if(window.ZXing)addZXing(crop);
+        releaseCanvas(crop);
+        await new Promise(r=>setTimeout(r,0));
       }
 
-      found.push(...zxingFound);
+      // 3. 회전은 90도 한 번만. 누락 방지를 위해 native + ZXing 보조.
+      const rot90=document.createElement('canvas');
+      rot90.width=base.height;
+      rot90.height=base.width;
+      const rctx=rot90.getContext('2d',{willReadFrequently:true});
+      rctx.translate(rot90.width/2,rot90.height/2);
+      rctx.rotate(Math.PI/2);
+      rctx.drawImage(base,-base.width/2,-base.height/2);
+      await addNative(rot90);
+      if(window.ZXing)addZXing(rot90);
+      releaseCanvas(rot90);
+
+      // 마지막으로 원본 ZXing 1회 보조
+      if(window.ZXing)addZXing(base);
+
+      return cleaned().slice(0,20);
+    }
+
+    // 일반 업체는 Native 실패 시에만 가벼운 ZXing 보조
+    if(window.ZXing && !cleaned().length){
+      addZXing(base);
+      if(!cleaned().length){
+        const w=base.width,h=base.height;
+        const center=cropCanvas(
+          base,
+          Math.round(w*.12),Math.round(h*.08),
+          Math.round(w*.76),Math.round(h*.84),
+          1.20
+        );
+        addZXing(center);
+        releaseCanvas(center);
+      }
     }
 
     return cleaned().slice(0,20);
-  }catch{return []}
-  finally{if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.()}
+  }catch(e){
+    console.error('[바코드 인식 오류]',e);
+    return [];
+  }finally{
+    releaseCanvas(base);
+    if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+  }
 }
 
 async function extractSerial(source){
@@ -2025,8 +2030,29 @@ async function clearBatchStore(){
   try{localStorage.removeItem(BATCH_META_KEY)}catch{}
 }
 
+
+async function makeStoredCaptureBlob(source,maxSide=1600,quality=.82){
+  try{
+    const bm=await createImageBitmap(source);
+    const ratio=Math.min(1,maxSide/Math.max(bm.width,bm.height));
+    if(ratio>=.999){bm.close?.();return source;}
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(bm.width*ratio));
+    c.height=Math.max(1,Math.round(bm.height*ratio));
+    const ctx=c.getContext('2d');
+    ctx.drawImage(bm,0,0,bm.width,bm.height,0,0,c.width,c.height);
+    bm.close?.();
+    const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',quality));
+    releaseCanvas(c);
+    return blob||source;
+  }catch{
+    return source;
+  }
+}
+
 async function persistCapturePhoto(item,blob){
   try{
+    const storedBlob=await makeStoredCaptureBlob(blob,1600,.82);
     const db=await openBatchDb();
     await new Promise((resolve,reject)=>{
       const tx=db.transaction(CAPTURE_DB_STORE,'readwrite');
@@ -2035,7 +2061,7 @@ async function persistCapturePhoto(item,blob){
         vendor:item.vendor||'Unknown',
         serials:Array.isArray(item.serials)?item.serials:[],
         createdAt:Date.now(),
-        blob
+        blob:storedBlob
       });
       tx.oncomplete=resolve;
       tx.onerror=()=>reject(tx.error);
@@ -2716,7 +2742,7 @@ function openFreshNativeCamera(){
       catch(e){
         setStatus('카메라를 열지 못했습니다. 다시 눌러 주세요.','bad');
       }
-    },30);
+    },180);;
   });
 }
 
@@ -2762,7 +2788,8 @@ async function handleNativeCaptureChange(e){
   }finally{
     busy=false;
     try{input.value=''}catch{}
-    showNextCapture();
+    // 고해상도 디코더/Canvas 메모리가 정리될 시간을 조금 준 뒤 다음 촬영을 엽니다.
+    setTimeout(()=>showNextCapture(),220);
   }
 }
 

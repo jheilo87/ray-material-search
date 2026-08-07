@@ -968,7 +968,22 @@ function mapBaseCode(loc){
  return x;
 }
 function mapDetailText(loc){const x=String(loc||'').trim().toUpperCase();const m=x.match(/-(\d+)\s*$/);return m?`세부 위치/단: ${m[1]}`:'';}
-function findMapZone(floor,loc){const base=mapBaseCode(loc);return (MAP_ZONES[floor]||[]).find(z=>(z.codes||[]).some(c=>String(c).toUpperCase()===base))||null;}
+function findMapZone(floor,loc){
+ const base=mapBaseCode(loc);
+ const zones=(MAP_ZONES[floor]||[]);
+ let hit=zones.find(z=>(z.codes||[]).some(c=>String(c).toUpperCase()===base));
+ if(hit) return hit;
+ // 3층 도면에서 3G9-4, 3G2-1처럼 세부 번호가 붙은 위치는
+ // 도면의 상위 구역(예: 3G)으로 연결하고 뒤 숫자는 세부 위치로 표시한다.
+ if(floor==='3층'){
+   const m=base.match(/^(3[A-Z])\d+$/);
+   if(m){
+     hit=zones.find(z=>(z.codes||[]).some(c=>String(c).toUpperCase()===m[1]));
+     if(hit) return hit;
+   }
+ }
+ return null;
+}
 function mapAvailable(loc){const [floor]=floorInfo(loc);return ['3층','4층','5층'].includes(floor)&&!!findMapZone(floor,loc);}
 function openLocationMap(loc){
  const [floor]=floorInfo(loc), map=$('#warehouseMap'), code=String(loc||'N/A').trim(), zone=findMapZone(floor,code);
