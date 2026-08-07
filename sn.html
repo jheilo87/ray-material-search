@@ -47,7 +47,7 @@ box-shadow:0 8px 18px rgba(40,183,121,.35);
 .liveStatus{margin-top:9px;padding:10px 11px;border-radius:11px;background:#f5f7fa;color:#526174;font-size:12px;font-weight:850;line-height:1.45}.liveStatus.busy{background:#fff8e8;color:#9a6700}.liveStatus.ok{background:#eaf8ef;color:var(--ok)}.liveStatus.bad{background:#fff0f0;color:var(--bad)}
 .previewGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.previewItem{position:relative;overflow:hidden;border-radius:11px;background:#eef2f7;cursor:pointer;box-shadow:0 2px 7px rgba(20,40,70,.08)}.previewItem img{width:100%;aspect-ratio:1;object-fit:cover;display:block}.previewBadge{position:absolute;left:6px;top:6px;min-width:25px;height:25px;padding:0 7px;display:grid;place-items:center;border-radius:999px;background:rgba(15,33,58,.82);color:#fff;font-size:12px;font-weight:950;box-shadow:0 2px 6px rgba(0,0,0,.18)}.previewZoom{position:absolute;right:6px;bottom:6px;width:25px;height:25px;display:grid;place-items:center;border-radius:999px;background:rgba(255,255,255,.9);color:#1e6fa7;font-size:13px;font-weight:950}
 .progress{display:none}.progress.show{display:block}.progressTop{display:flex;align-items:center;justify-content:space-between;gap:10px}.progressText{font-size:14px;font-weight:900;color:#294d7f}.count{padding:5px 9px;border-radius:999px;background:#eaf3ff;color:var(--brand);font-size:12px;font-weight:900}.bar{height:10px;margin-top:10px;background:#e8eef8;border-radius:999px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--brand),#58a8ff);transition:width .2s}
-.resultHead{display:flex;align-items:center;justify-content:space-between}.empty{text-align:center;padding:24px 10px;color:#8a94a6;font-size:13px}.list{display:flex;flex-direction:column;gap:8px;margin-top:11px}.row{display:grid;grid-template-columns:58px minmax(0,1fr) auto 38px;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fbfdff}.no{text-align:center;color:#8a94a6;font-size:11px;white-space:nowrap}.photoLink{white-space:nowrap}.value{width:100%;min-width:0;border:0;background:transparent;color:#183c71;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.value.edited{color:#b15c00}.value.invalid{color:#b42318}.saveEdit{min-width:48px;height:34px;border:0;border-radius:9px;padding:0 10px;background:#eaf8ef;color:#137a43;font-size:11px;font-weight:950}.saveEdit:disabled{opacity:.4}.del{width:34px;height:34px;border:0;border-radius:9px;background:#eef2f7;color:#64748b;font-weight:950}.formatHelp{grid-column:2/-1;margin-top:-2px;color:#7a879d;font-size:9px;font-weight:800;line-height:1.35}.formatHelp.ok{color:#137a43}.formatHelp.bad{color:#b42318}@media(max-width:430px){.row{grid-template-columns:54px minmax(0,1fr) 44px 36px;gap:5px;padding:7px}.saveEdit{min-width:44px;padding:0 7px}.value{font-size:14px}.photoLink{font-size:10px}}
+.resultHead{display:flex;align-items:center;justify-content:space-between}.empty{text-align:center;padding:24px 10px;color:#8a94a6;font-size:13px}.list{display:flex;flex-direction:column;gap:8px;margin-top:11px}.row{display:grid;grid-template-columns:76px minmax(0,1fr) auto 38px;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fbfdff}.no{text-align:center;color:#8a94a6;font-size:11px;white-space:nowrap}.photoLink{white-space:nowrap}.value{width:100%;min-width:0;border:0;background:transparent;color:#183c71;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.value.edited{color:#b15c00}.value.invalid{color:#b42318}.saveEdit{min-width:48px;height:34px;border:0;border-radius:9px;padding:0 10px;background:#eaf8ef;color:#137a43;font-size:11px;font-weight:950}.saveEdit:disabled{opacity:.4}.del{width:34px;height:34px;border:0;border-radius:9px;background:#eef2f7;color:#64748b;font-weight:950}.formatHelp{grid-column:2/-1;margin-top:-2px;color:#7a879d;font-size:9px;font-weight:800;line-height:1.35}.formatHelp.ok{color:#137a43}.formatHelp.bad{color:#b42318}@media(max-width:430px){.row{grid-template-columns:72px minmax(0,1fr) 44px 36px;gap:5px;padding:7px}.saveEdit{min-width:44px;padding:0 7px}.value{font-size:14px}.photoLink{font-size:10px}}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action{border:0;border-radius:13px;padding:13px 8px;font-size:15px;font-weight:950}.copy{background:#eaf3ff;color:var(--brand)}.share{background:#1769e0;color:#fff}.clear{background:#eef2f7;color:#526174}.resetAll{grid-column:1/-1;background:#fff1f1;color:#b42318;border:1px solid #ffd4d4}
 .catalogSyncCard{
   grid-column:1/-1;
@@ -908,27 +908,6 @@ const collapsedVendorGroups=new Set();
 const $=id=>document.getElementById(id);
 const video=$('video'), canvas=$('captureCanvas'), imageInput=$('imageInput');
 let captureInput=$('captureInput');
-
-function refreshCaptureInput(){
-  const oldInput=captureInput || $('captureInput');
-  if(!oldInput)return null;
-  const fresh=oldInput.cloneNode(false);
-  fresh.value='';
-  oldInput.replaceWith(fresh);
-  captureInput=fresh;
-  captureInput.addEventListener('change',handleCaptureInputChange);
-  return captureInput;
-}
-
-function openFreshNativeCamera(){
-  if(busy)return;
-  setInputMode('camera');
-  const input=refreshCaptureInput();
-  if(input){
-    // Android 기본 카메라가 이전 촬영 input 상태를 재사용하지 않도록 매번 새 input으로 시작
-    requestAnimationFrame(()=>input.click());
-  }
-}
 const list=$('resultList'), empty=$('empty'), resultCount=$('resultCount'), status=$('status');
 
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1600)}
@@ -1672,6 +1651,7 @@ function render(){
     groups.get(vendor).push({value,legacy:true});
   });
 
+  let displayRowNo=0;
   [...groups.keys()].sort((a,b)=>order.indexOf(a)-order.indexOf(b)).forEach(vendor=>{
     const entries=groups.get(vendor)||[];
     const group=document.createElement('section');
@@ -1722,7 +1702,8 @@ function render(){
       if(entry.empty){
         const row=document.createElement('div');
         row.className='emptySerialRow';
-        row.innerHTML=`<div class="no"><button class="photoLink" type="button">사진 ${entry.photoIndex+1}</button></div><div class="emptySerialText">인식된 S/N 없음</div><button class="emptySerialOpen" type="button">사진 확인·입력</button>`;
+        displayRowNo++;
+        row.innerHTML=`<div class="no"><button class="photoLink" type="button">${displayRowNo} · 사진 ${entry.photoIndex+1}</button></div><div class="emptySerialText">인식된 S/N 없음</div><button class="emptySerialOpen" type="button">사진 확인·입력</button>`;
         row.querySelector('.photoLink').addEventListener('click',()=>openFailedPhoto(entry.item,entry.photoIndex));
         row.querySelector('.emptySerialOpen').addEventListener('click',()=>openFailedPhoto(entry.item,entry.photoIndex));
         body.appendChild(row);
@@ -1730,7 +1711,8 @@ function render(){
       }
       const row=document.createElement('div');row.className='row';
       if(entry.legacy){
-        row.innerHTML=`<div class="no">기존</div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="기존 S/N" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
+        displayRowNo++;
+        row.innerHTML=`<div class="no">${displayRowNo} · 기존</div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="기존 S/N" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
         const input=row.querySelector('input');
         const save=row.querySelector('.saveEdit');
         const help=row.querySelector('.formatHelp');
@@ -1761,7 +1743,8 @@ function render(){
         });
         row.querySelector('.del').addEventListener('click',()=>{results=results.filter(x=>x!==entry.value);render();saveSession()});
       }else{
-        row.innerHTML=`<div class="no"><button class="photoLink" type="button">사진 ${entry.photoIndex+1}</button></div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="사진 ${entry.photoIndex+1} S/N ${entry.serialIndex+1}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
+        displayRowNo++;
+        row.innerHTML=`<div class="no"><button class="photoLink" type="button">${displayRowNo} · 사진 ${entry.photoIndex+1}</button></div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="사진 ${entry.photoIndex+1} S/N ${entry.serialIndex+1}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
         row.querySelector('.photoLink').addEventListener('click',()=>showPreviewImage(entry.photoIndex));
         const input=row.querySelector('input');
         const save=row.querySelector('.saveEdit');
@@ -1845,7 +1828,7 @@ function resetEverything(){
     btn.classList.remove('active');
   });
 
-  if(captureInput)captureInput.value='';
+  try{if(captureInput)captureInput.value=''}catch{}
   if(imageInput)imageInput.value='';
   $('progressCard')?.classList.remove('show');
   if($('progressFill'))$('progressFill').style.width='0%';
@@ -2511,26 +2494,50 @@ function hideNextCapture(){
     nextCaptureBtn.textContent='📷 다음 촬영';
   }
 }
-nextCaptureBtn?.addEventListener('click',()=>{
-  if(busy)return;
-  if(!selectedVendor || selectedVendor==='Auto'){ toast('업체를 먼저 선택해 주세요'); return; }
-  hideNextCapture();
-  openFreshNativeCamera();
-});
+function bindFreshCaptureInput(){
+  const oldInput=captureInput;
+  if(!oldInput)return null;
 
-async function handleCaptureInputChange(event){
-  // 중요: 전역 captureInput이 아니라 실제 change 이벤트를 발생시킨 input에서 파일을 읽습니다.
-  // Android/Samsung 기본 카메라에서 다음 촬영 시 input 교체 타이밍 때문에 두 번째 사진이 누락되는 현상을 방지합니다.
-  const sourceInput=event?.currentTarget || event?.target || captureInput;
-  const file=sourceInput?.files?.[0];
-  if(!file){
-    if(sourceInput) sourceInput.value='';
-    setStatus('촬영이 취소되었습니다. 기존 목록은 그대로 유지됩니다.');
+  const fresh=oldInput.cloneNode(false);
+  fresh.value='';
+  oldInput.replaceWith(fresh);
+  captureInput=fresh;
+
+  captureInput.addEventListener('change',handleNativeCaptureChange,{once:true});
+  return captureInput;
+}
+
+function openFreshNativeCamera(){
+  if(busy)return;
+  const input=bindFreshCaptureInput();
+  if(!input){
+    setStatus('카메라 입력을 준비하지 못했습니다. 다시 시도해 주세요.','bad');
     return;
   }
 
-  // 카메라에서 돌아온 즉시 사용자가 '사진이 들어왔다'는 것을 확인할 수 있게 표시합니다.
-  // 추출이 오래 걸리거나 코드가 없는 사진이어도 멈춘 것처럼 보이지 않게 합니다.
+  // Android/Samsung Internet/Chrome에서 연속으로 같은 input을 재사용하면
+  // 두 번째 촬영 확인 후 change가 발생하지 않는 경우가 있어 매번 새 input을 사용합니다.
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      try{ input.click(); }
+      catch(e){
+        setStatus('카메라를 열지 못했습니다. 다시 눌러 주세요.','bad');
+      }
+    },30);
+  });
+}
+
+async function handleNativeCaptureChange(e){
+  const input=e.currentTarget;
+  const file=input?.files?.[0];
+
+  if(!file){
+    try{input.value=''}catch{}
+    setStatus('촬영이 취소되었습니다. 기존 목록은 그대로 유지됩니다.');
+    showNextCapture();
+    return;
+  }
+
   hideNextCapture();
   setInputMode('camera');
   setStatus('사진을 정상적으로 받았습니다 · S/N 추출을 시작합니다.','ok');
@@ -2539,8 +2546,6 @@ async function handleCaptureInputChange(event){
   busy=true;
 
   try{
-    // 앨범선택과 같은 processFiles 추출 엔진을 그대로 사용합니다.
-    // 단, 연속촬영 1장은 복구용 임시저장을 생략하고 사진을 먼저 화면에 표시합니다.
     await processFiles([file],{
       skipPersist:true,
       immediatePreview:true,
@@ -2549,6 +2554,7 @@ async function handleCaptureInputChange(event){
 
     const currentPhoto=photoItems[photoItems.length-1];
     const currentCount=currentPhoto?.serials?.length||0;
+
     if(currentCount){
       setStatus(`이번 사진에서 S/N ${currentCount}개 인식 · 현재 총 ${results.length}건 저장됨`,'ok');
       toast(`S/N ${currentCount}개 인식`);
@@ -2557,18 +2563,27 @@ async function handleCaptureInputChange(event){
       toast('S/N 미인식 · 다음 촬영 가능');
     }
   }catch(e){
+    console.error('[연속촬영 추출 오류]',e);
     setStatus('사진은 받았지만 추출 중 오류가 발생했습니다 · 사진은 목록에 유지됩니다.','bad');
     toast('추출 오류 · 사진은 저장됨');
   }finally{
-    // 모든 처리가 끝난 뒤에 input을 비워 같은 대상도 다시 촬영할 수 있게 합니다.
     busy=false;
-    if(sourceInput) sourceInput.value='';
+    try{input.value=''}catch{}
     showNextCapture();
   }
 }
 
-// 첫 촬영도 새 input으로 교체되어 연결되지만, 초기 input에도 안전하게 연결해 둡니다.
-captureInput.addEventListener('change',handleCaptureInputChange);
+nextCaptureBtn?.addEventListener('click',()=>{
+  if(busy)return;
+  if(!selectedVendor || selectedVendor==='Auto'){
+    toast('업체를 먼저 선택해 주세요');
+    return;
+  }
+  hideNextCapture();
+  setInputMode('camera');
+  openFreshNativeCamera();
+});
+
 imageInput.addEventListener('change',async()=>{
   hideNextCapture();
   const files=[...(imageInput.files||[])];
