@@ -1798,6 +1798,7 @@ function deletePendingPhoto(){
   if(idx<0)return closeModal('itemDeleteModal');
   const [item]=photoItems.splice(idx,1);
   URL.revokeObjectURL(item.url);
+  deletePersistedCapturePhoto(item.id);
   results=results.filter(x=>!item.serials.includes(x));
   pendingDeletePhotoId=null;
   renderPreviews();render();saveSession();
@@ -1809,6 +1810,7 @@ function deletePendingPhoto(){
 
 function resetEverything(){
   clearBatchStore();
+  clearPersistedCapturePhotos();
   cancelShareAutoReset(false);
   try{stopCamera()}catch{}
 
@@ -1839,6 +1841,7 @@ function resetEverything(){
     sessionStorage.removeItem('raySnResults');
     sessionStorage.removeItem('raySnLegacyVendorAssignments');
     sessionStorage.removeItem('raySnSelectedProducts');
+    sessionStorage.removeItem('raySnSelectedVendor');
   }catch{}
 
   renderPreviews();
@@ -1849,6 +1852,7 @@ function resetEverything(){
 }
 
 function clearAllSnData(message='목록이 초기화되었습니다. 새로운 촬영을 시작하세요.'){
+  clearPersistedCapturePhotos();
   photoItems.forEach(x=>{if(x?.url)URL.revokeObjectURL(x.url)});
   photoItems=[];
   results=[];
@@ -1932,15 +1936,19 @@ function runPendingShareReset(){
 
 const BATCH_DB_NAME='RaySmartSNBatchDB';
 const BATCH_DB_STORE='batchFiles';
+const CAPTURE_DB_STORE='capturePhotos';
 const BATCH_META_KEY='raySnBatchMetaV1';
 
 function openBatchDb(){
   return new Promise((resolve,reject)=>{
-    const req=indexedDB.open(BATCH_DB_NAME,1);
+    const req=indexedDB.open(BATCH_DB_NAME,2);
     req.onupgradeneeded=()=>{
       const db=req.result;
       if(!db.objectStoreNames.contains(BATCH_DB_STORE)){
         db.createObjectStore(BATCH_DB_STORE,{keyPath:'id'});
+      }
+      if(!db.objectStoreNames.contains(CAPTURE_DB_STORE)){
+        db.createObjectStore(CAPTURE_DB_STORE,{keyPath:'id'});
       }
     };
     req.onsuccess=()=>resolve(req.result);
@@ -1959,6 +1967,110 @@ async function clearBatchStore(){
   }catch{}
   try{localStorage.removeItem(BATCH_META_KEY)}catch{}
 }
+
+async function persistCapturePhoto(item,blob){
+  try{
+    const db=await openBatchDb();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(CAPTURE_DB_STORE,'readwrite');
+      tx.objectStore(CAPTURE_DB_STORE).put({
+        id:item.id,
+        vendor:item.vendor||'Unknown',
+        serials:Array.isArray(item.serials)?item.serials:[],
+        createdAt:Date.now(),
+        blob
+      });
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+    });
+    db.close();
+  }catch(e){console.warn('[촬영사진 저장 실패]',e);}
+}
+
+async function updatePersistedCapturePhoto(item){
+  if(!item?.id)return;
+  try{
+    const db=await openBatchDb();
+    const current=await new Promise((resolve,reject)=>{
+      const tx=db.transaction(CAPTURE_DB_STORE,'readonly');
+      const req=tx.objectStore(CAPTURE_DB_STORE).get(item.id);
+      req.onsuccess=()=>resolve(req.result||null);
+      req.onerror=()=>reject(req.error);
+    });
+    if(current){
+      current.vendor=item.vendor||current.vendor||'Unknown';
+      current.serials=Array.isArray(item.serials)?item.serials:[];
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(CAPTURE_DB_STORE,'readwrite');
+        tx.objectStore(CAPTURE_DB_STORE).put(current);
+        tx.oncomplete=resolve;
+        tx.onerror=()=>reject(tx.error);
+      });
+    }
+    db.close();
+  }catch(e){console.warn('[촬영사진 결과 업데이트 실패]',e);}
+}
+
+async function deletePersistedCapturePhoto(id){
+  try{
+    const db=await openBatchDb();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(CAPTURE_DB_STORE,'readwrite');
+      tx.objectStore(CAPTURE_DB_STORE).delete(id);
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+    });
+    db.close();
+  }catch{}
+}
+
+async function clearPersistedCapturePhotos(){
+  try{
+    const db=await openBatchDb();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(CAPTURE_DB_STORE,'readwrite');
+      tx.objectStore(CAPTURE_DB_STORE).clear();
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+    });
+    db.close();
+  }catch{}
+}
+
+async function restorePersistedCapturePhotos(){
+  try{
+    const db=await openBatchDb();
+    const rows=await new Promise((resolve,reject)=>{
+      const tx=db.transaction(CAPTURE_DB_STORE,'readonly');
+      const req=tx.objectStore(CAPTURE_DB_STORE).getAll();
+      req.onsuccess=()=>resolve(req.result||[]);
+      req.onerror=()=>reject(req.error);
+    });
+    db.close();
+    if(!rows.length)return false;
+
+    const existingIds=new Set(photoItems.map(x=>x.id));
+    rows.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).forEach(row=>{
+      if(existingIds.has(row.id)||!row.blob)return;
+      photoItems.push({
+        id:row.id,
+        url:URL.createObjectURL(row.blob),
+        serials:Array.isArray(row.serials)?row.serials:[],
+        vendor:row.vendor||'Unknown'
+      });
+      nextPhotoId=Math.max(nextPhotoId,Number(row.id||0)+1);
+    });
+
+    rebuildResults();
+    renderPreviews();
+    render();
+    return true;
+  }catch(e){
+    console.warn('[촬영사진 복구 실패]',e);
+    return false;
+  }
+}
+
 async function persistBatchFiles(files,mode){
   const batchId=`batch-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
   const db=await openBatchDb();
@@ -2049,9 +2161,11 @@ function saveSession(){
     sessionStorage.setItem('raySnResults',JSON.stringify(results));
     sessionStorage.setItem('raySnLegacyVendorAssignments',JSON.stringify(legacyVendorAssignments));
     sessionStorage.setItem('raySnSelectedProducts',JSON.stringify(selectedProducts));
+    sessionStorage.setItem('raySnSelectedVendor',selectedVendor||'');
   }catch{}
 }
-function loadSession(){
+
+async function loadSession(){
   try{
     const x=JSON.parse(sessionStorage.getItem('raySnResults')||'[]');
     if(Array.isArray(x))results=unique(x);
@@ -2059,8 +2173,20 @@ function loadSession(){
     if(map&&typeof map==='object'&&!Array.isArray(map))legacyVendorAssignments=map;
     const products=JSON.parse(sessionStorage.getItem('raySnSelectedProducts')||'{}');
     if(products&&typeof products==='object'&&!Array.isArray(products))selectedProducts=products;
+    const storedVendor=sessionStorage.getItem('raySnSelectedVendor')||'';
+    if(['iRay','Dell','Vieworks','i3system'].includes(storedVendor)){
+      selectedVendor=storedVendor;
+      document.querySelectorAll('.vendor').forEach(btn=>{
+        btn.classList.toggle('active',btn.dataset.vendor===storedVendor);
+      });
+    }
   }catch{}
+
+  await restorePersistedCapturePhotos();
+  rebuildResults();
+  renderPreviews();
   render();
+  updateActionReadyStates();
 }
 
 async function openCamera(){
@@ -2151,6 +2277,10 @@ async function processFiles(files,opts={}){
     const autoAlbum=selectedVendor==='Auto';
     const item=createPhotoItem(files[localIndex],autoAlbum?'Unknown':selectedVendor);
 
+    if(cumulativeProgress){
+      await persistCapturePhoto(item,files[localIndex]);
+    }
+
     // 연속촬영은 추출을 기다리기 전에 사진 수신 성공부터 바로 보여줍니다.
     // 사용자는 카메라에서 돌아오자마자 사진이 정상적으로 들어왔는지 확인할 수 있습니다.
     if(immediatePreview){
@@ -2197,6 +2327,10 @@ async function processFiles(files,opts={}){
     }catch{
       failed++;
       addFailedImage(files[localIndex],item.id);
+    }
+
+    if(cumulativeProgress){
+      await updatePersistedCapturePhoto(item);
     }
 
     rebuildResults();
@@ -2417,6 +2551,7 @@ document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',(
     selectedVendor='';
     setStatus('업체 선택이 해제되었습니다. 앨범선택은 자동인식으로 동작합니다. 연속촬영은 업체를 선택해 주세요.');
     updateActionReadyStates();
+    saveSession();
     return;
   }
 
@@ -2424,6 +2559,7 @@ document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',(
   selectedVendor=btn.dataset.vendor;
   updateActionReadyStates();
   setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 연속촬영과 앨범선택 모두 ${vendorLabel(selectedVendor)} 방식으로 처리됩니다.`);
+  saveSession();
 }));
 $('openCameraBtn').addEventListener('click',()=>{
   if(busy)return;
