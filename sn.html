@@ -1283,8 +1283,147 @@ async function tryBarcode(source){
   }
 }
 
+
+
+async function extractI3Lightweight(source){
+  let bitmap=null;
+  let base=null;
+  try{
+    bitmap=await sourceToBitmap(source);
+
+    // i3System은 QR/DataMatrix 안에서 DIB 번호만 찾으면 되므로
+    // 고해상도 전체 사진을 여러 번 분석하지 않고 최대 1200px 한 장만 검사합니다.
+    base=makeScanCanvas(bitmap,1200);
+    const candidates=[];
+
+    // 1차: 휴대폰 기본 바코드 인식기
+    try{
+      candidates.push(...await tryNativeBarcode(base));
+    }catch{}
+
+    let serials=unique(
+      candidates
+        .map(normalizeI3Serial)
+        .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
+    );
+    if(serials.length)return serials.slice(0,20);
+
+    // 2차: 기본 인식이 실패했을 때만 ZXing 1회.
+    // 크롭/회전/OCR은 하지 않아 메모리 사용을 최소화합니다.
+    if(window.ZXing){
+      try{
+        candidates.push(...tryZXingCanvas(base));
+      }catch{}
+    }
+
+    serials=unique(
+      candidates
+        .map(normalizeI3Serial)
+        .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
+    );
+    return serials.slice(0,20);
+  }catch(e){
+    console.error('[i3 경량 인식 오류]',e);
+    return [];
+  }finally{
+    releaseCanvas(base);
+    if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+  }
+}
+
+async function extractDellTopServiceTag(source){
+  let bitmap=null;
+  let base=null;
+  let top=null;
+  try{
+    bitmap=await sourceToBitmap(source);
+    base=makeScanCanvas(bitmap,1800);
+
+    // Dell은 라벨 맨 위의 Service Tag(S/N) 바코드만 사용합니다.
+    // 아래쪽 FGID/기타 바코드·DataMatrix는 아예 검사 영역에서 제외합니다.
+    const w=base.width,h=base.height;
+    top=cropCanvas(
+      base,
+      0,
+      0,
+      w,
+      Math.max(1,Math.round(h*.43)),
+      1.35
+    );
+
+    const candidates=[];
+
+    // 1차: 휴대폰 기본 BarcodeDetector
+    try{ candidates.push(...await tryNativeBarcode(top)); }catch{}
+
+    // 2차: ZXing 보조
+    if(window.ZXing){
+      try{ candidates.push(...tryZXingCanvas(top)); }catch{}
+
+      // 상단 바코드가 가로로 길기 때문에 좌우 여백을 조금 줄여 한 번 더 확인
+      const tw=top.width,th=top.height;
+      const center=cropCanvas(
+        top,
+        Math.round(tw*.14),
+        0,
+        Math.round(tw*.82),
+        Math.round(th*.72),
+        1.25
+      );
+      try{ candidates.push(...tryZXingCanvas(center)); }catch{}
+      releaseCanvas(center);
+    }
+
+    const cleaned=unique(
+      candidates
+        .map(x=>formatSerialInput(x,'Dell'))
+        .filter(x=>/^[A-Z0-9]{7}$/.test(x))
+    );
+    if(cleaned.length)return [cleaned[0]];
+
+    // 바코드를 못 읽었을 때만 상단 라벨의 "Service Tag (S/N)" 문구를 OCR 보조로 확인합니다.
+    setLive('Dell Service Tag 확인 중…','busy');
+    const rec=await Tesseract.recognize(top,'eng',{logger:m=>{
+      if(m.status==='recognizing text' && typeof m.progress==='number'){
+        setLive(`Dell Service Tag 확인 중… ${Math.round(m.progress*100)}%`,'busy');
+      }
+    }});
+    const raw=String(rec?.data?.text||'').toUpperCase().replace(/\r/g,'\n');
+
+    // "Service Tag (S/N): 1ZS2BK4" 형태 우선
+    let m=raw.match(/SERVICE\s*TAG(?:\s*\(S\/?N\))?\s*[:#-]?\s*([A-Z0-9]{7})/i);
+    if(m)return [m[1].toUpperCase()];
+
+    // 사진처럼 Service Tag 문구와 실제 코드가 줄이 갈라져 인식될 경우:
+    // 상단 영역에서 정확히 7자리 영숫자만 후보로 잡되, 흔한 라벨 단어는 제외
+    const tokens=raw.match(/\b[A-Z0-9]{7}\b/g)||[];
+    const blocked=new Set(['SERVICE','PRODUCT','COUNTRY','DESKTOP','CHINA00']);
+    const valid=unique(tokens.filter(x=>!blocked.has(x)));
+    return valid.length?[valid[0]]:[];
+  }catch(e){
+    console.error('[Dell 상단 Service Tag 인식 오류]',e);
+    return [];
+  }finally{
+    releaseCanvas(top);
+    releaseCanvas(base);
+    if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+  }
+}
+
 async function extractSerial(source){
   setLive('QR·1D 바코드 확인 중…','busy');
+
+  // Dell은 전체 사진을 스캔하지 않고 맨 위 Service Tag 바코드만 인식합니다.
+  if(selectedVendor==='Dell'){
+    return await extractDellTopServiceTag(source);
+  }
+
+  // i3System은 메모리 안정성을 위해 전용 경량 인식기를 사용합니다.
+  // QR/DataMatrix → DIB 번호만 추출하며 크롭/회전/OCR을 하지 않습니다.
+  if(selectedVendor==='i3system'){
+    return await extractI3Lightweight(source);
+  }
+
   const barcodes=await tryBarcode(source);
 
   // 앨범 자동 인식에서도 Vieworks GS1 DataMatrix가 보이면
@@ -1296,14 +1435,6 @@ async function extractSerial(source){
       return vieworksSn || clean(code);
     });
     return unique(normalized).slice(0,20);
-  }
-
-  // i3System은 QR과 1D 바코드 결과만 사용합니다.
-  // 바코드를 못 읽었을 때 OCR 오인식 문자가 목록에 들어가지 않도록 합니다.
-  if(selectedVendor==='i3system'){
-    // i3System은 OCR을 절대 실행하지 않습니다. 바코드가 없으면 미인식으로 처리합니다.
-    // QR/바코드 전체값이 XID-24DC-DIB2747이어도 최종 결과에는 DIB2747만 저장합니다.
-    return unique(barcodes.map(normalizeI3Serial).filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))).slice(0,20);
   }
 
   if(selectedVendor==='Vieworks'){
@@ -1329,13 +1460,11 @@ async function extractSerial(source){
     const irayCodes=unique(barcodes.map(x=>formatSerialInput(x,'iRay')).filter(Boolean));
     if(irayCodes.length)return irayCodes.slice(0,20);
   }
-  if(selectedVendor==='Dell' && barcodes.length)return unique(barcodes.map(x=>formatSerialInput(x,'Dell'))).slice(0,10);
   const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
     if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`문자 인식 중… ${Math.round(m.progress*100)}%`,'busy');
   }});
   const fromText=parseSerials(rec?.data?.text||'',selectedVendor);
   if(selectedVendor==='iRay')return unique(fromText.map(x=>formatSerialInput(x,'iRay'))).slice(0,10);
-  if(selectedVendor==='Dell')return unique([...barcodes,...fromText].map(x=>formatSerialInput(x,'Dell'))).slice(0,10);
   return unique([...barcodes,...fromText]).slice(0,10);
 }
 
@@ -2052,7 +2181,7 @@ async function makeStoredCaptureBlob(source,maxSide=1600,quality=.82){
 
 async function persistCapturePhoto(item,blob){
   try{
-    const storedBlob=await makeStoredCaptureBlob(blob,1600,.82);
+    const storedBlob=await makeStoredCaptureBlob(blob,1280,.80);
     const db=await openBatchDb();
     await new Promise((resolve,reject)=>{
       const tx=db.transaction(CAPTURE_DB_STORE,'readwrite');
@@ -2734,16 +2863,16 @@ function openFreshNativeCamera(){
     return;
   }
 
-  // Android/Samsung Internet/Chrome에서 연속으로 같은 input을 재사용하면
-  // 두 번째 촬영 확인 후 change가 발생하지 않는 경우가 있어 매번 새 input을 사용합니다.
-  requestAnimationFrame(()=>{
-    setTimeout(()=>{
-      try{ input.click(); }
-      catch(e){
-        setStatus('카메라를 열지 못했습니다. 다시 눌러 주세요.','bad');
-      }
-    },180);;
-  });
+  // 중요: file input 클릭은 사용자의 버튼 터치 이벤트 안에서 즉시 실행해야 합니다.
+  // requestAnimationFrame/setTimeout으로 늦추면 삼성 인터넷/Chrome에서
+  // 사용자 제스처 권한이 끊겨 '다음 촬영'을 눌러도 카메라가 안 열릴 수 있습니다.
+  try{
+    input.click();
+  }catch(e){
+    console.error('[카메라 열기 오류]',e);
+    setStatus('카메라를 열지 못했습니다. 다시 눌러 주세요.','bad');
+    showNextCapture();
+  }
 }
 
 async function handleNativeCaptureChange(e){
@@ -2794,14 +2923,21 @@ async function handleNativeCaptureChange(e){
 }
 
 nextCaptureBtn?.addEventListener('click',()=>{
-  if(busy)return;
+  if(busy){
+    toast('현재 사진 처리 중입니다');
+    return;
+  }
   if(!selectedVendor || selectedVendor==='Auto'){
     toast('업체를 먼저 선택해 주세요');
     return;
   }
-  hideNextCapture();
+
   setInputMode('camera');
+  setStatus('다음 촬영을 시작합니다.','ok');
+  // 숨기기 전에 즉시 카메라를 여는 것이 핵심입니다.
+  // 모바일 브라우저는 이 클릭 이벤트 안에서 input.click()이 실행되어야 합니다.
   openFreshNativeCamera();
+  hideNextCapture();
 });
 
 imageInput.addEventListener('change',async()=>{
