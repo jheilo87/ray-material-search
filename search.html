@@ -590,6 +590,17 @@ body.searchMultiOpen{overflow:hidden}
   box-shadow:0 3px 9px rgba(0,0,0,.28);
   filter:none!important;text-shadow:none!important
 }
+.mapPin::before{
+  content:'';position:absolute;left:50%;top:50%;
+  width:22px;height:22px;transform:translate(-50%,-50%);
+  border-radius:50%;background:#e93635;z-index:2
+}
+.mapPin::after{
+  content:'';position:absolute;left:50%;top:24px;
+  width:9px;height:17px;transform:translateX(-50%);
+  border:2px solid #fff;border-top:0;border-radius:0 0 5px 5px;
+  background:#ffd43b;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1
+}
 .mapExactBadge{display:none!important}
 .mapStartArrow{
   color:#e93635;font-size:34px;
@@ -980,7 +991,7 @@ const MAP_ZONES = {
  ],
  '5층': [
   {codes:['V'],x:3.8,y:0.5,w:17.8,h:57.7}, {codes:['U'],x:21.6,y:0.5,w:5.8,h:57.7}, {codes:['T'],x:30.4,y:0.5,w:5.9,h:57.7},
-  {codes:['S'],x:0.9,y:8.8,w:2.9,h:49.4}, {codes:['R'],x:3.8,y:62.7,w:14.7,h:14.4}, {codes:['Q'],x:21.6,y:62.7,w:8.8,h:14.4}, {codes:['P'],x:36.3,y:62.7,w:8.9,h:14.4}, {codes:['W'],x:45.1,y:62.7,w:3.0,h:4.8},
+  {codes:['S'],x:0.9,y:8.8,w:2.9,h:49.4}, {codes:['R'],x:3.8,y:62.7,w:14.7,h:14.4}, {codes:['Q'],x:21.6,y:62.7,w:8.8,h:14.4}, {codes:['P'],x:36.3,y:62.7,w:8.9,h:14.4}, {codes:['W'],x:45.1,y:62.7,w:5.9,h:4.8},
   {codes:Array.from({length:16},(_,i)=>`A${i+1}`),x:71.1,y:0.5,w:26.9,h:10.8},
   {codes:['N1','N2','N3','N4','N5'],x:65.8,y:0.5,w:5.1,h:22.3},
   {codes:['H1','H2','H3','H4'],x:71.6,y:11.3,w:11.9,h:4.9}, {codes:['L1','L2'],x:86.4,y:11.3,w:11.6,h:4.9},
@@ -996,23 +1007,21 @@ const MAP_ZONES = {
 
 const MAP_FACILITIES = {
  '3층': [
-  {label:'사무/공용',type:'common',x:0.0,y:67.8,w:15.0,h:8.8},
-  {label:'비상구',type:'exit',x:15.0,y:67.8,w:8.5,h:8.8},
-  {label:'엘리베이터',type:'elevator',x:23.5,y:67.8,w:8.5,h:8.8,start:true},
-  {label:'계단',type:'common',x:32.0,y:67.8,w:7.0,h:8.8}
+  {label:'출입구',type:'common',x:0.9,y:67.8,w:8.5,h:8.8,start:true}
  ],
  '4층': [
   {label:'4F CASE',type:'caseArea',x:4.6,y:5.2,w:43.5,h:44.8},
-  {label:'자재 보관 구역',type:'storage',x:48.1,y:5.2,w:25.8,h:44.8},
+  {label:'4F',type:'storage',x:48.1,y:5.2,w:25.8,h:44.8},
   {label:'비상문',type:'exit',x:4.6,y:52.0,w:8.5,h:12.5},
   {label:'엘리베이터',type:'elevator',x:13.1,y:52.0,w:9.0,h:12.5,start:true},
   {label:'휴게공간',type:'rest',x:22.1,y:52.0,w:10.5,h:12.5},
   {label:'화물 엘리베이터',type:'cargo',x:32.6,y:52.0,w:15.5,h:12.5}
  ],
  '5층': [
-  {label:'품질오피스',type:'office',x:36.3,y:0.5,w:29.5,h:11.0},
-  {label:'검사대기 (보드)',type:'quality',x:36.3,y:11.5,w:14.8,h:46.7},
-  {label:'검사대기 (기구)',type:'quality',x:51.1,y:11.5,w:14.7,h:46.7},
+  {label:'품질오피스',type:'office',x:36.3,y:0.5,w:24.0,h:11.0},
+  {label:'검사대기 (보드)',type:'quality',x:36.3,y:11.5,w:12.0,h:46.7},
+  {label:'검사대기 (기구)',type:'quality',x:48.3,y:11.5,w:12.0,h:46.7},
+  {label:'자재오피스',type:'storage',x:60.3,y:0.5,w:5.5,h:22.3},
   {label:'옥상문',type:'roof',x:96.0,y:11.3,w:3.5,h:9.3},
   {label:'화장실',type:'common',x:15.0,y:77.2,w:6.6,h:9.5},
   {label:'비상구',type:'exit',x:21.6,y:77.2,w:8.8,h:9.5},
