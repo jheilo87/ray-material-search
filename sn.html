@@ -1654,6 +1654,13 @@ async function extractSerial(source){
       let irayTextCodes=parseIRaySnText(retry?.data?.text||'');
       if(irayTextCodes.length)return irayTextCodes.slice(0,10);
 
+      // 첫 사진은 OCR worker가 막 준비된 직후라 같은 선명한 글자도 한 번 놓칠 수 있습니다.
+      // 실패한 경우에만 동일 영역을 즉시 한 번 재확인합니다.
+      setLive('iRay 첫 영역 재확인 중…','busy');
+      const warmRetry=await worker.recognize(label);
+      irayTextCodes=parseIRaySnText(warmRetry?.data?.text||'');
+      if(irayTextCodes.length)return irayTextCodes.slice(0,10);
+
       // 접힌 라벨처럼 바코드가 조금 위로 올라간 사진은 더 얇은 상단 띠만
       // 한 번 보조 확인합니다. 동일 worker를 순차 재사용해 메모리는 늘리지 않습니다.
       upperLabel=cropCanvas(
