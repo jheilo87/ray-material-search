@@ -1079,6 +1079,13 @@ function cleanFloorSvg(floor){
 }
 function guideYPercent(floor,value){return floor==='4층'?(value*1000/700):value;}
 function guideXPercent(floor,value){return floor==='3층'?(value*98/64):value;}
+function guideMarkerPoint(zone){
+ const narrow=zone.w<6;
+ return {
+  x:zone.x+zone.w*(narrow?.5:.82),
+  y:zone.y+zone.h*(narrow?.25:.35)
+ };
+}
 function addFacilityOverlays(map,floor){
  (MAP_FACILITIES[floor]||[]).forEach(f=>{
    // 시설 이름과 구역은 원본 도면에 표시되어 있으므로 다시 덮어쓰지 않는다.
@@ -1148,7 +1155,7 @@ function openLocationMap(loc){
  else {
    const img=document.createElement('img'); img.src=src; img.alt=floor+' 실제 창고 레이아웃'; map.appendChild(img);
    addFacilityOverlays(map,floor);
-   if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=guideXPercent(floor,zone.x+zone.w/2)+'%';h.style.top=guideYPercent(floor,zone.y+zone.h/2)+'%';h.innerHTML='<div class="mapPin"></div>';map.appendChild(h);}
+   if(zone){const point=guideMarkerPoint(zone),h=document.createElement('div');h.className='mapHighlight';h.style.left=guideXPercent(floor,point.x)+'%';h.style.top=guideYPercent(floor,point.y)+'%';h.innerHTML='<div class="mapPin"></div>';map.appendChild(h);}
    else {const note=document.createElement('div');note.className='locationMapUnavailable';note.style.position='absolute';note.style.inset='35% 15% auto';note.style.zIndex='20';note.style.background='rgba(255,255,255,.96)';note.style.borderRadius='14px';note.style.padding='18px';note.innerHTML=`<strong>${esc(code)}</strong>실제 도면에서 자동 매칭할 위치를 찾지 못했습니다.`;map.appendChild(note);}
  }
  $('#locationMapModal').classList.add('show'); document.body.classList.add('modalOpen');
