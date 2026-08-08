@@ -1234,6 +1234,19 @@ function enhanceIRayOcrCanvas(canvas){
   return canvas;
 }
 
+function makeIRayBinaryCanvas(sourceCanvas,threshold=132){
+  const canvas=cropCanvas(sourceCanvas,0,0,sourceCanvas.width,sourceCanvas.height,1);
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const image=ctx.getImageData(0,0,canvas.width,canvas.height),data=image.data;
+  for(let i=0;i<data.length;i+=4){
+    const gray=Math.round(data[i]*.299+data[i+1]*.587+data[i+2]*.114);
+    const value=gray<threshold?0:255;
+    data[i]=data[i+1]=data[i+2]=value;
+  }
+  ctx.putImageData(image,0,0);
+  return canvas;
+}
+
 let irayOcrWorkerPromise=null;
 async function getIRayOcrWorker(){
   if(!irayOcrWorkerPromise){
@@ -1637,7 +1650,7 @@ async function extractSerial(source){
     // 실제 iRay 라벨에서 긴 1D 바코드와 인쇄 S/N이 놓이는 중앙 띠만 읽습니다.
     // 넓은 사진 전체 OCR을 없애 속도와 메모리를 아끼고 주변 문구 오인식도 막습니다.
     setLive('iRay 바코드 영역 확인 중…','busy');
-    let bitmap=null,base=null,label=null,upperLabel=null;
+    let bitmap=null,base=null,label=null,binaryLabel=null,upperLabel=null;
     try{
       bitmap=await sourceToBitmap(source);
       base=makeScanCanvas(bitmap,1800);
@@ -1654,11 +1667,12 @@ async function extractSerial(source){
       let irayTextCodes=parseIRaySnText(retry?.data?.text||'');
       if(irayTextCodes.length)return irayTextCodes.slice(0,10);
 
-      // 첫 사진은 OCR worker가 막 준비된 직후라 같은 선명한 글자도 한 번 놓칠 수 있습니다.
-      // 실패한 경우에만 동일 영역을 즉시 한 번 재확인합니다.
-      setLive('iRay 첫 영역 재확인 중…','busy');
-      const warmRetry=await worker.recognize(label);
-      irayTextCodes=parseIRaySnText(warmRetry?.data?.text||'');
+      // 1번 라벨처럼 바코드 선과 아래 문자의 명암이 가까운 사진은
+      // 같은 사진 재시도 대신 흑백 이진화본으로 선과 글자를 확실히 분리합니다.
+      setLive('iRay 흑백 바코드 재확인 중…','busy');
+      binaryLabel=makeIRayBinaryCanvas(label,132);
+      const binaryRetry=await worker.recognize(binaryLabel);
+      irayTextCodes=parseIRaySnText(binaryRetry?.data?.text||'');
       if(irayTextCodes.length)return irayTextCodes.slice(0,10);
 
       // 접힌 라벨처럼 바코드가 조금 위로 올라간 사진은 더 얇은 상단 띠만
@@ -1678,6 +1692,7 @@ async function extractSerial(source){
       return [];
     }finally{
       releaseCanvas(upperLabel);
+      releaseCanvas(binaryLabel);
       releaseCanvas(label);
       releaseCanvas(base);
       if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
