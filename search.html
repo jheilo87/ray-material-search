@@ -583,8 +583,8 @@ body.searchMultiOpen{overflow:hidden}
 }
 .mapPin{
   left:0!important;top:0!important;
-  width:20px;height:20px;
-  transform:translate(-50%,-100%)!important;
+  width:16px;height:16px;
+  transform:translate(-50%,-30px)!important;
   border:2px solid #fff;border-radius:50%;
   background:#e93635;color:transparent!important;
   box-shadow:0 3px 9px rgba(0,0,0,.28);
@@ -592,12 +592,12 @@ body.searchMultiOpen{overflow:hidden}
 }
 .mapPin::before{
   content:'';position:absolute;left:50%;top:50%;
-  width:14px;height:14px;transform:translate(-50%,-50%);
+  width:11px;height:11px;transform:translate(-50%,-50%);
   border-radius:50%;background:#e93635;z-index:2
 }
 .mapPin::after{
-  content:'';position:absolute;left:50%;top:14px;
-  width:5px;height:11px;transform:translateX(-50%);
+  content:'';position:absolute;left:50%;top:12px;
+  width:4px;height:18px;transform:translateX(-50%);
   border:1px solid #fff;border-top:0;border-radius:0 0 4px 4px;
   background:#ffd43b;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1
 }
@@ -932,6 +932,7 @@ input,select,textarea{font-size:max(16px,1em);}
 const __raySearchParams = new URLSearchParams(location.search);
 const initialMode = (__raySearchParams.get('mode') || '').trim();
 const initialMulti = (__raySearchParams.get('multi') || '').trim();
+const initialMap = (__raySearchParams.get('map') || '').trim();
 
 const BUILTIN = [];
 let DATA = [];
@@ -1053,12 +1054,20 @@ function facilityPalette(type){
 function cleanFloorSvg(floor){
  const zones=MAP_ZONES[floor]||[], facilities=MAP_FACILITIES[floor]||[];
  if(!zones.length)return '';
- const displayZones=floor==='4층' ? [
+ let displayZones=floor==='4층' ? [
   {codes:['4F CASE'],x:4.6,y:5.2,w:17.3,h:44.8},
   {codes:['4F CASE'],x:21.9,y:5.2,w:26.2,h:44.8},
   {codes:['4F'],x:48.1,y:5.2,w:25.8,h:44.8}
- ] : floor==='3층' ? zones.map(z=>({...z,x:guideXPercent(floor,z.x),w:guideXPercent(floor,z.w)})) : zones;
- const displayFacilities=floor==='3층' ? facilities.map(f=>({...f,x:guideXPercent(floor,f.x),w:guideXPercent(floor,f.w)})) : facilities;
+ ] : zones;
+ let displayFacilities=facilities;
+ if(floor==='3층'||floor==='4층'){
+  displayZones=displayZones.map(z=>({...z,x:guideXPercent(floor,z.x),w:guideXPercent(floor,z.w)}));
+  displayFacilities=displayFacilities.map(f=>({...f,x:guideXPercent(floor,f.x),w:guideXPercent(floor,f.w)}));
+ }
+ if(floor==='5층'){
+  displayZones=displayZones.map(z=>({...z,y:guideSvgY(floor,z.y),h:guideSvgY(floor,z.h)}));
+  displayFacilities=displayFacilities.map(f=>({...f,y:guideSvgY(floor,f.y),h:guideSvgY(floor,f.h)}));
+ }
  const canvasH=floor==='4층'?700:1000;
  const rect=(x,y,w,h,fill,stroke,sw=2,rx=7)=>`<rect x="${x*10}" y="${y*10}" width="${w*10}" height="${h*10}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
  const text=(label,x,y,w,h,color,size=22)=>{
@@ -1077,13 +1086,14 @@ function cleanFloorSvg(floor){
  body+=`<text x="28" y="${canvasH-24}" fill="#667085" font-family="Arial,'Noto Sans KR',sans-serif" font-size="15" font-weight="700">${mapXml(floor)} 창고 안내도</text>`;
  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 ${canvasH}">${body}</svg>`)}`;
 }
-function guideYPercent(floor,value){return floor==='4층'?(value*1000/700):value;}
-function guideXPercent(floor,value){return floor==='3층'?(value*98/64):value;}
+function guideSvgY(floor,value){return floor==='5층'?(value*96/86.7):value;}
+function guideYPercent(floor,value){return floor==='4층'?(value*1000/700):guideSvgY(floor,value);}
+function guideXPercent(floor,value){return floor==='3층'?(value*98/64):floor==='4층'?(value*98/74):value;}
 function guideMarkerPoint(zone){
- const narrow=zone.w<6;
+ const short=zone.h<7;
  return {
-  x:zone.x+zone.w*(narrow?.5:.82),
-  y:zone.y+zone.h*(narrow?.25:.35)
+  x:zone.x+zone.w*.5,
+  y:zone.y+zone.h*(short?.18:.27)
  };
 }
 function addFacilityOverlays(map,floor){
@@ -1769,6 +1779,7 @@ if(initialMode==='multi'){
   }
 }
 loadRemoteExcel();
+if(initialMap&&mapAvailable(initialMap))setTimeout(()=>openLocationMap(initialMap),260);
 setTimeout(() => document.querySelector('#splash')?.classList.add('hide'), 1650);
 
 
