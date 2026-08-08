@@ -1208,6 +1208,31 @@ function enhanceIRayLabelCanvas(canvas){
   return canvas;
 }
 
+function makeIRayOcrStripCanvas(base){
+  const w=base.width,h=base.height;
+  const sourceX=Math.round(w*.03);
+  const sourceW=Math.round(w*.94);
+  const bandH=Math.max(1,Math.round(h*.15));
+  const scale=1.85;
+  const starts=[.18,.30,.42,.54,.66];
+  const out=document.createElement('canvas');
+  out.width=Math.max(1,Math.round(sourceW*scale));
+  const oneH=Math.max(1,Math.round(bandH*scale));
+  out.height=oneH*starts.length;
+  const ctx=out.getContext('2d',{willReadFrequently:true});
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+
+  // 사진마다 S/N 글자의 높이가 달라서 여러 가로 띠를 한 장으로 모읍니다.
+  // OCR은 이 합성 이미지 한 장만 처리하므로 캔버스가 동시에 여러 개 쌓이지 않습니다.
+  starts.forEach((ratio,index)=>{
+    const sy=Math.min(Math.max(0,h-bandH),Math.round(h*ratio));
+    ctx.drawImage(base,sourceX,sy,sourceW,bandH,0,index*oneH,out.width,oneH);
+  });
+  return enhanceIRayLabelCanvas(out);
+}
+
 async function tryNativeBarcode(target){
   if(!('BarcodeDetector' in window))return [];
   try{
@@ -1591,17 +1616,10 @@ async function extractSerial(source){
     let bitmap=null,base=null,label=null;
     try{
       bitmap=await sourceToBitmap(source);
-      base=makeScanCanvas(bitmap,2400);
-      const w=base.width,h=base.height;
-      label=cropCanvas(
-        base,
-        Math.round(w*.03),Math.round(h*.16),
-        Math.round(w*.94),Math.round(h*.72),
-        1.55
-      );
-      enhanceIRayLabelCanvas(label);
+      base=makeScanCanvas(bitmap,1800);
+      label=makeIRayOcrStripCanvas(base);
       const retry=await Tesseract.recognize(label,'eng',{logger:m=>{
-        if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`iRay 확대 문자 확인 중… ${Math.round(m.progress*100)}%`,'busy');
+        if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`iRay S/N 글자 확대 확인 중… ${Math.round(m.progress*100)}%`,'busy');
       }});
       irayTextCodes=parseIRaySnText(retry?.data?.text||'');
       return irayTextCodes.slice(0,10);
