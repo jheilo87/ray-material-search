@@ -973,6 +973,17 @@ function clean(s){return String(s||'').toUpperCase().replace(/[\s\u200B]+/g,'').
 function plainSerial(value){
   return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 }
+function filterIRaySerials(values=[]){
+  const vals=unique(values.map(plainSerial).filter(Boolean));
+
+  // iRay 실사용 S/N은 긴 1D 바코드 값이며 끝이 X입니다.
+  // 확인된 ED...X 형식을 먼저 선택해 주변의 짧은 바코드/라벨 문구가 섞이지 않게 합니다.
+  const exact=vals.filter(v=>/^ED[A-Z0-9]{12,27}X$/.test(v));
+  if(exact.length)return exact.slice(0,20);
+
+  // ED 접두사가 다른 iRay 라벨도 대비하되, 긴 코드 + 끝 X 조건은 반드시 지킵니다.
+  return vals.filter(v=>/^[A-Z0-9]{15,30}X$/.test(v)).slice(0,20);
+}
 function normalizeI3Serial(value){
   const plain=plainSerial(value);
 
@@ -998,7 +1009,7 @@ function vendorInputGuide(vendor=''){
   if(vendor==='i3system')return 'i3System은 DIB 번호만 사용합니다. 예: XID-24DC-DIB2746 → DIB2746';
   if(vendor==='Vieworks')return 'Vieworks: QR(DataMatrix)의 (21) S/N을 우선 사용하며, 직접 입력은 영문·숫자만 가능합니다.';
   if(vendor==='Dell')return 'Dell: 1D 바코드 형식 · 영문·숫자만 입력 · 하이픈 없음';
-  if(vendor==='iRay')return 'iRay: 영문·숫자만 입력 · 하이픈 없음';
+  if(vendor==='iRay')return 'iRay: 긴 1D 바코드 S/N · 영문·숫자 15~30자리 · 끝 X';
   return '영문·숫자만 입력하세요.';
 }
 function validateSerialFormat(value,vendor=''){
@@ -1008,6 +1019,10 @@ function validateSerialFormat(value,vendor=''){
   if(vendor==='i3system'){
     const ok=/^DIB[A-Z0-9]{4,20}$/.test(formatted);
     return {ok,message:ok?'✔ i3System S/N 형식 정상':'i3System은 DIB로 시작하는 S/N만 입력해 주세요. 예: DIB2747'};
+  }
+  if(vendor==='iRay'){
+    const ok=/^[A-Z0-9]{15,30}X$/.test(formatted);
+    return {ok,message:ok?'✔ iRay S/N 형식 정상':'iRay은 긴 1D 바코드 값이며 마지막이 X인 S/N만 입력해 주세요.'};
   }
   const minimum=vendor==='Dell'?7:6;
   const ok=new RegExp(`^[A-Z0-9]{${minimum},30}$`).test(formatted);
@@ -1063,9 +1078,7 @@ function filterAutoSerialsByVendor(serials=[],vendor='Unknown'){
   const vals=unique(serials.map(x=>clean(x)).filter(Boolean));
 
   if(vendor==='iRay'){
-    // iRay 실사용 S/N은 긴 영숫자 코드이며 현재 확인된 형식은 끝이 X입니다.
-    // OCR/바코드 오인식으로 들어오는 짧은 일반 문자열(FACOABCOA, BRESINED 등)은 제외합니다.
-    return vals.filter(v=>/^[A-Z0-9]{15,30}X$/.test(v)).slice(0,20);
+    return filterIRaySerials(vals);
   }
 
   if(vendor==='Dell'){
@@ -1491,14 +1504,14 @@ async function extractSerial(source){
     // iRay은 사진 한 장에 여러 개의 1D 바코드가 있을 수 있으므로
     // 인식된 바코드를 한 건으로 제한하지 않고 모두 S/N 후보로 반환합니다.
     // 업체 고정 선택은 인식 방식만 iRay으로 고정하며, 다중 바코드 추출 개수는 제한하지 않습니다.
-    const irayCodes=unique(barcodes.map(x=>formatSerialInput(x,'iRay')).filter(Boolean));
+    const irayCodes=filterIRaySerials(barcodes);
     if(irayCodes.length)return irayCodes.slice(0,20);
   }
   const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
     if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`문자 인식 중… ${Math.round(m.progress*100)}%`,'busy');
   }});
   const fromText=parseSerials(rec?.data?.text||'',selectedVendor);
-  if(selectedVendor==='iRay')return unique(fromText.map(x=>formatSerialInput(x,'iRay'))).slice(0,10);
+  if(selectedVendor==='iRay')return filterIRaySerials(fromText).slice(0,10);
   return unique([...barcodes,...fromText]).slice(0,10);
 }
 
