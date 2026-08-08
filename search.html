@@ -583,21 +583,21 @@ body.searchMultiOpen{overflow:hidden}
 }
 .mapPin{
   left:0!important;top:0!important;
-  width:34px;height:34px;
-  transform:translate(-50%,-50%)!important;
-  border:4px solid #fff;border-radius:50%;
+  width:26px;height:26px;
+  transform:translate(-50%,-100%)!important;
+  border:3px solid #fff;border-radius:50%;
   background:#e93635;color:transparent!important;
   box-shadow:0 3px 9px rgba(0,0,0,.28);
   filter:none!important;text-shadow:none!important
 }
 .mapPin::before{
   content:'';position:absolute;left:50%;top:50%;
-  width:22px;height:22px;transform:translate(-50%,-50%);
+  width:17px;height:17px;transform:translate(-50%,-50%);
   border-radius:50%;background:#e93635;z-index:2
 }
 .mapPin::after{
-  content:'';position:absolute;left:50%;top:24px;
-  width:9px;height:17px;transform:translateX(-50%);
+  content:'';position:absolute;left:50%;top:18px;
+  width:7px;height:13px;transform:translateX(-50%);
   border:2px solid #fff;border-top:0;border-radius:0 0 5px 5px;
   background:#ffd43b;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1
 }
@@ -997,11 +997,11 @@ const MAP_ZONES = {
   {codes:['H1','H2','H3','H4'],x:71.6,y:11.3,w:11.9,h:4.9}, {codes:['L1','L2'],x:71.6,y:16.2,w:11.9,h:4.4},
   {codes:['I1','I2','I3'],x:71.6,y:20.6,w:11.9,h:4.9}, {codes:['J1','J2','J3','J4'],x:71.6,y:25.4,w:11.9,h:4.9},
   {codes:['B1','B2','B3','B4'],x:86.4,y:20.6,w:11.6,h:4.9}, {codes:['C1','C2','C3','C4'],x:86.4,y:25.4,w:11.6,h:4.9},
-  {codes:['O1','O2','O3','O4'],x:53.9,y:30.0,w:14.8,h:28.2},
+  {codes:['O1','O2','O3','O4'],x:60.3,y:30.0,w:8.4,h:28.2},
   {codes:['K1','K2','K3'],x:71.6,y:34.8,w:3.0,h:23.4}, {codes:['K4','K5','K6','K7'],x:74.5,y:34.8,w:3.0,h:23.4}, {codes:['K8'],x:77.5,y:34.8,w:5.9,h:23.4},
   {codes:['D1','D2','D3','D4'],x:86.4,y:34.8,w:11.6,h:4.9}, {codes:['E1','E2','E3','E4'],x:86.4,y:39.7,w:11.6,h:4.9},
-  {codes:['F1','F2','F3'],x:86.4,y:49.0,w:11.6,h:4.9}, {codes:['G1','G2','G3'],x:86.4,y:53.9,w:11.6,h:4.9}, {codes:['G4'],x:86.4,y:62.8,w:11.6,h:4.9},
-  {codes:['M1','M2','M3','M4'],x:71.6,y:62.8,w:11.8,h:4.9}, {codes:['M5','M6'],x:62.8,y:62.8,w:5.9,h:4.9}
+  {codes:['F1','F2','F3'],x:86.4,y:49.0,w:11.6,h:4.9}, {codes:['G1','G2','G3'],x:86.4,y:53.9,w:11.6,h:4.9}, {codes:['G4'],x:86.4,y:69.2,w:11.6,h:4.9},
+  {codes:['M1','M2','M3','M4'],x:71.6,y:69.2,w:11.8,h:4.9}, {codes:['M5','M6'],x:62.8,y:69.2,w:5.9,h:4.9}
  ]
 };
 
@@ -1018,7 +1018,7 @@ const MAP_FACILITIES = {
   {label:'품질오피스',type:'office',x:36.3,y:0.5,w:24.0,h:11.0},
   {label:'검사대기 (보드)',type:'quality',x:36.3,y:11.5,w:12.0,h:46.7},
   {label:'검사대기 (기구)',type:'quality',x:48.3,y:11.5,w:12.0,h:46.7},
-  {label:'자재오피스',type:'storage',x:86.4,y:11.3,w:11.6,h:4.9},
+  {label:'자재오피스',type:'storage',x:86.4,y:11.3,w:9.2,h:4.9},
   {label:'옥상문',type:'roof',x:96.0,y:11.3,w:3.5,h:9.3},
   {label:'화장실',type:'common',x:15.0,y:77.2,w:6.6,h:9.5},
   {label:'비상구',type:'exit',x:21.6,y:77.2,w:8.8,h:9.5},
@@ -1065,13 +1065,13 @@ function cleanFloorSvg(floor){
    return `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${cx} ${cy})" fill="${color}" font-family="Arial,'Noto Sans KR',sans-serif" font-size="${verticalSize}" font-weight="800">${mapXml(label)}</text>`;
   }
   const words=String(label).split(/\s+/), lines=[];
-  if(words.length>1&&String(label).length>10){const mid=Math.ceil(words.length/2);lines.push(words.slice(0,mid).join(' '),words.slice(mid).join(' '));}else lines.push(String(label));
+  if(words.length>1&&String(label).length>6){const mid=Math.ceil(words.length/2);lines.push(words.slice(0,mid).join(' '),words.slice(mid).join(' '));}else lines.push(String(label));
   const cy=(y+h/2)*10-(lines.length-1)*size*.55;
   return `<text x="${(x+w/2)*10}" y="${cy}" text-anchor="middle" dominant-baseline="middle" fill="${color}" font-family="Arial,'Noto Sans KR',sans-serif" font-size="${size}" font-weight="800">${lines.map((v,i)=>`<tspan x="${(x+w/2)*10}" dy="${i?size*1.18:0}">${mapXml(v)}</tspan>`).join('')}</text>`;
  };
  let body=`<rect x="8" y="8" width="984" height="${canvasH-16}" rx="14" fill="#fff" stroke="#202833" stroke-width="5"/>`;
  displayZones.forEach(z=>{const label=zoneGuideLabel(z.codes),[fill,stroke,color]=guidePalette(floor,label);body+=rect(z.x,z.y,z.w,z.h,fill,stroke,2.4,5);const min=Math.min(z.w,z.h);const size=min<4?12:min<6?15:min<10?18:24;body+=text(label,z.x,z.y,z.w,z.h,color,size);});
- facilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);const min=Math.min(f.w,f.h);const size=min<7?14:min<10?18:22;body+=text(f.label,f.x,f.y,f.w,f.h,color,size);});
+ facilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);const min=Math.min(f.w,f.h);let size=min<7?14:min<10?18:22;if(String(f.label).length>7)size=Math.min(size,16);body+=text(f.label,f.x,f.y,f.w,f.h,color,size);});
  body+=`<text x="28" y="${canvasH-24}" fill="#667085" font-family="Arial,'Noto Sans KR',sans-serif" font-size="15" font-weight="700">${mapXml(floor)} 창고 안내도</text>`;
  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 ${canvasH}">${body}</svg>`)}`;
 }
@@ -1120,20 +1120,25 @@ function applyLocationMapZoom(keepCenter=true){
  if(!map||!sc)return;
  const oldW=map.getBoundingClientRect().width||locationMapBaseWidth();
  const centerRatio=oldW?((sc.scrollLeft+sc.clientWidth/2)/oldW):.5;
- map.style.width=(locationMapBaseWidth()*LOCATION_MAP_ZOOM)+'px';
- map.style.minWidth=(locationMapBaseWidth()*LOCATION_MAP_ZOOM)+'px';
+ const targetWidth=(locationMapBaseWidth()*LOCATION_MAP_ZOOM)+'px';
+ map.style.setProperty('width',targetWidth,'important');
+ map.style.setProperty('min-width',targetWidth,'important');
+ map.style.setProperty('max-width',targetWidth,'important');
  const v=document.getElementById('locationMapZoomValue'); if(v)v.textContent=Math.round(LOCATION_MAP_ZOOM*100)+'%';
  if(keepCenter) requestAnimationFrame(()=>{const nw=map.getBoundingClientRect().width;sc.scrollLeft=Math.max(0,centerRatio*nw-sc.clientWidth/2);});
 }
-function changeLocationMapZoom(delta){LOCATION_MAP_ZOOM=Math.max(.6,Math.min(2.2,Math.round((LOCATION_MAP_ZOOM+delta)*10)/10));applyLocationMapZoom(true);}
+function changeLocationMapZoom(delta){LOCATION_MAP_ZOOM=Math.max(.3,Math.min(2.2,Math.round((LOCATION_MAP_ZOOM+delta)*10)/10));applyLocationMapZoom(true);}
 function fitLocationMap(){
  const sc=document.getElementById('warehouseMapScroll'); if(!sc)return;
- LOCATION_MAP_ZOOM=Math.max(.6,Math.min(1,sc.clientWidth/locationMapBaseWidth())); applyLocationMapZoom(false); sc.scrollLeft=0; sc.scrollTop=0;
+ const body=document.querySelector('.locationMapBody');
+ const availableWidth=sc.clientWidth||body?.clientWidth||Math.max(280,window.innerWidth-50);
+ LOCATION_MAP_ZOOM=Math.max(.3,Math.min(1,(availableWidth-2)/locationMapBaseWidth()));
+ applyLocationMapZoom(false); sc.scrollLeft=0; sc.scrollTop=0;
 }
 function openLocationMap(loc){
  const [floor]=floorInfo(loc), map=$('#warehouseMap'), code=String(loc||'N/A').trim(), zone=findMapZone(floor,code);
  $('#locationMapTargetCode').textContent=code||'N/A'; $('#locationMapFloorBadge').textContent=floor; $('#locationMapSub').textContent=mapDetailText(code);
- map.className='warehouseMap '+(floor==='3층'?'floor3':floor==='4층'?'floor4':'floor5'); map.innerHTML=''; LOCATION_MAP_ZOOM=1; map.style.width=''; map.style.minWidth=''; const zv=document.getElementById('locationMapZoomValue'); if(zv)zv.textContent='100%';
+ map.className='warehouseMap '+(floor==='3층'?'floor3':floor==='4층'?'floor4':'floor5'); map.innerHTML=''; LOCATION_MAP_ZOOM=1; map.style.removeProperty('width'); map.style.removeProperty('min-width'); map.style.removeProperty('max-width'); const zv=document.getElementById('locationMapZoomValue'); if(zv)zv.textContent='100%';
  const modalBody=document.querySelector('.locationMapBody');if(modalBody)modalBody.scrollTop=0;
  const src=cleanFloorSvg(floor)||MAP_IMAGES[floor];
  if(!src) map.innerHTML='<div class="locationMapUnavailable"><strong>레이아웃 준비 전</strong>현재 3층·4층·5층 위치만 표시할 수 있습니다.</div>';
@@ -1144,13 +1149,13 @@ function openLocationMap(loc){
    else {const note=document.createElement('div');note.className='locationMapUnavailable';note.style.position='absolute';note.style.inset='35% 15% auto';note.style.zIndex='20';note.style.background='rgba(255,255,255,.96)';note.style.borderRadius='14px';note.style.padding='18px';note.innerHTML=`<strong>${esc(code)}</strong>실제 도면에서 자동 매칭할 위치를 찾지 못했습니다.`;map.appendChild(note);}
  }
  $('#locationMapModal').classList.add('show'); document.body.classList.add('modalOpen');
- setTimeout(()=>{fitLocationMap();const sc=document.getElementById('warehouseMapScroll');if(zone&&sc){const x=(zone.x+zone.w/2)/100*map.scrollWidth-sc.clientWidth/2;const y=guideYPercent(floor,zone.y+zone.h/2)/100*map.scrollHeight-sc.clientHeight/2;sc.scrollLeft=Math.max(0,x);sc.scrollTop=Math.max(0,y);}},180);
+ setTimeout(()=>{fitLocationMap();const sc=document.getElementById('warehouseMapScroll');if(sc){sc.scrollLeft=0;sc.scrollTop=0;}},180);
 }
 (function(){
  let startDist=0,startZoom=1;
  const dist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
  document.addEventListener('touchstart',e=>{if(e.touches.length===2&&e.target.closest('#warehouseMapScroll')){startDist=dist(e.touches);startZoom=LOCATION_MAP_ZOOM;}},{passive:true});
- document.addEventListener('touchmove',e=>{if(e.touches.length===2&&startDist&&e.target.closest('#warehouseMapScroll')){e.preventDefault();LOCATION_MAP_ZOOM=Math.max(.6,Math.min(2.2,startZoom*(dist(e.touches)/startDist)));applyLocationMapZoom(true);}},{passive:false});
+ document.addEventListener('touchmove',e=>{if(e.touches.length===2&&startDist&&e.target.closest('#warehouseMapScroll')){e.preventDefault();LOCATION_MAP_ZOOM=Math.max(.3,Math.min(2.2,startZoom*(dist(e.touches)/startDist)));applyLocationMapZoom(true);}},{passive:false});
  document.addEventListener('touchend',e=>{if(e.touches.length<2)startDist=0;},{passive:true});
 })();
 function closeLocationMap(){$('#locationMapModal').classList.remove('show');if(!$('#resultModal').classList.contains('show'))document.body.classList.remove('modalOpen');}
