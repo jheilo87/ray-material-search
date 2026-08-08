@@ -1194,6 +1194,20 @@ function cropCanvas(sourceCanvas,x,y,w,h,scale=1){
   return c;
 }
 
+function enhanceIRayLabelCanvas(canvas){
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const data=image.data;
+  for(let i=0;i<data.length;i+=4){
+    const gray=Math.round(data[i]*.299+data[i+1]*.587+data[i+2]*.114);
+    // 회색 박스선은 옅게, 검은 S/N 글자와 바코드는 더 진하게 만들어 OCR 대비를 높입니다.
+    const value=gray<165?Math.max(0,Math.round((gray-35)*.72)):Math.min(255,Math.round(gray*1.10+8));
+    data[i]=data[i+1]=data[i+2]=value;
+  }
+  ctx.putImageData(image,0,0);
+  return canvas;
+}
+
 async function tryNativeBarcode(target){
   if(!('BarcodeDetector' in window))return [];
   try{
@@ -1328,8 +1342,11 @@ async function tryBarcode(source){
       // 사진 속 위쪽 짧은 수량/품번 바코드를 피하고,
       // 라벨 중앙~하단의 긴 S/N 바코드만 크게 확대해 한 번 더 확인합니다.
       const serialBands=[
-        [Math.round(w*.03),Math.round(h*.30),Math.round(w*.94),Math.round(h*.42),1.75],
-        [Math.round(w*.08),Math.round(h*.38),Math.round(w*.84),Math.round(h*.30),2.05]
+        [Math.round(w*.04),Math.round(h*.12),Math.round(w*.92),Math.round(h*.34),1.70],
+        [Math.round(w*.04),Math.round(h*.25),Math.round(w*.92),Math.round(h*.34),1.75],
+        [Math.round(w*.04),Math.round(h*.38),Math.round(w*.92),Math.round(h*.34),1.80],
+        [Math.round(w*.04),Math.round(h*.51),Math.round(w*.92),Math.round(h*.34),1.80],
+        [Math.round(w*.08),Math.round(h*.64),Math.round(w*.84),Math.round(h*.30),1.90]
       ];
       for(const [x,y,cw,ch,s] of serialBands){
         const band=cropCanvas(base,x,y,cw,ch,s);
@@ -1562,10 +1579,45 @@ async function extractSerial(source){
     const irayCodes=filterIRaySerials(barcodes);
     if(irayCodes.length)return irayCodes.slice(0,20);
   }
+  if(selectedVendor==='iRay'){
+    setLive('iRay 긴 S/N 문자 확인 중…','busy');
+    const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
+      if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`iRay S/N 확인 중… ${Math.round(m.progress*100)}%`,'busy');
+    }});
+    let irayTextCodes=parseIRaySnText(rec?.data?.text||'');
+    if(irayTextCodes.length)return irayTextCodes.slice(0,10);
+
+    // 원본 OCR이 작은 인쇄 글자를 놓치면 라벨 중앙 영역을 확대·고대비 처리해 한 번 더 읽습니다.
+    let bitmap=null,base=null,label=null;
+    try{
+      bitmap=await sourceToBitmap(source);
+      base=makeScanCanvas(bitmap,2400);
+      const w=base.width,h=base.height;
+      label=cropCanvas(
+        base,
+        Math.round(w*.03),Math.round(h*.16),
+        Math.round(w*.94),Math.round(h*.72),
+        1.55
+      );
+      enhanceIRayLabelCanvas(label);
+      const retry=await Tesseract.recognize(label,'eng',{logger:m=>{
+        if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`iRay 확대 문자 확인 중… ${Math.round(m.progress*100)}%`,'busy');
+      }});
+      irayTextCodes=parseIRaySnText(retry?.data?.text||'');
+      return irayTextCodes.slice(0,10);
+    }catch(e){
+      console.error('[iRay 문자 보조 인식 오류]',e);
+      return [];
+    }finally{
+      releaseCanvas(label);
+      releaseCanvas(base);
+      if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+    }
+  }
+
   const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
     if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`문자 인식 중… ${Math.round(m.progress*100)}%`,'busy');
   }});
-  if(selectedVendor==='iRay')return parseIRaySnText(rec?.data?.text||'').slice(0,10);
   const fromText=parseSerials(rec?.data?.text||'',selectedVendor);
   return unique([...barcodes,...fromText]).slice(0,10);
 }
