@@ -984,6 +984,19 @@ function filterIRaySerials(values=[]){
   // ED 접두사가 다른 iRay 라벨도 대비하되, 긴 코드 + 끝 X 조건은 반드시 지킵니다.
   return vals.filter(v=>/^[A-Z0-9]{15,30}X$/.test(v)).slice(0,20);
 }
+function parseIRaySnText(text=''){
+  const raw=String(text||'').toUpperCase().replace(/\r/g,'\n');
+  const candidates=[];
+
+  // 인쇄된 ED...X 문자가 공백이나 바코드 선 때문에 잘려 인식돼도
+  // 같은 줄을 영문·숫자로 이어 붙인 뒤 실제 S/N 부분만 꺼냅니다.
+  const sources=[...raw.split(/\n+/),raw];
+  for(const source of sources){
+    const compact=source.replace(/[^A-Z0-9]/g,'');
+    candidates.push(...(compact.match(/ED[A-Z0-9]{12,27}X/g)||[]));
+  }
+  return filterIRaySerials(candidates);
+}
 function normalizeI3Serial(value){
   const plain=plainSerial(value);
 
@@ -1221,6 +1234,29 @@ function tryZXingCanvas(canvas){
   }catch{return []}
 }
 
+function tryZXingIRay1D(canvas){
+  if(!window.ZXing)return [];
+  try{
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    const luminance=new ZXing.RGBLuminanceSource(imageData.data,canvas.width,canvas.height);
+    const bitmap=new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminance));
+    const hints=new Map();
+    const formats=[
+      ZXing.BarcodeFormat.CODE_128,
+      ZXing.BarcodeFormat.CODE_39,
+      ZXing.BarcodeFormat.CODE_93
+    ].filter(x=>x!==undefined);
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,formats);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER,true);
+    hints.set(ZXing.DecodeHintType.ALSO_INVERTED,true);
+    const reader=new ZXing.MultiFormatReader();
+    reader.setHints(hints);
+    const result=reader.decode(bitmap);
+    return result?.getText?.()?[result.getText()]:[];
+  }catch{return []}
+}
+
 
 function makeScanCanvas(bitmap,maxSide=1800){
   const bw=bitmap.width||1, bh=bitmap.height||1;
@@ -1254,7 +1290,7 @@ async function tryBarcode(source){
     // 고해상도 휴대폰 사진을 그대로 여러 Canvas로 복제하면
     // 두 번째 촬영 때 메모리가 급증해 브라우저/PWA가 종료될 수 있습니다.
     // 스캔용 이미지만 최대 1800px로 줄이고, 영역을 하나씩 검사한 뒤 즉시 해제합니다.
-    base=makeScanCanvas(bitmap,1800);
+    base=makeScanCanvas(bitmap,isIRay?2400:1800);
 
     const addNative=async(canvas)=>{
       try{found.push(...await tryNativeBarcode(canvas))}catch{}
@@ -1281,8 +1317,27 @@ async function tryBarcode(source){
       for(const [x,y,cw,ch,s] of regions){
         const crop=cropCanvas(base,x,y,cw,ch,s);
         await addNative(crop);
-        if(window.ZXing)addZXing(crop);
+        if(window.ZXing){
+          found.push(...tryZXingIRay1D(crop));
+          addZXing(crop);
+        }
         releaseCanvas(crop);
+        await new Promise(r=>setTimeout(r,0));
+      }
+
+      // 사진 속 위쪽 짧은 수량/품번 바코드를 피하고,
+      // 라벨 중앙~하단의 긴 S/N 바코드만 크게 확대해 한 번 더 확인합니다.
+      const serialBands=[
+        [Math.round(w*.03),Math.round(h*.30),Math.round(w*.94),Math.round(h*.42),1.75],
+        [Math.round(w*.08),Math.round(h*.38),Math.round(w*.84),Math.round(h*.30),2.05]
+      ];
+      for(const [x,y,cw,ch,s] of serialBands){
+        const band=cropCanvas(base,x,y,cw,ch,s);
+        await addNative(band);
+        if(window.ZXing)found.push(...tryZXingIRay1D(band));
+        releaseCanvas(band);
+        const valid=filterIRaySerials(found);
+        if(valid.length)return valid;
         await new Promise(r=>setTimeout(r,0));
       }
 
@@ -1510,8 +1565,8 @@ async function extractSerial(source){
   const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
     if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`문자 인식 중… ${Math.round(m.progress*100)}%`,'busy');
   }});
+  if(selectedVendor==='iRay')return parseIRaySnText(rec?.data?.text||'').slice(0,10);
   const fromText=parseSerials(rec?.data?.text||'',selectedVendor);
-  if(selectedVendor==='iRay')return filterIRaySerials(fromText).slice(0,10);
   return unique([...barcodes,...fromText]).slice(0,10);
 }
 
