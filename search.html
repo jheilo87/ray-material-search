@@ -1178,7 +1178,10 @@ function openLocationMap(loc){
  document.addEventListener('touchmove',e=>{if(e.touches.length===2&&startDist&&e.target.closest('#warehouseMapScroll')){e.preventDefault();LOCATION_MAP_ZOOM=Math.max(.3,Math.min(2.2,startZoom*(dist(e.touches)/startDist)));applyLocationMapZoom(true);}},{passive:false});
  document.addEventListener('touchend',e=>{if(e.touches.length<2)startDist=0;},{passive:true});
 })();
-function closeLocationMap(){$('#locationMapModal').classList.remove('show');if(!$('#resultModal').classList.contains('show'))document.body.classList.remove('modalOpen');}
+function closeLocationMap(){
+ if(__raySearchParams.get('embed')==='1'&&window.parent!==window){window.parent.postMessage({type:'ray-close-location-map'},'*');return;}
+ $('#locationMapModal').classList.remove('show');if(!$('#resultModal').classList.contains('show'))document.body.classList.remove('modalOpen');
+}
 
 function openResultModal(){
   $('#resultModal').classList.add('show');

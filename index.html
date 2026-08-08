@@ -1610,4 +1610,33 @@ if('serviceWorker' in navigator){
     }catch{}
   });
 }
+</script>
+<style>
+.mainLocationViewer{position:fixed;inset:0;z-index:100000;display:none;background:rgba(10,22,42,.68)}
+.mainLocationViewer.show{display:block}
+.mainLocationViewer iframe{display:block;width:100%;height:100%;border:0;background:transparent}
+</style>
+<div class="mainLocationViewer" id="mainLocationViewer" aria-hidden="true">
+  <iframe id="mainLocationFrame" title="창고 위치 확인"></iframe>
+</div>
+<script>
+(function(){
+ const viewer=document.getElementById('mainLocationViewer');
+ const frame=document.getElementById('mainLocationFrame');
+ if(!viewer||!frame)return;
+ const closeViewer=()=>{
+  viewer.classList.remove('show');viewer.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';setTimeout(()=>{if(!viewer.classList.contains('show'))frame.src='about:blank';},120);
+ };
+ document.addEventListener('click',event=>{
+  const link=event.target.closest('a.mainResultLoc,a.mainMultiResultLoc');
+  if(!link)return;
+  event.preventDefault();
+  const url=new URL(link.href,location.href);url.searchParams.set('embed','1');
+  frame.src=url.href;viewer.classList.add('show');viewer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+ });
+ window.addEventListener('message',event=>{
+  if(event.source===frame.contentWindow&&event.data?.type==='ray-close-location-map')closeViewer();
+ });
+})();
 </script></body></html>
