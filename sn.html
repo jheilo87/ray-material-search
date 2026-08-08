@@ -993,7 +993,10 @@ function parseIRaySnText(text=''){
   const sources=[...raw.split(/\n+/),raw];
   for(const source of sources){
     const compact=source.replace(/[^A-Z0-9]/g,'');
-    candidates.push(...(compact.match(/ED[A-Z0-9]{12,27}X/g)||[]));
+    const matches=compact.match(/E?D[A-Z0-9]{12,27}X/g)||[];
+    // 사진 가장자리·접힘 때문에 첫 글자 E만 빠진 경우(D341...X)는
+    // iRay의 확정된 ED...X 규칙 안에서만 E를 복원합니다.
+    candidates.push(...matches.map(v=>v.startsWith('D')?`E${v}`:v));
   }
   return filterIRaySerials(candidates);
 }
@@ -1208,30 +1211,56 @@ function enhanceIRayLabelCanvas(canvas){
   return canvas;
 }
 
-function makeIRayOcrStripCanvas(base){
-  const w=base.width,h=base.height;
-  const sourceX=Math.round(w*.03);
-  const sourceW=Math.round(w*.94);
-  const bandH=Math.max(1,Math.round(h*.15));
-  const scale=1.85;
-  const starts=[.18,.30,.42,.54,.66];
-  const out=document.createElement('canvas');
-  out.width=Math.max(1,Math.round(sourceW*scale));
-  const oneH=Math.max(1,Math.round(bandH*scale));
-  out.height=oneH*starts.length;
-  const ctx=out.getContext('2d',{willReadFrequently:true});
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);
-  ctx.imageSmoothingEnabled=true;
-  ctx.imageSmoothingQuality='high';
-
-  // 사진마다 S/N 글자의 높이가 달라서 여러 가로 띠를 한 장으로 모읍니다.
-  // OCR은 이 합성 이미지 한 장만 처리하므로 캔버스가 동시에 여러 개 쌓이지 않습니다.
-  starts.forEach((ratio,index)=>{
-    const sy=Math.min(Math.max(0,h-bandH),Math.round(h*ratio));
-    ctx.drawImage(base,sourceX,sy,sourceW,bandH,0,index*oneH,out.width,oneH);
-  });
-  return enhanceIRayLabelCanvas(out);
+function enhanceIRayOcrCanvas(canvas){
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const image=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const data=image.data,hist=new Uint32Array(256);
+  for(let i=0;i<data.length;i+=4){
+    const gray=Math.round(data[i]*.299+data[i+1]*.587+data[i+2]*.114);
+    data[i]=data[i+1]=data[i+2]=gray;
+    hist[gray]++;
+  }
+  const pixels=Math.max(1,data.length/4),tail=Math.max(1,Math.floor(pixels*.01));
+  let low=0,high=255,sum=0;
+  while(low<254 && (sum+=hist[low])<tail)low++;
+  sum=0;
+  while(high>1 && (sum+=hist[high])<tail)high--;
+  const range=Math.max(20,high-low);
+  for(let i=0;i<data.length;i+=4){
+    const value=Math.max(0,Math.min(255,Math.round((data[i]-low)*255/range)));
+    data[i]=data[i+1]=data[i+2]=value;
+  }
+  ctx.putImageData(image,0,0);
+  return canvas;
 }
+
+let irayOcrWorkerPromise=null;
+async function getIRayOcrWorker(){
+  if(!irayOcrWorkerPromise){
+    irayOcrWorkerPromise=Tesseract.createWorker('eng',1,{logger:m=>{
+      if(m.status==='recognizing text' && typeof m.progress==='number'){
+        setLive(`iRay 바코드 문자 확인 중… ${Math.round(m.progress*100)}%`,'busy');
+      }
+    }}).then(async worker=>{
+      await worker.setParameters({
+        tessedit_pageseg_mode:'11',
+        tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      });
+      return worker;
+    }).catch(error=>{
+      irayOcrWorkerPromise=null;
+      throw error;
+    });
+  }
+  return irayOcrWorkerPromise;
+}
+
+async function terminateIRayOcrWorker(){
+  if(!irayOcrWorkerPromise)return;
+  try{(await irayOcrWorkerPromise).terminate()}catch{}
+  irayOcrWorkerPromise=null;
+}
+window.addEventListener('pagehide',()=>{terminateIRayOcrWorker()},{once:true});
 
 async function tryNativeBarcode(target){
   if(!('BarcodeDetector' in window))return [];
@@ -1605,28 +1634,43 @@ async function extractSerial(source){
     if(irayCodes.length)return irayCodes.slice(0,20);
   }
   if(selectedVendor==='iRay'){
-    setLive('iRay 긴 S/N 문자 확인 중…','busy');
-    const rec=await Tesseract.recognize(source,'eng',{logger:m=>{
-      if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`iRay S/N 확인 중… ${Math.round(m.progress*100)}%`,'busy');
-    }});
-    let irayTextCodes=parseIRaySnText(rec?.data?.text||'');
-    if(irayTextCodes.length)return irayTextCodes.slice(0,10);
-
-    // 원본 OCR이 작은 인쇄 글자를 놓치면 라벨 중앙 영역을 확대·고대비 처리해 한 번 더 읽습니다.
-    let bitmap=null,base=null,label=null;
+    // 실제 iRay 라벨에서 긴 1D 바코드와 인쇄 S/N이 놓이는 중앙 띠만 읽습니다.
+    // 넓은 사진 전체 OCR을 없애 속도와 메모리를 아끼고 주변 문구 오인식도 막습니다.
+    setLive('iRay 바코드 영역 확인 중…','busy');
+    let bitmap=null,base=null,label=null,upperLabel=null;
     try{
       bitmap=await sourceToBitmap(source);
       base=makeScanCanvas(bitmap,1800);
-      label=makeIRayOcrStripCanvas(base);
-      const retry=await Tesseract.recognize(label,'eng',{logger:m=>{
-        if(m.status==='recognizing text' && typeof m.progress==='number')setLive(`iRay S/N 글자 확대 확인 중… ${Math.round(m.progress*100)}%`,'busy');
-      }});
-      irayTextCodes=parseIRaySnText(retry?.data?.text||'');
+      const w=base.width,h=base.height;
+      label=cropCanvas(
+        base,
+        Math.round(w*.03),Math.round(h*.38),
+        Math.round(w*.94),Math.round(h*.25),
+        2.30
+      );
+      enhanceIRayOcrCanvas(label);
+      const worker=await getIRayOcrWorker();
+      const retry=await worker.recognize(label);
+      let irayTextCodes=parseIRaySnText(retry?.data?.text||'');
+      if(irayTextCodes.length)return irayTextCodes.slice(0,10);
+
+      // 접힌 라벨처럼 바코드가 조금 위로 올라간 사진은 더 얇은 상단 띠만
+      // 한 번 보조 확인합니다. 동일 worker를 순차 재사용해 메모리는 늘리지 않습니다.
+      upperLabel=cropCanvas(
+        base,
+        Math.round(w*.03),Math.round(h*.34),
+        Math.round(w*.94),Math.round(h*.13),
+        3.00
+      );
+      enhanceIRayOcrCanvas(upperLabel);
+      const upperRetry=await worker.recognize(upperLabel);
+      irayTextCodes=parseIRaySnText(upperRetry?.data?.text||'');
       return irayTextCodes.slice(0,10);
     }catch(e){
       console.error('[iRay 문자 보조 인식 오류]',e);
       return [];
     }finally{
+      releaseCanvas(upperLabel);
       releaseCanvas(label);
       releaseCanvas(base);
       if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
