@@ -368,6 +368,7 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   color:#5b39d2;
   font-size:12px;
   font-weight:950;
+  text-decoration:none;
 }
 .mainMultiResult.bad{background:#fff8f8}
 .mainMultiResult.bad .mainMultiResultNo{background:#fff0f0;color:#c92a2a}
@@ -1030,6 +1031,15 @@ async function loadMainMaterial(){
   }
 }
 function showMainResults(query){const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');box.classList.remove('multiMode');const head=box.querySelector('.mainResultsHead strong');if(head)head.textContent='검색 결과';const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}const nq=mainNorm(q);const hits=MAIN_MATERIAL.filter(row=>mainNorm(row.code).includes(nq)||mainNorm(row.name).includes(nq));const shown=hits.slice(0,6);count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?q='+encodeURIComponent(q);more.style.display=hits.length?'block':'none';list.innerHTML=shown.length?shown.map(row=>`<div class="mainResult"><a class="mainResultInfo" href="search.html?q=${encodeURIComponent(row.code)}"><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></a><a class="mainResultLoc" href="search.html?map=${encodeURIComponent(row.location||'N/A')}" aria-label="${esc(row.location||'N/A')} 창고 위치 보기">📍 ${esc(row.location)} <em>위치보기</em></a></div>`).join(''):`<div class="mainResultEmpty">검색되는 품번이나 품명이 없습니다.<br>다른 검색어로 다시 확인해 주세요.</div>`;box.classList.add('show');}
+function showMainLocationResults(query){
+ const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');
+ box.classList.remove('multiMode');const head=box.querySelector('.mainResultsHead strong');if(head)head.textContent='위치 검색 결과';
+ const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}
+ const nq=mainNorm(q),hits=MAIN_MATERIAL.filter(row=>mainNorm(row.location).includes(nq)),shown=hits.slice(0,6);
+ count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?mode=location&q='+encodeURIComponent(q);more.style.display=hits.length>6?'block':'none';
+ list.innerHTML=shown.length?shown.map(row=>`<div class="mainResult"><a class="mainResultInfo" href="search.html?q=${encodeURIComponent(row.code)}"><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></a><a class="mainResultLoc" href="search.html?map=${encodeURIComponent(row.location||'N/A')}" aria-label="${esc(row.location||'N/A')} 창고 위치 보기">📍 ${esc(row.location)} <em>위치보기</em></a></div>`).join(''):`<div class="mainResultEmpty">검색되는 위치가 없습니다.<br>위치 번호를 다시 확인해 주세요.</div>`;
+ box.classList.add('show');box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 let MAIN_SEARCH_MULTI=false;
 let MAIN_MULTI_ITEMS=[];
 let MAIN_MULTI_EDIT=-1;
@@ -1337,7 +1347,7 @@ document.getElementById('rsLocationForm').addEventListener('submit',e=>{
   e.preventDefault();
   const q=document.getElementById('rsLocationQ').value.trim();
   if(!q)return;
-  location.href='search.html?mode=location&q='+encodeURIComponent(q);
+  showMainLocationResults(q);
 });
 
 document.getElementById('rsMultiClose').addEventListener('click',()=>closeMainMultiPopup(true));
