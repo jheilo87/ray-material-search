@@ -995,12 +995,12 @@ const MAP_ZONES = {
   {codes:['U'],x:21.6,y:0.5,w:5.8,h:57.7}, {codes:['T'],x:30.4,y:0.5,w:5.9,h:57.7},
   {codes:['S'],x:0.9,y:8.8,w:5.5,h:49.4}, {codes:['R'],x:3.8,y:62.7,w:14.7,h:14.4}, {codes:['Q'],x:21.6,y:62.7,w:8.8,h:14.4}, {codes:['P'],x:36.3,y:62.7,w:8.9,h:14.4}, {codes:['W'],x:45.1,y:62.7,w:5.9,h:4.8},
   {codes:Array.from({length:16},(_,i)=>`A${i+1}`),x:71.1,y:0.5,w:26.9,h:10.8},
-  {codes:['N1','N2','N3','N4'],x:60.3,y:0.5,w:3.2,h:22.3}, {codes:['N5'],x:69.0,y:0.5,w:2.1,h:22.3},
+  {codes:['N1','N2','N3','N4'],x:60.3,y:0.5,w:3.4,h:22.3}, {codes:['N5'],x:67.7,y:0.5,w:3.4,h:22.3},
   {codes:['H1','H2','H3','H4'],x:71.6,y:11.3,w:11.9,h:4.9},
   {codes:['L1','L2','I1','I2','I3'],label:'L1~L2 / I1~I3',x:71.6,y:16.2,w:11.9,h:9.1}, {codes:['J1','J2','J3','J4'],x:71.6,y:25.4,w:11.9,h:4.9},
   {codes:['B1','B2','B3','B4'],x:86.4,y:20.6,w:11.6,h:4.9}, {codes:['C1','C2','C3','C4'],x:86.4,y:25.4,w:11.6,h:4.9},
   {codes:['O1','O2','O3','O4'],x:60.3,y:30.0,w:8.4,h:28.2},
-  {codes:['K1','K2','K3'],x:71.6,y:34.8,w:3.0,h:23.4}, {codes:['K4','K5','K6','K7'],x:74.5,y:34.8,w:3.0,h:23.4}, {codes:['K8'],x:77.5,y:34.8,w:5.9,h:23.4},
+  {codes:['K1','K2','K3'],x:71.6,y:34.8,w:3.4,h:23.4}, {codes:['K4','K5','K6','K7'],x:75.0,y:34.8,w:3.4,h:23.4}, {codes:['K8'],x:78.4,y:34.8,w:5.0,h:23.4},
   {codes:['D1','D2','D3','D4'],x:86.4,y:34.8,w:11.6,h:4.9}, {codes:['E1','E2','E3','E4'],x:86.4,y:39.7,w:11.6,h:4.9},
   {codes:['F1','F2','F3'],x:86.4,y:49.0,w:11.6,h:4.9}, {codes:['G1','G2','G3'],x:86.4,y:53.9,w:11.6,h:4.9}, {codes:['G4'],x:86.4,y:69.2,w:11.6,h:4.9},
   {codes:['M1','M2','M3','M4'],x:71.6,y:69.2,w:11.8,h:4.9}, {codes:['M5','M6'],x:62.8,y:69.2,w:5.9,h:4.9}
@@ -1014,7 +1014,8 @@ const MAP_FACILITIES = {
  '4층': [
   {label:'비상문',type:'exit',x:4.6,y:52.0,w:8.5,h:12.5},
   {label:'엘리베이터',type:'elevator',x:13.1,y:52.0,w:9.0,h:12.5,start:true},
-  {label:'화물 엘리베이터',type:'cargo',x:32.6,y:52.0,w:15.5,h:12.5}
+  {label:'휴게실',type:'rest',x:25.0,y:52.0,w:12.0,h:12.5},
+  {label:'화물 엘리베이터',type:'cargo',x:48.1,y:52.0,w:25.8,h:12.5}
  ],
  '5층': [
   {label:'품질오피스',type:'qualityOffice',x:36.3,y:0.5,w:24.0,h:11.0},
@@ -1075,22 +1076,19 @@ function cleanFloorSvg(floor){
   const value=String(label),clipId=`mapTextClip${++textClipSeq}`,pad=0.7;
   const clip=`<clipPath id="${clipId}"><rect x="${(x+pad)*10}" y="${(y+pad)*10}" width="${Math.max(1,(w-pad*2)*10)}" height="${Math.max(1,(h-pad*2)*10)}" rx="3"/></clipPath>`;
   const units=v=>[...String(v)].reduce((sum,ch)=>sum+(/[가-힣]/.test(ch)?1:/\s/.test(ch)?.35:.62),0)||1;
-  if(w<6&&h>14&&String(label).length>1){
-   const cx=(x+w/2)*10,cy=(y+h/2)*10,availableCross=Math.max(8,w*10-14),availableLong=Math.max(8,h*10-14);
-   const verticalSize=Math.max(7,Math.min(19,availableCross,availableLong/units(value)));
-   return `${clip}<g clip-path="url(#${clipId})"><text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90 ${cx} ${cy})" fill="${color}" font-family="system-ui,-apple-system,'Noto Sans KR',sans-serif" font-size="${verticalSize.toFixed(1)}" font-weight="900">${mapXml(value)}</text></g>`;
-  }
-  const words=value.split(/\s+/),lines=[];
-  if(words.length>1&&value.length>6){const mid=Math.ceil(words.length/2);lines.push(words.slice(0,mid).join(' '),words.slice(mid).join(' '));}else lines.push(value);
+  const words=value.split(/\s+/),lines=[],range=value.match(/^([A-Z0-9]+)\s*~\s*([A-Z0-9]+)$/i);
+  if(w<6&&h>14&&range)lines.push(range[1],'~',range[2]);
+  else if(words.length>1&&value.length>6){const mid=Math.ceil(words.length/2);lines.push(words.slice(0,mid).join(' '),words.slice(mid).join(' '));}
+  else lines.push(value);
   const availableW=Math.max(8,w*10-14),availableH=Math.max(8,h*10-14),maxUnits=Math.max(...lines.map(units));
   const fittedSize=Math.max(7,Math.min(size,availableW/maxUnits,availableH/(lines.length*1.18)));
   const cy=(y+h/2)*10-(lines.length-1)*fittedSize*.59;
-  return `${clip}<g clip-path="url(#${clipId})"><text x="${(x+w/2)*10}" y="${cy}" text-anchor="middle" dominant-baseline="middle" fill="${color}" font-family="system-ui,-apple-system,'Noto Sans KR',sans-serif" font-size="${fittedSize.toFixed(1)}" font-weight="900">${lines.map((v,i)=>`<tspan x="${(x+w/2)*10}" dy="${i?fittedSize*1.18:0}">${mapXml(v)}</tspan>`).join('')}</text></g>`;
+  return `${clip}<g clip-path="url(#${clipId})"><text x="${(x+w/2)*10}" y="${cy}" text-anchor="middle" dominant-baseline="middle" writing-mode="horizontal-tb" text-orientation="mixed" fill="${color}" font-family="system-ui,-apple-system,'Noto Sans KR',sans-serif" font-size="${fittedSize.toFixed(1)}" font-weight="900">${lines.map((v,i)=>`<tspan x="${(x+w/2)*10}" dy="${i?fittedSize*1.18:0}">${mapXml(v)}</tspan>`).join('')}</text></g>`;
  };
  let body=`<rect x="8" y="8" width="984" height="${canvasH-16}" rx="14" fill="#fff"/><clipPath id="layoutOuterClip"><rect x="14" y="14" width="972" height="${canvasH-28}" rx="10"/></clipPath><g clip-path="url(#layoutOuterClip)">`;
- displayZones.forEach(z=>{const label=z.label||zoneGuideLabel(z.codes),[fill,stroke,color]=guidePalette(floor,label);body+=rect(z.x,z.y,z.w,z.h,fill,stroke,2.4,5);const min=Math.min(z.w,z.h);const tallSingle=String(label).length===1&&z.h>14;const size=tallSingle?24:min<4?12:min<6?15:min<10?18:24;body+=text(label,z.x,z.y,z.w,z.h,color,size);});
- displayFacilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);const min=Math.min(f.w,f.h);let size=min<7?14:min<10?18:22;if(String(f.label).length>7)size=Math.min(size,16);body+=text(f.label,f.x,f.y,f.w,f.h,color,size);});
- body+=`<text x="28" y="${canvasH-24}" fill="#667085" font-family="system-ui,-apple-system,'Noto Sans KR',sans-serif" font-size="15" font-weight="900">${mapXml(floor)} 창고 안내도</text></g><rect x="8" y="8" width="984" height="${canvasH-16}" rx="14" fill="none" stroke="#202833" stroke-width="5"/>`;
+ displayZones.forEach(z=>{const label=z.label||zoneGuideLabel(z.codes),[fill,stroke,color]=guidePalette(floor,label);body+=rect(z.x,z.y,z.w,z.h,fill,stroke,2.4,5);body+=text(label,z.x,z.y,z.w,z.h,color,15);});
+ displayFacilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);body+=text(f.label,f.x,f.y,f.w,f.h,color,15);});
+ body+=`<text x="28" y="${canvasH-24}" writing-mode="horizontal-tb" text-orientation="mixed" fill="#667085" font-family="system-ui,-apple-system,'Noto Sans KR',sans-serif" font-size="15" font-weight="900">${mapXml(floor)} 창고 안내도</text></g><rect x="8" y="8" width="984" height="${canvasH-16}" rx="14" fill="none" stroke="#202833" stroke-width="5"/>`;
  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 ${canvasH}">${body}</svg>`)}`;
 }
 function guideSvgY(floor,value){return floor==='5층'?(value*96/86.7):value;}
