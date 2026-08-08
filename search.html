@@ -583,22 +583,22 @@ body.searchMultiOpen{overflow:hidden}
 }
 .mapPin{
   left:0!important;top:0!important;
-  width:26px;height:26px;
+  width:20px;height:20px;
   transform:translate(-50%,-100%)!important;
-  border:3px solid #fff;border-radius:50%;
+  border:2px solid #fff;border-radius:50%;
   background:#e93635;color:transparent!important;
   box-shadow:0 3px 9px rgba(0,0,0,.28);
   filter:none!important;text-shadow:none!important
 }
 .mapPin::before{
   content:'';position:absolute;left:50%;top:50%;
-  width:17px;height:17px;transform:translate(-50%,-50%);
+  width:14px;height:14px;transform:translate(-50%,-50%);
   border-radius:50%;background:#e93635;z-index:2
 }
 .mapPin::after{
-  content:'';position:absolute;left:50%;top:18px;
-  width:7px;height:13px;transform:translateX(-50%);
-  border:2px solid #fff;border-top:0;border-radius:0 0 5px 5px;
+  content:'';position:absolute;left:50%;top:14px;
+  width:5px;height:11px;transform:translateX(-50%);
+  border:1px solid #fff;border-top:0;border-radius:0 0 4px 4px;
   background:#ffd43b;box-shadow:0 2px 5px rgba(0,0,0,.2);z-index:1
 }
 .mapExactBadge{display:none!important}
@@ -990,8 +990,8 @@ const MAP_ZONES = {
   {codes:['4F'],x:48.1,y:5.2,w:25.8,h:44.8}
  ],
  '5층': [
-  {codes:['V'],x:3.8,y:0.5,w:17.8,h:57.7}, {codes:['U'],x:21.6,y:0.5,w:5.8,h:57.7}, {codes:['T'],x:30.4,y:0.5,w:5.9,h:57.7},
-  {codes:['S'],x:0.9,y:8.8,w:2.9,h:49.4}, {codes:['R'],x:3.8,y:62.7,w:14.7,h:14.4}, {codes:['Q'],x:21.6,y:62.7,w:8.8,h:14.4}, {codes:['P'],x:36.3,y:62.7,w:8.9,h:14.4}, {codes:['W'],x:45.1,y:62.7,w:5.9,h:4.8},
+  {codes:['V'],x:6.4,y:0.5,w:15.2,h:57.7}, {codes:['U'],x:21.6,y:0.5,w:5.8,h:57.7}, {codes:['T'],x:30.4,y:0.5,w:5.9,h:57.7},
+  {codes:['S'],x:0.9,y:8.8,w:5.5,h:49.4}, {codes:['R'],x:3.8,y:62.7,w:14.7,h:14.4}, {codes:['Q'],x:21.6,y:62.7,w:8.8,h:14.4}, {codes:['P'],x:36.3,y:62.7,w:8.9,h:14.4}, {codes:['W'],x:45.1,y:62.7,w:5.9,h:4.8},
   {codes:Array.from({length:16},(_,i)=>`A${i+1}`),x:71.1,y:0.5,w:26.9,h:10.8},
   {codes:['N1','N2','N3','N4','N5'],x:65.8,y:0.5,w:5.1,h:22.3},
   {codes:['H1','H2','H3','H4'],x:71.6,y:11.3,w:11.9,h:4.9},
@@ -1056,7 +1056,8 @@ function cleanFloorSvg(floor){
   {codes:['4F CASE'],x:4.6,y:5.2,w:17.3,h:44.8},
   {codes:['4F CASE'],x:21.9,y:5.2,w:26.2,h:44.8},
   {codes:['4F'],x:48.1,y:5.2,w:25.8,h:44.8}
- ] : zones;
+ ] : floor==='3층' ? zones.map(z=>({...z,x:guideXPercent(floor,z.x),w:guideXPercent(floor,z.w)})) : zones;
+ const displayFacilities=floor==='3층' ? facilities.map(f=>({...f,x:guideXPercent(floor,f.x),w:guideXPercent(floor,f.w)})) : facilities;
  const canvasH=floor==='4층'?700:1000;
  const rect=(x,y,w,h,fill,stroke,sw=2,rx=7)=>`<rect x="${x*10}" y="${y*10}" width="${w*10}" height="${h*10}" rx="${rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
  const text=(label,x,y,w,h,color,size=22)=>{
@@ -1071,16 +1072,17 @@ function cleanFloorSvg(floor){
  };
  let body=`<rect x="8" y="8" width="984" height="${canvasH-16}" rx="14" fill="#fff" stroke="#202833" stroke-width="5"/>`;
  displayZones.forEach(z=>{const label=z.label||zoneGuideLabel(z.codes),[fill,stroke,color]=guidePalette(floor,label);body+=rect(z.x,z.y,z.w,z.h,fill,stroke,2.4,5);const min=Math.min(z.w,z.h);const size=min<4?12:min<6?15:min<10?18:24;body+=text(label,z.x,z.y,z.w,z.h,color,size);});
- facilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);const min=Math.min(f.w,f.h);let size=min<7?14:min<10?18:22;if(String(f.label).length>7)size=Math.min(size,16);body+=text(f.label,f.x,f.y,f.w,f.h,color,size);});
+ displayFacilities.forEach(f=>{const [fill,stroke,color]=facilityPalette(f.type);body+=rect(f.x,f.y,f.w,f.h,fill,stroke,3,5);const min=Math.min(f.w,f.h);let size=min<7?14:min<10?18:22;if(String(f.label).length>7)size=Math.min(size,16);body+=text(f.label,f.x,f.y,f.w,f.h,color,size);});
  body+=`<text x="28" y="${canvasH-24}" fill="#667085" font-family="Arial,'Noto Sans KR',sans-serif" font-size="15" font-weight="700">${mapXml(floor)} 창고 안내도</text>`;
  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 ${canvasH}">${body}</svg>`)}`;
 }
 function guideYPercent(floor,value){return floor==='4층'?(value*1000/700):value;}
+function guideXPercent(floor,value){return floor==='3층'?(value*98/64):value;}
 function addFacilityOverlays(map,floor){
  (MAP_FACILITIES[floor]||[]).forEach(f=>{
    // 시설 이름과 구역은 원본 도면에 표시되어 있으므로 다시 덮어쓰지 않는다.
    // 엘리베이터 앞의 시작 방향만 또렷하게 안내한다.
-   if(f.start){const a=document.createElement('div');a.className='mapStartArrow';a.textContent='↑';a.style.left=(f.x+f.w/2)+'%';a.style.top=guideYPercent(floor,Math.max(1,f.y-2.2))+'%';map.appendChild(a);}
+   if(f.start){const a=document.createElement('div');a.className='mapStartArrow';a.textContent='↑';a.style.left=guideXPercent(floor,f.x+f.w/2)+'%';a.style.top=guideYPercent(floor,Math.max(1,f.y-2.2))+'%';map.appendChild(a);}
  });
 }
 function mapBaseCode(loc){
@@ -1145,7 +1147,7 @@ function openLocationMap(loc){
  else {
    const img=document.createElement('img'); img.src=src; img.alt=floor+' 실제 창고 레이아웃'; map.appendChild(img);
    addFacilityOverlays(map,floor);
-   if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=(zone.x+zone.w/2)+'%';h.style.top=guideYPercent(floor,zone.y+zone.h/2)+'%';h.innerHTML='<div class="mapPin"></div>';map.appendChild(h);}
+   if(zone){const h=document.createElement('div');h.className='mapHighlight';h.style.left=guideXPercent(floor,zone.x+zone.w/2)+'%';h.style.top=guideYPercent(floor,zone.y+zone.h/2)+'%';h.innerHTML='<div class="mapPin"></div>';map.appendChild(h);}
    else {const note=document.createElement('div');note.className='locationMapUnavailable';note.style.position='absolute';note.style.inset='35% 15% auto';note.style.zIndex='20';note.style.background='rgba(255,255,255,.96)';note.style.borderRadius='14px';note.style.padding='18px';note.innerHTML=`<strong>${esc(code)}</strong>실제 도면에서 자동 매칭할 위치를 찾지 못했습니다.`;map.appendChild(note);}
  }
  $('#locationMapModal').classList.add('show'); document.body.classList.add('modalOpen');
