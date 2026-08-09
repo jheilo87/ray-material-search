@@ -94,7 +94,7 @@ box-shadow:0 8px 18px rgba(40,183,121,.35);
 .zoomControls .zoomLevel{min-width:56px;text-align:center;color:#52657d;font-size:12px;font-weight:950}
 .errorViewerNav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}.errorViewerNav button{border:0;border-radius:12px;padding:10px 14px;font-weight:900;background:#edf2f6;color:#40536c}.errorViewerCount{font-size:13px;font-weight:900;color:#65758a}
 .previewViewerLabel{text-align:center;margin-top:10px;font-size:14px;font-weight:950;color:#2a4f73}.previewViewerNav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}.previewViewerNav button{border:0;border-radius:12px;padding:10px 14px;font-weight:900;background:#edf2f6;color:#40536c}.previewViewerCount{font-size:13px;font-weight:900;color:#65758a}
-.manualSnBox{margin-top:8px;padding:11px 12px;border:1px solid #dfe8e4;border-radius:14px;background:#f7fffb;position:relative;z-index:3}.manualSnLabel{display:block;margin-bottom:6px;color:#315d4b;font-size:13px;font-weight:950}.manualSnRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.manualSnInput{width:100%;min-width:0;border:1px solid #b9d8ca;border-radius:12px;padding:12px 13px;background:#fff;color:#173d31;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.manualSnInput:focus{border-color:#28b779;box-shadow:0 0 0 3px rgba(40,183,121,.12)}.manualSnAdd{border:0;border-radius:12px;padding:0 15px;background:linear-gradient(135deg,#28b779,#1e9d67);color:#fff;font-weight:950}.manualSnState{min-height:18px;margin-top:7px;color:#6b7b75;font-size:11px;font-weight:850}.manualSnState.ok{color:#137a43}.manualSnState.bad{color:#b42318}
+.manualSnBox{margin-top:8px;padding:11px 12px;border:1px solid #dfe8e4;border-radius:14px;background:#f7fffb;position:relative;z-index:3}.manualSnLabel{display:block;margin-bottom:6px;color:#315d4b;font-size:13px;font-weight:950}.manualSnRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.manualSnInput{width:100%;min-width:0;border:1px solid #b9d8ca;border-radius:12px;padding:12px 13px;background:#fff;color:#173d31;font-size:15px;font-weight:950;text-transform:uppercase;outline:none}.manualSnInput:focus{border-color:#28b779;box-shadow:0 0 0 3px rgba(40,183,121,.12)}.manualSnAdd{border:0;border-radius:12px;padding:0 15px;background:linear-gradient(135deg,#28b779,#1e9d67);color:#fff;font-weight:950}.manualSnState{min-height:18px;margin-top:7px;color:#6b7b75;font-size:11px;font-weight:850}.manualSnState.ok{color:#137a43}.manualSnState.bad{color:#b42318}.irayDebug{grid-column:1/-1;margin-top:5px;padding:7px 9px;border-radius:9px;background:#fff4db;color:#76520b;font-size:10px;font-weight:800;line-height:1.4;word-break:break-all}
 #errorViewerModal .rsModalBox{max-height:94dvh;padding-top:18px;scroll-behavior:smooth}
 #errorViewerModal .zoomViewport{max-height:42dvh;margin-top:7px}
 #errorViewerModal .zoomHint{margin-top:5px}
@@ -890,6 +890,7 @@ let shareResetTimer=null;
 let shareResetRemaining=0;
 let shareResetPendingReturn=false;
 let currentInputMode='';
+let lastIRayDebug='';
 
 let pendingTeamsShareText='';
 const TEAMS_SELF_UPN_KEY='raySmartTeamsSelfUpn';
@@ -970,6 +971,7 @@ function showErrorImage(index=0){
 }
 function makeStatusErrorClickable(){if(!failedImages.length)return;status.classList.add('clickable');status.onclick=()=>showErrorImage(0)}
 function clean(s){return String(s||'').toUpperCase().replace(/[\s\u200B]+/g,'').replace(/[“”‘’]/g,'').replace(/[^A-Z0-9_-]/g,'')}
+function addIRayDebug(stage,value){const compact=String(value||'').toUpperCase().replace(/\s+/g,' ').trim();if(compact)lastIRayDebug+=(lastIRayDebug?' / ':'')+`${stage}: ${compact.slice(0,120)}`}
 
 function plainSerial(value){
   return String(value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -1638,6 +1640,7 @@ async function extractDellTopServiceTag(source){
 
 async function extractSerial(source){
   setLive('QR·1D 바코드 확인 중…','busy');
+  if(selectedVendor==='iRay')lastIRayDebug='';
 
   // Dell은 전체 사진을 스캔하지 않고 맨 위 Service Tag 바코드만 인식합니다.
   if(selectedVendor==='Dell'){
@@ -1704,6 +1707,7 @@ async function extractSerial(source){
       enhanceIRayOcrCanvas(label);
       const worker=await getIRayOcrWorker();
       const retry=await worker.recognize(label);
+      addIRayDebug('부분',retry?.data?.text);
       let irayTextCodes=parseIRaySnText(retry?.data?.text||'');
       if(irayTextCodes.length)return irayTextCodes.slice(0,10);
 
@@ -1712,6 +1716,7 @@ async function extractSerial(source){
       setLive('iRay 흑백 바코드 재확인 중…','busy');
       binaryLabel=makeIRayBinaryCanvas(label,132);
       const binaryRetry=await worker.recognize(binaryLabel);
+      addIRayDebug('흑백',binaryRetry?.data?.text);
       irayTextCodes=parseIRaySnText(binaryRetry?.data?.text||'');
       if(irayTextCodes.length)return irayTextCodes.slice(0,10);
 
@@ -1725,6 +1730,7 @@ async function extractSerial(source){
       );
       enhanceIRayOcrCanvas(upperLabel);
       const upperRetry=await worker.recognize(upperLabel);
+      addIRayDebug('상단',upperRetry?.data?.text);
       irayTextCodes=parseIRaySnText(upperRetry?.data?.text||'');
       if(irayTextCodes.length)return irayTextCodes.slice(0,10);
 
@@ -1737,7 +1743,9 @@ async function extractSerial(source){
         Math.round(w*.94),Math.round(h*.30),
         2.00
       );
-      const quaggaCodes=filterIRaySerials(await tryQuaggaIRay1D(barcodeLabel));
+      const quaggaRaw=await tryQuaggaIRay1D(barcodeLabel);
+      addIRayDebug('1D',quaggaRaw.join(' '));
+      const quaggaCodes=filterIRaySerials(quaggaRaw);
       if(quaggaCodes.length)return quaggaCodes.slice(0,10);
 
       // 005 사진처럼 부분 크롭에서는 놓치지만 사진 전체 문맥에서는 정확히 읽히는 경우의
@@ -1750,6 +1758,7 @@ async function extractSerial(source){
           tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
         });
         fullRetry=await worker.recognize(base);
+        addIRayDebug('전체',fullRetry?.data?.text);
       }finally{
         await worker.setParameters({
           tessedit_pageseg_mode:'11',
@@ -2205,6 +2214,7 @@ function render(){
         row.className='emptySerialRow';
         displayRowNo++;
         row.innerHTML=`<div class="no"><button class="photoLink" type="button">${displayRowNo} · 사진 ${entry.photoIndex+1}</button></div><div class="emptySerialText">인식된 S/N 없음</div><button class="emptySerialOpen" type="button">사진 확인·입력</button>`;
+        if(entry.item.diagnostic){const debug=document.createElement('div');debug.className='irayDebug';debug.textContent=`휴대폰 판독 원문 · ${entry.item.diagnostic}`;row.appendChild(debug)}
         row.querySelector('.photoLink').addEventListener('click',()=>openFailedPhoto(entry.item,entry.photoIndex));
         row.querySelector('.emptySerialOpen').addEventListener('click',()=>openFailedPhoto(entry.item,entry.photoIndex));
         body.appendChild(row);
@@ -2840,6 +2850,7 @@ async function processFiles(files,opts={}){
     try{
       const found=await extractSerial(files[localIndex]);
       item.serials=unique(found);
+      if(item.vendor==='iRay')item.diagnostic=lastIRayDebug;
 
       // i3System은 입력 방식과 관계없이 결과에 넣기 전에 항상 DIB 번호만 남깁니다.
       // 연속촬영(i3 선택)과 앨범 자동인식이 같은 방식으로 동작하도록 한 번 더 보정합니다.
@@ -2866,6 +2877,7 @@ async function processFiles(files,opts={}){
         addFailedImage(files[localIndex],item.id);
       }
     }catch{
+      if(item.vendor==='iRay')item.diagnostic=lastIRayDebug;
       failed++;
       addFailedImage(files[localIndex],item.id);
     }
