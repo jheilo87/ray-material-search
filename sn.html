@@ -10,6 +10,7 @@
 <title>RaySmart · S/N 추출</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.23.0/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{--brand:#1769e0;--ink:#14213a;--muted:#667085;--line:#dce6f5;--bg:#f3f7ff;--ok:#137a43;--bad:#b42318}
@@ -1355,6 +1356,28 @@ function tryZXingIRay1D(canvas){
   }catch{return []}
 }
 
+async function tryQuaggaIRay1D(canvas){
+  if(!window.Quagga)return [];
+  return await new Promise(resolve=>{
+    let done=false;
+    const finish=value=>{if(done)return;done=true;clearTimeout(timer);resolve(value)};
+    const timer=setTimeout(()=>finish([]),8000);
+    try{
+      Quagga.decodeSingle({
+        src:canvas.toDataURL('image/jpeg',.96),
+        numOfWorkers:0,
+        locate:true,
+        inputStream:{size:1600,singleChannel:false},
+        locator:{halfSample:false,patchSize:'medium'},
+        decoder:{readers:['code_128_reader','code_39_reader','code_93_reader']}
+      },result=>{
+        const code=result?.codeResult?.code||'';
+        finish(code?[code]:[]);
+      });
+    }catch{finish([])}
+  });
+}
+
 
 function makeScanCanvas(bitmap,maxSide=1800){
   const bw=bitmap.width||1, bh=bitmap.height||1;
@@ -1667,7 +1690,7 @@ async function extractSerial(source){
     // 실제 iRay 라벨에서 긴 1D 바코드와 인쇄 S/N이 놓이는 중앙 띠만 읽습니다.
     // 넓은 사진 전체 OCR을 없애 속도와 메모리를 아끼고 주변 문구 오인식도 막습니다.
     setLive('iRay 바코드 영역 확인 중…','busy');
-    let bitmap=null,base=null,label=null,binaryLabel=null,upperLabel=null;
+    let bitmap=null,base=null,label=null,binaryLabel=null,upperLabel=null,barcodeLabel=null;
     try{
       bitmap=await sourceToBitmap(source);
       base=makeScanCanvas(bitmap,1800);
@@ -1703,11 +1726,24 @@ async function extractSerial(source){
       enhanceIRayOcrCanvas(upperLabel);
       const upperRetry=await worker.recognize(upperLabel);
       irayTextCodes=parseIRaySnText(upperRetry?.data?.text||'');
-      return irayTextCodes.slice(0,10);
+      if(irayTextCodes.length)return irayTextCodes.slice(0,10);
+
+      // OCR이 끝까지 놓친 사진만 Code128 전용 판독기로 실제 막대 바코드를 확인합니다.
+      // 평소에는 실행되지 않아 정상 인식 사진의 속도와 메모리에는 영향이 없습니다.
+      setLive('iRay 1D 바코드 정밀 확인 중…','busy');
+      barcodeLabel=cropCanvas(
+        base,
+        Math.round(w*.03),Math.round(h*.34),
+        Math.round(w*.94),Math.round(h*.30),
+        2.00
+      );
+      const quaggaCodes=filterIRaySerials(await tryQuaggaIRay1D(barcodeLabel));
+      return quaggaCodes.slice(0,10);
     }catch(e){
       console.error('[iRay 문자 보조 인식 오류]',e);
       return [];
     }finally{
+      releaseCanvas(barcodeLabel);
       releaseCanvas(upperLabel);
       releaseCanvas(binaryLabel);
       releaseCanvas(label);
