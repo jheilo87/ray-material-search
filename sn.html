@@ -984,6 +984,23 @@ function filterIRaySerials(values=[]){
   // ED 접두사가 다른 iRay 라벨도 대비하되, 긴 코드 + 끝 X 조건은 반드시 지킵니다.
   return vals.filter(v=>/^[A-Z0-9]{15,30}X$/.test(v)).slice(0,20);
 }
+function normalizeIRayOcrCandidate(value=''){
+  let code=plainSerial(value);
+  if(code.startsWith('D'))code=`E${code}`;
+  if(!code.startsWith('ED'))return '';
+
+  // 확인된 iRay 형식: ED + 숫자 6자리 + H + 숫자 9자리 + X (총 19자)
+  // 숫자 칸에서만 흔한 OCR 혼동을 고쳐 일반 문구가 S/N으로 바뀌는 것을 막습니다.
+  const h=code.indexOf('H');
+  if(h<7||h>9)return '';
+  const digitFix=s=>s.replace(/[OQ]/g,'0').replace(/[IL]/g,'1').replace(/S/g,'5').replace(/B/g,'8');
+  const left=digitFix(code.slice(2,h));
+  let right=digitFix(code.slice(h+1));
+  if(right.endsWith('X'))right=right.slice(0,-1);
+  else if(right.length===10)right=right.slice(0,9); // 끝 X를 K 등으로 오독한 경우
+  if(!/^\d{6}$/.test(left)||!/^\d{9}$/.test(right))return '';
+  return `ED${left}H${right}X`;
+}
 function parseIRaySnText(text=''){
   const raw=String(text||'').toUpperCase().replace(/\r/g,'\n');
   const candidates=[];
@@ -993,10 +1010,10 @@ function parseIRaySnText(text=''){
   const sources=[...raw.split(/\n+/),raw];
   for(const source of sources){
     const compact=source.replace(/[^A-Z0-9]/g,'');
-    const matches=compact.match(/E?D[A-Z0-9]{12,27}X/g)||[];
+    const matches=compact.match(/E?D[A-Z0-9]{6}H[A-Z0-9]{9}X?/g)||[];
     // 사진 가장자리·접힘 때문에 첫 글자 E만 빠진 경우(D341...X)는
     // iRay의 확정된 ED...X 규칙 안에서만 E를 복원합니다.
-    candidates.push(...matches.map(v=>v.startsWith('D')?`E${v}`:v));
+    candidates.push(...matches.map(normalizeIRayOcrCandidate).filter(Boolean));
   }
   return filterIRaySerials(candidates);
 }
