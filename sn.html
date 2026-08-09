@@ -1738,7 +1738,26 @@ async function extractSerial(source){
         2.00
       );
       const quaggaCodes=filterIRaySerials(await tryQuaggaIRay1D(barcodeLabel));
-      return quaggaCodes.slice(0,10);
+      if(quaggaCodes.length)return quaggaCodes.slice(0,10);
+
+      // 005 사진처럼 부분 크롭에서는 놓치지만 사진 전체 문맥에서는 정확히 읽히는 경우의
+      // 최종 보조 단계입니다. 모든 앞 단계가 실패한 한 장에만 실행합니다.
+      setLive('iRay 사진 전체 최종 확인 중…','busy');
+      let fullRetry;
+      try{
+        await worker.setParameters({
+          tessedit_pageseg_mode:'6',
+          tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        });
+        fullRetry=await worker.recognize(base);
+      }finally{
+        await worker.setParameters({
+          tessedit_pageseg_mode:'11',
+          tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        });
+      }
+      irayTextCodes=parseIRaySnText(fullRetry?.data?.text||'');
+      return irayTextCodes.slice(0,10);
     }catch(e){
       console.error('[iRay 문자 보조 인식 오류]',e);
       return [];
