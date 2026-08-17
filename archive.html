@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f5f8fc">
+<title>RaySmart 자료실</title>
+<style>
+:root{--blue:#079bd5;--navy:#173c6d;--green:#19986f;--ink:#14243c;--muted:#778397;--line:#e0e7ef;--bg:#f3f7fb}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:var(--bg);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:var(--ink)}button,a{font:inherit}.app{max-width:720px;margin:auto;min-height:100dvh;background:#fff;padding:18px 16px 34px}.top{display:flex;align-items:center;gap:13px;padding:2px 2px 19px}.back{width:44px;height:44px;border:1px solid #dce5ee;border-radius:15px;background:#fff;color:#35455d;font-size:26px;font-weight:900;display:grid;place-items:center;text-decoration:none;box-shadow:0 5px 14px rgba(30,57,87,.08)}.title{font-size:26px;font-weight:1000;letter-spacing:-1px}.sub{margin-top:3px;color:var(--muted);font-size:13px;font-weight:750}.intro{border:1px solid #cfe7f4;border-radius:23px;padding:20px;background:linear-gradient(135deg,#eaf8ff,#f8fcff);box-shadow:0 9px 23px rgba(31,95,130,.08)}.intro strong{display:block;color:#087eaf;font-size:21px}.intro p{margin:7px 0 0;color:#607085;font-size:14px;line-height:1.5}.section{margin-top:25px}.sectionHead{display:flex;align-items:flex-end;justify-content:space-between;margin:0 3px 12px}.sectionHead h2{margin:0;font-size:20px;letter-spacing:-.6px}.sectionHead span{color:#8a95a5;font-size:12px;font-weight:750}.floorGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.floorCard{border:1px solid var(--line);border-radius:19px;background:#fff;padding:0;overflow:hidden;text-align:left;color:var(--ink);box-shadow:0 7px 18px rgba(33,56,82,.07)}.floorCard:active,.guideCard:active{transform:scale(.985)}.thumb{height:96px;display:grid;place-items:center;background:#edf5fa;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover}.floor3 .thumb{background:#edf7ff}.floor4 .thumb{background:#f5f1ff}.floor5 .thumb{background:#fff6ec}.floorInfo{display:flex;align-items:center;justify-content:space-between;padding:12px 11px}.floorInfo strong{font-size:16px}.floorInfo span{color:#8793a4;font-size:18px}.guideCard{width:100%;border:1px solid #cfe4dd;border-radius:21px;background:linear-gradient(135deg,#edf9f5,#fbfefd);padding:16px;display:grid;grid-template-columns:70px 1fr 26px;gap:14px;align-items:center;text-align:left;color:var(--ink);box-shadow:0 8px 20px rgba(24,108,80,.08)}.guideIcon{width:66px;height:66px;border-radius:19px;background:#dff3ec;color:var(--green);display:grid;place-items:center;font-size:31px}.guideText strong{display:block;color:#167e60;font-size:19px}.guideText span{display:block;margin-top:5px;color:#657487;font-size:13px}.guideArrow{color:var(--green);font-size:25px}.note{margin:22px 3px 0;color:#8994a4;font-size:12px;line-height:1.55}.viewer{position:fixed;inset:0;z-index:1000;display:none;flex-direction:column;background:#0d1725}.viewer.show{display:flex}.viewerHead{height:62px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;color:#fff;background:#132238}.viewerTitle{font-size:17px;font-weight:950}.viewerClose{width:42px;height:42px;border:0;border-radius:50%;background:#ffffff18;color:#fff;font-size:28px}.viewerBody{flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;padding:14px;-webkit-overflow-scrolling:touch}.viewerBody img{display:block;max-width:none;height:auto;margin:auto;transform-origin:top left}.zoomBar{height:66px;flex:none;display:flex;align-items:center;justify-content:center;gap:9px;padding-bottom:max(8px,env(safe-area-inset-bottom));background:#132238}.zoomBar button{min-width:48px;height:42px;border:1px solid #ffffff25;border-radius:13px;background:#ffffff12;color:#fff;font-size:20px;font-weight:900}.zoomBar .fit{font-size:12px;padding:0 14px}.zoomValue{min-width:52px;color:#fff;text-align:center;font-size:13px;font-weight:900}@media(max-width:430px){.app{padding:16px 14px 30px}.title{font-size:23px}.floorGrid{gap:8px}.thumb{height:82px}.floorInfo{padding:10px 9px}.floorInfo strong{font-size:15px}.intro{padding:18px}.guideCard{grid-template-columns:62px 1fr 24px;padding:14px}.guideIcon{width:58px;height:58px}}
+/* 2층 추가: 휴대폰에서도 2개씩 보기 좋게 배치 */
+.floorGrid{grid-template-columns:repeat(2,1fr)}
+.thumb{height:118px}
+.floor2 .thumb{background:#f4f8ee}
+@media(max-width:430px){.thumb{height:100px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top"><a class="back" href="index.html" aria-label="메인으로 돌아가기">‹</a><div><div class="title">자료실</div><div class="sub">RaySmart 업무 자료 모음</div></div></header>
+  <section class="intro"><strong>필요한 자료를 바로 확인하세요.</strong><p>층별 자재 위치 레이아웃과 장비 대·소 구분표를 확대해서 볼 수 있습니다.</p></section>
+  <section class="section">
+    <div class="sectionHead"><h2>층별 레이아웃</h2><span>이미지를 눌러 확대</span></div>
+    <div class="floorGrid">
+      <button class="floorCard floor2" type="button" data-src="floor-2.png" data-title="2층 제조 레이아웃"><div class="thumb"><img src="floor-2.png" alt="2층 제조 레이아웃 미리보기"></div><div class="floorInfo"><strong>2층</strong><span>›</span></div></button>
+      <button class="floorCard floor3" type="button" data-src="floor-3.png" data-title="3층 레이아웃"><div class="thumb"><img src="floor-3.png" alt="3층 레이아웃 미리보기"></div><div class="floorInfo"><strong>3층</strong><span>›</span></div></button>
+      <button class="floorCard floor4" type="button" data-src="floor-4.png" data-title="4층 레이아웃"><div class="thumb"><img src="floor-4.png" alt="4층 레이아웃 미리보기"></div><div class="floorInfo"><strong>4층</strong><span>›</span></div></button>
+      <button class="floorCard floor5" type="button" data-src="floor-5.png" data-title="5층 레이아웃"><div class="thumb"><img src="floor-5.png" alt="5층 레이아웃 미리보기"></div><div class="floorInfo"><strong>5층</strong><span>›</span></div></button>
+    </div>
+  </section>
+  <section class="section">
+    <div class="sectionHead"><h2>장비 구분표</h2><span>대장비 19종 · 소장비 10종</span></div>
+    <button class="guideCard" type="button" data-src="ray-equipment-guide.jpg" data-title="RAY 장비 대·소 구분 목록"><span class="guideIcon">▤</span><span class="guideText"><strong>장비 대·소 구분 목록</strong><span>장비군과 Detector 기준 확인</span></span><span class="guideArrow">›</span></button>
+  </section>
+  <p class="note">도면과 구분표는 좌우로 이동하거나 확대·축소해서 확인할 수 있습니다.</p>
+</main>
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+  <div class="viewerHead"><div class="viewerTitle" id="viewerTitle">자료 보기</div><button class="viewerClose" id="viewerClose" type="button" aria-label="닫기">×</button></div>
+  <div class="viewerBody" id="viewerBody"><img id="viewerImage" alt="자료 이미지"></div>
+  <div class="zoomBar"><button id="zoomOut" type="button" aria-label="축소">−</button><span class="zoomValue" id="zoomValue">100%</span><button id="zoomIn" type="button" aria-label="확대">＋</button><button class="fit" id="zoomFit" type="button">화면 맞춤</button></div>
+</div>
+<script>
+(()=>{const viewer=document.getElementById('viewer'),body=document.getElementById('viewerBody'),img=document.getElementById('viewerImage'),title=document.getElementById('viewerTitle'),value=document.getElementById('zoomValue');let zoom=1;function apply(){img.style.width=(img.naturalWidth*zoom)+'px';value.textContent=Math.round(zoom*100)+'%'}function fit(){if(!img.naturalWidth)return;zoom=Math.min(1,(body.clientWidth-28)/img.naturalWidth);apply();body.scrollTo(0,0)}function open(src,label){title.textContent=label;img.onload=fit;img.src=src;viewer.classList.add('show');document.body.style.overflow='hidden'}function close(){viewer.classList.remove('show');document.body.style.overflow='';img.removeAttribute('src')}document.querySelectorAll('[data-src]').forEach(el=>el.addEventListener('click',()=>open(el.dataset.src,el.dataset.title)));document.getElementById('viewerClose').addEventListener('click',close);document.getElementById('zoomIn').addEventListener('click',()=>{zoom=Math.min(2.5,zoom+.2);apply()});document.getElementById('zoomOut').addEventListener('click',()=>{zoom=Math.max(.15,zoom-.2);apply()});document.getElementById('zoomFit').addEventListener('click',fit);window.addEventListener('keydown',e=>{if(e.key==='Escape')close()})})();
+</script>
+</body>
+</html>
