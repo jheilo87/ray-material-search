@@ -12,6 +12,9 @@
 .thumb{height:118px}
 .floor2 .thumb{background:#f4f8ee}
 @media(max-width:430px){.thumb{height:100px}}
+.viewerBody{overscroll-behavior:contain;touch-action:pan-x pan-y}
+.viewerBody.pinching{touch-action:none}
+.viewerBody img{-webkit-user-drag:none;user-select:none}
 </style>
 </head>
 <body>
@@ -39,7 +42,44 @@
   <div class="zoomBar"><button id="zoomOut" type="button" aria-label="축소">−</button><span class="zoomValue" id="zoomValue">100%</span><button id="zoomIn" type="button" aria-label="확대">＋</button><button class="fit" id="zoomFit" type="button">화면 맞춤</button></div>
 </div>
 <script>
-(()=>{const viewer=document.getElementById('viewer'),body=document.getElementById('viewerBody'),img=document.getElementById('viewerImage'),title=document.getElementById('viewerTitle'),value=document.getElementById('zoomValue');let zoom=1;function apply(){img.style.width=(img.naturalWidth*zoom)+'px';value.textContent=Math.round(zoom*100)+'%'}function fit(){if(!img.naturalWidth)return;zoom=Math.min(1,(body.clientWidth-28)/img.naturalWidth);apply();body.scrollTo(0,0)}function open(src,label){title.textContent=label;img.onload=fit;img.src=src;viewer.classList.add('show');document.body.style.overflow='hidden'}function close(){viewer.classList.remove('show');document.body.style.overflow='';img.removeAttribute('src')}document.querySelectorAll('[data-src]').forEach(el=>el.addEventListener('click',()=>open(el.dataset.src,el.dataset.title)));document.getElementById('viewerClose').addEventListener('click',close);document.getElementById('zoomIn').addEventListener('click',()=>{zoom=Math.min(2.5,zoom+.2);apply()});document.getElementById('zoomOut').addEventListener('click',()=>{zoom=Math.max(.15,zoom-.2);apply()});document.getElementById('zoomFit').addEventListener('click',fit);window.addEventListener('keydown',e=>{if(e.key==='Escape')close()})})();
+(()=>{
+ const viewer=document.getElementById('viewer'),body=document.getElementById('viewerBody'),img=document.getElementById('viewerImage'),title=document.getElementById('viewerTitle'),value=document.getElementById('zoomValue');
+ let zoom=1,viewerHistory=false,pinch=null;
+ const clamp=n=>Math.max(.15,Math.min(3.5,n));
+ function apply(){img.style.width=(img.naturalWidth*zoom)+'px';value.textContent=Math.round(zoom*100)+'%'}
+ function fit(){if(!img.naturalWidth)return;zoom=Math.min(1,(body.clientWidth-28)/img.naturalWidth);apply();body.scrollTo(0,0)}
+ function open(src,label){
+  title.textContent=label;img.onload=fit;img.src=src;viewer.classList.add('show');document.body.style.overflow='hidden';
+  if(!viewerHistory){history.pushState({rayArchiveViewer:true},'');viewerHistory=true}
+ }
+ function close(fromHistory=false){
+  if(!viewer.classList.contains('show'))return;
+  viewer.classList.remove('show');body.classList.remove('pinching');document.body.style.overflow='';img.removeAttribute('src');pinch=null;
+  if(fromHistory)viewerHistory=false;
+ }
+ function requestClose(){if(viewerHistory)history.back();else close()}
+ function distance(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}
+ body.addEventListener('touchstart',e=>{
+  if(e.touches.length!==2)return;
+  const a=e.touches[0],b=e.touches[1],rect=body.getBoundingClientRect();
+  pinch={distance:distance(a,b),zoom,midX:(a.clientX+b.clientX)/2-rect.left,midY:(a.clientY+b.clientY)/2-rect.top,scrollLeft:body.scrollLeft,scrollTop:body.scrollTop};
+  body.classList.add('pinching');e.preventDefault();
+ },{passive:false});
+ body.addEventListener('touchmove',e=>{
+  if(!pinch||e.touches.length!==2)return;
+  const next=clamp(pinch.zoom*distance(e.touches[0],e.touches[1])/pinch.distance),ratio=next/pinch.zoom;
+  zoom=next;apply();body.scrollLeft=(pinch.scrollLeft+pinch.midX)*ratio-pinch.midX;body.scrollTop=(pinch.scrollTop+pinch.midY)*ratio-pinch.midY;e.preventDefault();
+ },{passive:false});
+ body.addEventListener('touchend',e=>{if(e.touches.length<2){pinch=null;body.classList.remove('pinching')}},{passive:true});
+ body.addEventListener('touchcancel',()=>{pinch=null;body.classList.remove('pinching')},{passive:true});
+ document.querySelectorAll('[data-src]').forEach(el=>el.addEventListener('click',()=>open(el.dataset.src,el.dataset.title)));
+ document.getElementById('viewerClose').addEventListener('click',requestClose);
+ document.getElementById('zoomIn').addEventListener('click',()=>{zoom=clamp(zoom+.2);apply()});
+ document.getElementById('zoomOut').addEventListener('click',()=>{zoom=clamp(zoom-.2);apply()});
+ document.getElementById('zoomFit').addEventListener('click',fit);
+ window.addEventListener('popstate',()=>{if(viewer.classList.contains('show'))close(true)});
+ window.addEventListener('keydown',e=>{if(e.key==='Escape')requestClose()});
+})();
 </script>
 </body>
 </html>
