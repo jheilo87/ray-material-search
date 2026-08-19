@@ -3466,6 +3466,24 @@ updateActionReadyStates();
   }catch{}
 })();
 </script>
+<script>
+/* RaySmart 화면 켜짐 유지 */
+(function(){
+  let screenWakeLock=null;
+  async function keepRaySmartScreenOn(){
+    if(!('wakeLock' in navigator)||document.visibilityState!=='visible'||screenWakeLock)return;
+    try{
+      screenWakeLock=await navigator.wakeLock.request('screen');
+      screenWakeLock.addEventListener('release',()=>{screenWakeLock=null;},{once:true});
+    }catch{screenWakeLock=null;}
+  }
+  keepRaySmartScreenOn();
+  document.addEventListener('pointerdown',keepRaySmartScreenOn,{once:true,passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')keepRaySmartScreenOn();});
+  window.addEventListener('pageshow',keepRaySmartScreenOn);
+  window.addEventListener('focus',keepRaySmartScreenOn);
+})();
+</script>
 </body>
 </html>
 
