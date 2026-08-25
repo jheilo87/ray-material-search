@@ -899,6 +899,7 @@ let activeBatchTotal=0;
 let activeBatchIndex=0;
 let activeBatchMode='';
 let activeBatchWasHidden=false;
+let batchResumeBusy=false;
 
 /* GitHub/동일 폴더의 sn_products.json에서 자동 불러옵니다.
    연결 실패 시 마지막 성공 목록(localStorage)을 사용합니다. */
@@ -2694,13 +2695,15 @@ async function loadOneBatchFile(index){
   });
 }
 function showResumeExtractPrompt(meta){
-  if(!meta||meta.status!=='running'||!meta.total||meta.index>=meta.total)return;
+  if(batchResumeBusy||!meta||meta.status!=='running'||!meta.total||meta.index>=meta.total)return;
   $('resumeExtractText').innerHTML=`전체 <b>${meta.total}장</b> 중 <b>${meta.index}장</b>까지 완료했습니다.<br><b>${meta.index+1}번째 사진</b>부터 이어서 추출할 수 있습니다.`;
   openModal('resumeExtractModal');
 }
 async function resumeSavedBatch(){
+  if(batchResumeBusy)return;
   const meta=getBatchMeta();
   if(!meta||meta.status!=='running')return closeModal('resumeExtractModal');
+  batchResumeBusy=true;
   closeModal('resumeExtractModal');
   try{
     activeBatchId=meta.batchId||'';
@@ -2709,6 +2712,16 @@ async function resumeSavedBatch(){
     activeBatchMode=meta.mode||'Auto';
     const previousVendor=selectedVendor;
     selectedVendor=activeBatchMode==='Auto'?'Auto':activeBatchMode;
+    // 새 고화질 촬영 묶음은 이전 세션에서 복구된 미리보기 사진과 섞지 않습니다.
+    // 기존 S/N 문자열 결과는 유지하되 사진/미인식 연결만 새 묶음 기준으로 시작합니다.
+    if(activeBatchIndex===0 && String(activeBatchId).startsWith('capture-')){
+      photoItems.forEach(item=>{try{if(item?.url)URL.revokeObjectURL(item.url)}catch{}});
+      photoItems=[];
+      nextPhotoId=1;
+      resetFailedImages();
+      renderPreviews();
+      render();
+    }
     setStatus(`${activeBatchIndex}장까지 완료 · ${activeBatchIndex+1}번째부터 이어서 추출합니다.`,'ok');
     try{
       // 고화질 원본 전체를 한 번에 getAll()하면 사진 수만큼 메모리가 쌓입니다.
@@ -2736,6 +2749,8 @@ async function resumeSavedBatch(){
     }
   }catch(err){
     setStatus('이어서 추출을 준비하지 못했습니다. 사진을 다시 선택해 주세요.','bad');
+  }finally{
+    batchResumeBusy=false;
   }
 }
 
