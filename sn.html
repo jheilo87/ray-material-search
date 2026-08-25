@@ -476,8 +476,11 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 
 
 <style id="native-camera-mode-fix">
-/* 고화질 연속촬영은 가벼운 전용 페이지에서 진행합니다. */
+/* iRay만 앨범 다중선택을 사용하고, 다른 업체는 기존 연속촬영을 유지합니다. */
 #cameraPanel{display:none!important}
+.modeBtns.irayAlbumOnly{grid-template-columns:1fr!important}
+.modeBtns.irayAlbumOnly .cameraBtn{display:none!important}
+.modeBtns.irayAlbumOnly .galleryBtn{min-height:92px!important}
 
 @media(max-width:520px){
   .sectionGroove{
@@ -666,7 +669,7 @@ input,select,textarea{font-size:max(16px,1em);}
   </div>
   <input class="hiddenInput" id="captureInput" type="file" accept="image/*" capture="environment">
   <input class="hiddenInput" id="imageInput" type="file" accept="image/*" multiple>
-  <div class="note">※ 업체 미선택 시 앨범은 자동인식으로 처리합니다. 업체를 선택한 뒤 앨범을 열면 선택한 업체 방식으로 고정 인식하며, 기존 S/N 목록은 유지됩니다.</div>
+  <div class="note" id="modeNote">※ 업체 미선택 시 앨범은 자동인식으로 처리합니다. 업체를 선택한 뒤 앨범을 열면 선택한 업체 방식으로 고정 인식하며, 기존 S/N 목록은 유지됩니다.</div>
 
   <div class="cameraPanel" id="cameraPanel">
     <div class="videoWrap">
@@ -3122,14 +3125,23 @@ function setInputMode(mode=''){
 function updateGalleryModeUI(){
   const title=$('galleryModeTitle');
   const sub=$('galleryModeSub');
+  const modes=document.querySelector('.modeBtns');
+  const note=$('modeNote');
   if(!title||!sub)return;
 
-  if(selectedVendor){
+  modes?.classList.toggle('irayAlbumOnly',selectedVendor==='iRay');
+  if(selectedVendor==='iRay'){
+    title.textContent='iRay 촬영사진 불러오기';
+    sub.textContent='기본 카메라로 촬영한 사진을 여러 장 선택';
+    if(note)note.textContent='※ iRay은 고화질 기본 카메라로 먼저 촬영한 뒤, 이 버튼에서 사진을 여러 장 선택하면 순서대로 추출합니다.';
+  }else if(selectedVendor){
     title.textContent=`앨범선택 (${vendorLabel(selectedVendor)})`;
     sub.textContent=`선택한 사진을 ${vendorLabel(selectedVendor)} 방식으로 인식`;
+    if(note)note.textContent='※ 연속촬영 또는 앨범선택을 사용할 수 있으며, 기존 S/N 목록은 유지됩니다.';
   }else{
     title.textContent='앨범선택 (자동인식)';
     sub.textContent='여러 업체 사진 함께 불러오기';
+    if(note)note.textContent='※ 업체 미선택 시 앨범은 자동인식으로 처리합니다. 업체를 선택한 뒤 앨범을 열면 해당 업체 방식으로 인식합니다.';
   }
 }
 
@@ -3139,11 +3151,13 @@ function updateActionReadyStates(){
   updateGalleryModeUI();
 }
 
-function openLightCapturePage(){
-  if(!selectedVendor)return openModal('vendorRequiredModal');
-  try{sessionStorage.setItem('raySnSelectedVendor',selectedVendor)}catch{}
-  const captureSession=`${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-  window.location.href=`sn_capture.html?vendor=${encodeURIComponent(selectedVendor)}&session=${encodeURIComponent(captureSession)}`;
+function startSelectedCapture(){
+  if(selectedVendor==='iRay'){
+    setInputMode('gallery');
+    try{imageInput.click()}catch{}
+    return;
+  }
+  openFreshNativeCamera();
 }
 
 updateGalleryModeUI();
@@ -3163,7 +3177,9 @@ document.querySelectorAll('.vendor').forEach(btn=>btn.addEventListener('click',(
   btn.classList.add('active');
   selectedVendor=btn.dataset.vendor;
   updateActionReadyStates();
-  setStatus(`${vendorLabel(selectedVendor)} 선택됨 · 연속촬영과 앨범선택 모두 ${vendorLabel(selectedVendor)} 방식으로 처리됩니다.`);
+  setStatus(selectedVendor==='iRay'
+    ?'iRay 선택됨 · 기본 카메라로 먼저 촬영한 뒤 촬영사진 불러오기를 이용해 주세요.'
+    :`${vendorLabel(selectedVendor)} 선택됨 · 연속촬영과 앨범선택을 모두 사용할 수 있습니다.`);
   saveSession();
 }));
 $('openCameraBtn').addEventListener('click',()=>{
@@ -3174,7 +3190,7 @@ $('openCameraBtn').addEventListener('click',()=>{
   }
   setInputMode('camera');
   if(localStorage.getItem('raySnShootGuideSkip')==='1'){
-    openLightCapturePage();
+    startSelectedCapture();
     return;
   }
   $('shootGuideSkip').checked=false;
@@ -3210,7 +3226,7 @@ window.addEventListener('pageshow',()=>{
   },500);
 });
 $('shootGuideCancel').addEventListener('click',()=>closeModal('shootGuideModal'));
-$('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checked)localStorage.setItem('raySnShootGuideSkip','1');closeModal('shootGuideModal');openLightCapturePage()});
+$('shootGuideStart').addEventListener('click',()=>{if($('shootGuideSkip').checked)localStorage.setItem('raySnShootGuideSkip','1');closeModal('shootGuideModal');startSelectedCapture()});
 $('captureBtn').addEventListener('click',captureAndExtract);
 $('finishBtn').addEventListener('click',()=>{stopCamera();$('cameraPanel').classList.remove('show');setStatus('촬영을 종료했습니다. 결과를 확인하세요.','ok')});
 const nextCaptureBtn=$('nextCaptureBtn');
