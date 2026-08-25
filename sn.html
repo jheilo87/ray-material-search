@@ -2679,6 +2679,20 @@ async function loadBatchFilesFrom(startIndex=0){
     .sort((a,b)=>a.id-b.id)
     .map(x=>new File([x.blob],x.name,{type:x.type,lastModified:x.lastModified}));
 }
+async function loadOneBatchFile(index){
+  const db=await openBatchDb();
+  const row=await new Promise((resolve,reject)=>{
+    const tx=db.transaction(BATCH_DB_STORE,'readonly');
+    const req=tx.objectStore(BATCH_DB_STORE).get(index);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  });
+  db.close();
+  if(!row?.blob)return null;
+  return new File([row.blob],row.name||`photo-${index+1}.jpg`,{
+    type:row.type||'image/jpeg',lastModified:row.lastModified||Date.now()
+  });
+}
 function showResumeExtractPrompt(meta){
   if(!meta||meta.status!=='running'||!meta.total||meta.index>=meta.total)return;
   $('resumeExtractText').innerHTML=`전체 <b>${meta.total}장</b> 중 <b>${meta.index}장</b>까지 완료했습니다.<br><b>${meta.index+1}번째 사진</b>부터 이어서 추출할 수 있습니다.`;
@@ -2689,20 +2703,34 @@ async function resumeSavedBatch(){
   if(!meta||meta.status!=='running')return closeModal('resumeExtractModal');
   closeModal('resumeExtractModal');
   try{
-    const files=await loadBatchFilesFrom(meta.index);
-    if(!files.length){
-      await clearBatchStore();
-      return;
-    }
     activeBatchId=meta.batchId||'';
-    activeBatchTotal=meta.total||files.length;
+    activeBatchTotal=meta.total||0;
     activeBatchIndex=meta.index||0;
     activeBatchMode=meta.mode||'Auto';
     const previousVendor=selectedVendor;
     selectedVendor=activeBatchMode==='Auto'?'Auto':activeBatchMode;
     setStatus(`${activeBatchIndex}장까지 완료 · ${activeBatchIndex+1}번째부터 이어서 추출합니다.`,'ok');
     try{
-      await processFiles(files,{resume:true,startIndex:activeBatchIndex,totalOverride:activeBatchTotal});
+      // 고화질 원본 전체를 한 번에 getAll()하면 사진 수만큼 메모리가 쌓입니다.
+      // IndexedDB에서 한 장만 읽고, 실제 인식기가 사용하는 최대 크기(2400px)로
+      // 줄인 뒤 처리합니다. 한 장이 끝나야 다음 원본을 읽습니다.
+      for(let index=activeBatchIndex;index<activeBatchTotal;index++){
+        let original=await loadOneBatchFile(index);
+        if(!original)continue;
+        const working=await makeStoredCaptureBlob(original,2400,.90);
+        original=null;
+        await processFiles([working],{
+          resume:true,
+          startIndex:index,
+          totalOverride:activeBatchTotal,
+          skipPersist:true
+        });
+        activeBatchIndex=index+1;
+        await updateBatchMeta({index:activeBatchIndex,status:activeBatchIndex>=activeBatchTotal?'done':'running'});
+        if(selectedVendor==='iRay')await terminateIRayOcrWorker();
+        await new Promise(resolve=>setTimeout(resolve,120));
+      }
+      await clearBatchStore();
     }finally{
       selectedVendor=previousVendor;
     }
