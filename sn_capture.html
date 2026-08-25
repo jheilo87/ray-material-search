@@ -30,10 +30,11 @@
 <script>
 (()=>{
 const DB_NAME='RaySmartSNBatchDB',STORE='batchFiles',META_KEY='raySnBatchMetaV1';
-const $=id=>document.getElementById(id);let photoCount=0,busy=false,previewUrls=[];
+const $=id=>document.getElementById(id);let photoCount=0,busy=false,previewUrls=[];const handledFiles=new WeakSet();
 const allowed=['iRay','Dell','Vieworks','i3system'];
 const params=new URLSearchParams(location.search);
 const vendor=allowed.includes(params.get('vendor'))?params.get('vendor'):(sessionStorage.getItem('raySnSelectedVendor')||'iRay');
+const captureSession=params.get('session')||`legacy-${Date.now()}`;
 $('vendorLabel').textContent=`${vendor} 촬영`;
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,2);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'id'});if(!db.objectStoreNames.contains('capturePhotos'))db.createObjectStore('capturePhotos',{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function putRow(row){const db=await openDb();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(row);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}
@@ -43,12 +44,13 @@ function setStatus(text,type=''){const el=$('status');el.textContent=text;el.cla
 async function makeThumb(blob){try{const bm=await createImageBitmap(blob);const side=150,c=document.createElement('canvas');c.width=side;c.height=side;const scale=Math.max(side/bm.width,side/bm.height),w=bm.width*scale,h=bm.height*scale;c.getContext('2d').drawImage(bm,(side-w)/2,(side-h)/2,w,h);bm.close();const out=await new Promise(r=>c.toBlob(r,'image/jpeg',.65));c.width=c.height=1;return out}catch{return null}}
 function render(){ $('count').textContent=photoCount;$('shootBtn').textContent=photoCount?'📷 다음 촬영':'📷 첫 촬영';$('finishBtn').disabled=!photoCount;$('deleteLastBtn').disabled=!photoCount }
 async function showLatestThumb(file,index){const thumb=await makeThumb(file);previewUrls.forEach(URL.revokeObjectURL);previewUrls=[];$('thumbs').innerHTML='';if(!thumb)return;const url=URL.createObjectURL(thumb);previewUrls.push(url);const el=document.createElement('div');el.className='thumb';el.innerHTML=`<img alt="최근 사진"><span>${index}</span>`;el.querySelector('img').src=url;$('thumbs').appendChild(el)}
-async function startNew(){const meta=JSON.parse(localStorage.getItem(META_KEY)||'null');if(!meta||meta.status!=='capturing'||meta.mode!==vendor){await clearRows();photoCount=0;localStorage.setItem(META_KEY,JSON.stringify({batchId:`capture-${Date.now()}`,total:0,index:0,mode:vendor,status:'capturing',updatedAt:Date.now()}))}else photoCount=Number(meta.total||0);render()}
+async function startNew(){const meta=JSON.parse(localStorage.getItem(META_KEY)||'null');if(!meta||meta.status!=='capturing'||meta.mode!==vendor||meta.captureSession!==captureSession){await clearRows();photoCount=0;localStorage.setItem(META_KEY,JSON.stringify({batchId:`capture-${Date.now()}`,captureSession,total:0,index:0,mode:vendor,status:'capturing',updatedAt:Date.now()}))}else photoCount=Number(meta.total||0);render()}
 function openCamera(){if(busy)return;const input=$('captureInput');try{input.value=''}catch{};input.click()}
 $('shootBtn').addEventListener('click',openCamera);
 async function handleCaptureReturn(){
   const input=$('captureInput');let file=input.files?.[0];
-  if(!file||busy)return;
+  if(!file||busy||handledFiles.has(file))return;
+  handledFiles.add(file);
   busy=true;$('shootBtn').disabled=true;setStatus('고화질 사진을 저장하고 있습니다…');
   try{const id=photoCount;await putRow({id,batchId:JSON.parse(localStorage.getItem(META_KEY)||'{}').batchId||`capture-${Date.now()}`,name:file.name||`photo-${id+1}.jpg`,type:file.type||'image/jpeg',lastModified:file.lastModified||Date.now(),blob:file});await showLatestThumb(file,id+1);try{input.value=''}catch{};file=null;photoCount=id+1;const meta=JSON.parse(localStorage.getItem(META_KEY)||'{}');localStorage.setItem(META_KEY,JSON.stringify({...meta,total:photoCount,index:0,mode:vendor,status:'capturing',updatedAt:Date.now()}));render();setStatus(`사진 ${photoCount}장 저장 완료 · 다음 촬영을 눌러주세요.`,'ok')}
   catch(err){setStatus('사진 저장에 실패했습니다. 다시 촬영해 주세요.','bad')}

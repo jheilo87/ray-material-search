@@ -3099,7 +3099,8 @@ function updateActionReadyStates(){
 function openLightCapturePage(){
   if(!selectedVendor)return openModal('vendorRequiredModal');
   try{sessionStorage.setItem('raySnSelectedVendor',selectedVendor)}catch{}
-  window.location.href=`sn_capture.html?vendor=${encodeURIComponent(selectedVendor)}`;
+  const captureSession=`${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  window.location.href=`sn_capture.html?vendor=${encodeURIComponent(selectedVendor)}&session=${encodeURIComponent(captureSession)}`;
 }
 
 updateGalleryModeUI();
