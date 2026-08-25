@@ -3219,7 +3219,7 @@ function openFreshNativeCamera(){
 
 async function handleNativeCaptureChange(e){
   const input=e.currentTarget;
-  const file=input?.files?.[0];
+  let file=input?.files?.[0];
 
   if(!file){
     try{input.value=''}catch{}
@@ -3236,7 +3236,15 @@ async function handleNativeCaptureChange(e){
   busy=true;
 
   try{
-    await processFiles([file],{
+    // 휴대폰 카메라 원본(보통 12~50MP)을 그대로 미리보기·저장·OCR에
+    // 동시에 사용하면 두 번째 촬영 시 카메라가 새 사진을 넘길 메모리가
+    // 부족해질 수 있습니다. 한 번만 축소한 작업용 사진으로 이후 전 과정을
+    // 처리하고, file input과 원본 참조는 인식 전에 즉시 해제합니다.
+    const captureBlob=await makeStoredCaptureBlob(file,1800,.84);
+    try{input.value=''}catch{}
+    file=null;
+
+    await processFiles([captureBlob],{
       skipPersist:true,
       immediatePreview:true,
       cumulativeProgress:true
@@ -3259,8 +3267,13 @@ async function handleNativeCaptureChange(e){
   }finally{
     busy=false;
     try{input.value=''}catch{}
-    // 고해상도 디코더/Canvas 메모리가 정리될 시간을 조금 준 뒤 다음 촬영을 엽니다.
-    setTimeout(()=>showNextCapture(),220);
+    // iRay OCR worker(WASM)는 큰 메모리를 계속 점유하므로 사진 한 장 처리가
+    // 끝날 때 종료합니다. 다음 사진에서는 필요할 때 새 worker를 만듭니다.
+    // 초기화 시간이 조금 늘어나는 대신 삼성 인터넷/Chrome의 카메라 재실행이
+    // 훨씬 안정적입니다.
+    if(selectedVendor==='iRay')await terminateIRayOcrWorker();
+    // 디코더·Canvas·worker 메모리가 정리될 시간을 준 뒤 다음 촬영을 허용합니다.
+    setTimeout(()=>showNextCapture(),450);
   }
 }
 
