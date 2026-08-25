@@ -3185,14 +3185,13 @@ function hideNextCapture(){
   }
 }
 function bindFreshCaptureInput(){
-  const oldInput=captureInput;
-  if(!oldInput)return null;
+  if(!captureInput)return null;
 
-  const fresh=oldInput.cloneNode(false);
-  fresh.value='';
-  oldInput.replaceWith(fresh);
-  captureInput=fresh;
-
+  // 삼성 인터넷/안드로이드 WebView에서는 첫 촬영 뒤 file input DOM을
+  // clone/replace하면 새 input이 카메라 결과를 받지 못하는 경우가 있습니다.
+  // 같은 input을 유지하면서 값과 change listener만 새로 준비합니다.
+  try{captureInput.value=''}catch{}
+  captureInput.removeEventListener('change',handleNativeCaptureChange);
   captureInput.addEventListener('change',handleNativeCaptureChange,{once:true});
   return captureInput;
 }
