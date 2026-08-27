@@ -484,6 +484,8 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 #cameraPanel.irayScanner .guide{top:39%;height:20%;border-color:#69f0ae}
 #cameraPanel.irayScanner .guideText{bottom:14px}
 #cameraPanel.irayScanner video{cursor:crosshair}
+#cameraPanel.irayScanner .videoWrap::after{content:'';position:absolute;left:50%;top:50%;width:54px;height:54px;border:2px solid #69f0ae;border-radius:50%;transform:translate(-50%,-50%) scale(1.25);opacity:0;pointer-events:none;transition:opacity .16s,transform .28s}
+#cameraPanel.irayScanner.focusing .videoWrap::after{opacity:1;transform:translate(-50%,-50%) scale(.72)}
 
 @media(max-width:520px){
   .sectionGroove{
@@ -904,6 +906,8 @@ let irayScanBusy=false;
 let irayLastScanAt=0;
 let irayLastAcceptedCode='';
 let irayLastAcceptedAt=0;
+let irayFocusTimer=0;
+let irayFocusBusy=false;
 const irayScanCanvas=document.createElement('canvas');
 
 let pendingTeamsShareText='';
@@ -2822,6 +2826,8 @@ async function openCamera(){
 function stopIRayScanner(){
   if(irayScanLoop)cancelAnimationFrame(irayScanLoop);
   irayScanLoop=0;irayScanBusy=false;irayLastScanAt=0;
+  if(irayFocusTimer)clearInterval(irayFocusTimer);
+  irayFocusTimer=0;irayFocusBusy=false;
   releaseCanvas(irayScanCanvas);
   $('cameraPanel')?.classList.remove('irayScanner');
 }
@@ -2905,7 +2911,10 @@ async function startIRayBarcodeScanner(){
     });
     video.srcObject=stream;
     await video.play();
-    await focusIRayCamera(false);
+    await focusIRayCamera(true);
+    // 일부 안드로이드 기기는 카메라를 연 직후 초점 명령을 무시하므로 한 번 더 적용합니다.
+    setTimeout(()=>focusIRayCamera(false),900);
+    irayFocusTimer=setInterval(()=>focusIRayCamera(false),2600);
     setLive('바코드를 초록색 사각형 안에 맞춰주세요. 흐리면 화면을 한 번 눌러 초점을 맞추세요.','busy');
     irayScanLoop=requestAnimationFrame(scanIRayVideoFrame);
   }catch(e){
@@ -2917,19 +2926,26 @@ async function startIRayBarcodeScanner(){
 
 async function focusIRayCamera(force=false){
   const track=stream?.getVideoTracks?.()[0];
-  if(!track?.applyConstraints)return;
+  if(!track?.applyConstraints||irayFocusBusy||track.readyState!=='live')return;
+  irayFocusBusy=true;
   try{
     const caps=track.getCapabilities?.()||{};
-    const advanced={};
     const focusModes=Array.isArray(caps.focusMode)?caps.focusMode:[];
     const exposureModes=Array.isArray(caps.exposureMode)?caps.exposureMode:[];
     const whiteBalanceModes=Array.isArray(caps.whiteBalanceMode)?caps.whiteBalanceMode:[];
 
-    if(force&&focusModes.includes('single-shot'))advanced.focusMode='single-shot';
-    else if(focusModes.includes('continuous'))advanced.focusMode='continuous';
-    if(exposureModes.includes('continuous'))advanced.exposureMode='continuous';
-    if(whiteBalanceModes.includes('continuous'))advanced.whiteBalanceMode='continuous';
-    if(Object.keys(advanced).length)await track.applyConstraints({advanced:[advanced]});
+    // 각 제약을 따로 적용해야 특정 옵션 하나가 미지원이어도 초점 명령까지 취소되지 않습니다.
+    if(force&&focusModes.includes('single-shot')){
+      await track.applyConstraints({advanced:[{focusMode:'single-shot'}]});
+    }else if(focusModes.includes('continuous')){
+      await track.applyConstraints({advanced:[{focusMode:'continuous'}]});
+    }
+    if(exposureModes.includes('continuous')){
+      try{await track.applyConstraints({advanced:[{exposureMode:'continuous'}]})}catch{}
+    }
+    if(whiteBalanceModes.includes('continuous')){
+      try{await track.applyConstraints({advanced:[{whiteBalanceMode:'continuous'}]})}catch{}
+    }
 
     // 터치 재초점 뒤에는 다시 연속초점으로 돌려 라벨 거리가 바뀌어도 선명도를 유지합니다.
     if(force&&focusModes.includes('single-shot')&&focusModes.includes('continuous')){
@@ -2938,14 +2954,20 @@ async function focusIRayCamera(force=false){
     }
   }catch(e){
     console.info('[iRay 초점 설정 미지원]',e);
+  }finally{
+    irayFocusBusy=false;
   }
 }
 
-video.addEventListener('click',async()=>{
+video.addEventListener('pointerup',async e=>{
   if(selectedVendor!=='iRay'||!stream)return;
+  e.preventDefault();
+  const panel=$('cameraPanel');
+  panel?.classList.add('focusing');
   setLive('초점을 다시 맞추는 중…','busy');
   await focusIRayCamera(true);
   setLive('초점 완료 · 바코드를 초록색 사각형 안에 가로로 맞춰주세요.','busy');
+  setTimeout(()=>panel?.classList.remove('focusing'),500);
 });
 
 async function captureAndExtract(){
