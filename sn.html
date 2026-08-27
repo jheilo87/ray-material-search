@@ -908,6 +908,7 @@ let irayLastAcceptedCode='';
 let irayLastAcceptedAt=0;
 let irayFocusTimer=0;
 let irayFocusBusy=false;
+let irayCameraZoom=1;
 const irayScanCanvas=document.createElement('canvas');
 
 let pendingTeamsShareText='';
@@ -2911,16 +2912,33 @@ async function startIRayBarcodeScanner(){
     });
     video.srcObject=stream;
     await video.play();
+    await setIRayCameraZoom();
     await focusIRayCamera(true);
     // 일부 안드로이드 기기는 카메라를 연 직후 초점 명령을 무시하므로 한 번 더 적용합니다.
     setTimeout(()=>focusIRayCamera(false),900);
     irayFocusTimer=setInterval(()=>focusIRayCamera(false),2600);
-    setLive('바코드를 초록색 사각형 안에 맞춰주세요. 흐리면 화면을 한 번 눌러 초점을 맞추세요.','busy');
+    setLive('휴대폰을 20~30cm 정도 띄우고 바코드를 맞춰주세요. 흐리면 화면을 한 번 눌러주세요.','busy');
     irayScanLoop=requestAnimationFrame(scanIRayVideoFrame);
   }catch(e){
     stopCamera();
     panel.classList.remove('show');
     setStatus('iRay 카메라를 열 수 없습니다. 카메라 권한을 확인하거나 앨범선택을 이용해 주세요.','bad');
+  }
+}
+
+async function setIRayCameraZoom(){
+  const track=stream?.getVideoTracks?.()[0];
+  if(!track?.applyConstraints)return;
+  try{
+    const caps=track.getCapabilities?.()||{};
+    if(!caps.zoom)return;
+    const min=Number(caps.zoom.min??1),max=Number(caps.zoom.max??1);
+    // 가까이 대서 초점이 흐려지는 것을 막기 위해 1.6배 확대하고 휴대폰은 더 멀리 둡니다.
+    irayCameraZoom=Math.max(min,Math.min(max,1.6));
+    await track.applyConstraints({advanced:[{zoom:irayCameraZoom}]});
+  }catch(e){
+    irayCameraZoom=1;
+    console.info('[iRay 카메라 확대 미지원]',e);
   }
 }
 
@@ -2966,7 +2984,7 @@ video.addEventListener('pointerup',async e=>{
   panel?.classList.add('focusing');
   setLive('초점을 다시 맞추는 중…','busy');
   await focusIRayCamera(true);
-  setLive('초점 완료 · 바코드를 초록색 사각형 안에 가로로 맞춰주세요.','busy');
+  setLive('초점 완료 · 휴대폰을 20~30cm 띄운 채 바코드를 맞춰주세요.','busy');
   setTimeout(()=>panel?.classList.remove('focusing'),500);
 });
 
