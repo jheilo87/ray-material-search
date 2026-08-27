@@ -484,6 +484,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 #cameraPanel.irayScanner .guide{top:39%;height:20%;border-color:#69f0ae}
 #cameraPanel.irayScanner .guideText{bottom:14px}
 #cameraPanel.irayScanner video{cursor:crosshair}
+#openCameraBtn.irayHidden{display:none!important}
 #cameraPanel.irayScanner .videoWrap::after{content:'';position:absolute;left:50%;top:50%;width:54px;height:54px;border:2px solid #69f0ae;border-radius:50%;transform:translate(-50%,-50%) scale(1.25);opacity:0;pointer-events:none;transition:opacity .16s,transform .28s}
 #cameraPanel.irayScanner.focusing .videoWrap::after{opacity:1;transform:translate(-50%,-50%) scale(.72)}
 
@@ -3340,7 +3341,7 @@ function updateGalleryModeUI(){
 
   if(selectedVendor==='iRay'){
     if(imageInput)imageInput.multiple=false;
-    if($('openCameraBtn'))$('openCameraBtn').style.display='none';
+    $('openCameraBtn')?.classList.add('irayHidden');
     const gallery=document.querySelector('.galleryBtn');
     if(gallery)gallery.style.gridColumn='1 / -1';
     title.textContent='iRay 사진 선택';
@@ -3348,7 +3349,7 @@ function updateGalleryModeUI(){
     if(note)note.textContent='※ iRay는 바코드가 작고 촘촘하여 실시간 스캔 대신 기본 카메라로 선명하게 촬영한 뒤 사진을 한 장씩 선택합니다.';
   }else if(selectedVendor){
     if(imageInput)imageInput.multiple=true;
-    if($('openCameraBtn'))$('openCameraBtn').style.display='';
+    $('openCameraBtn')?.classList.remove('irayHidden');
     const gallery=document.querySelector('.galleryBtn');
     if(gallery)gallery.style.gridColumn='';
     if(cameraTitle)cameraTitle.textContent='연속촬영 시작';
@@ -3358,7 +3359,7 @@ function updateGalleryModeUI(){
     if(note)note.textContent='※ 연속촬영 또는 앨범선택을 사용할 수 있으며, 기존 S/N 목록은 유지됩니다.';
   }else{
     if(imageInput)imageInput.multiple=true;
-    if($('openCameraBtn'))$('openCameraBtn').style.display='';
+    $('openCameraBtn')?.classList.remove('irayHidden');
     const gallery=document.querySelector('.galleryBtn');
     if(gallery)gallery.style.gridColumn='';
     if(cameraTitle)cameraTitle.textContent='연속촬영 시작';
