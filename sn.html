@@ -9,7 +9,7 @@
 <meta name="format-detection" content="telephone=no">
 <title>RaySmart · S/N 추출</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.23.0/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -2884,6 +2884,11 @@ async function scanIRayVideoFrame(now=performance.now()){
     let valid=filterIRaySerials(codes);
     if(!valid.length&&window.ZXing){
       try{codes.push(...tryZXingIRay1D(band))}catch{}
+      valid=filterIRaySerials(codes);
+    }
+    // 삼성 인터넷/일부 웹뷰에서 BarcodeDetector 또는 ZXing이 동작하지 않을 때의 보조 판독기입니다.
+    if(!valid.length&&window.Quagga){
+      try{codes.push(...await tryQuaggaIRay1D(band))}catch{}
       valid=filterIRaySerials(codes);
     }
     releaseCanvas(band);
