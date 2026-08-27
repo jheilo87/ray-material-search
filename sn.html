@@ -2858,24 +2858,28 @@ function saveIRayLiveCode(code){
 async function scanIRayVideoFrame(now=performance.now()){
   if(!stream||selectedVendor!=='iRay'||!$('cameraPanel')?.classList.contains('irayScanner'))return;
   irayScanLoop=requestAnimationFrame(scanIRayVideoFrame);
-  if(irayScanBusy||now-irayLastScanAt<420||video.readyState<2||!video.videoWidth)return;
+  if(irayScanBusy||now-irayLastScanAt<560||video.readyState<2||!video.videoWidth)return;
   irayScanBusy=true;irayLastScanAt=now;
   try{
     const vw=video.videoWidth,vh=video.videoHeight;
-    const targetW=Math.min(720,vw);
+    // 멀리서 비춘 작은 1D 바코드도 막대 간격이 보존되도록 720px보다 크게 분석합니다.
+    const targetW=Math.min(1280,vw);
     const targetH=Math.max(1,Math.round(vh*(targetW/vw)));
     irayScanCanvas.width=targetW;irayScanCanvas.height=targetH;
     const ctx=irayScanCanvas.getContext('2d',{willReadFrequently:true});
     ctx.drawImage(video,0,0,vw,vh,0,0,targetW,targetH);
 
-    // 중앙의 가로 바코드 영역만 잘라 디코더에 전달합니다.
+    // 초록색 안내선 주변만 잘라 2배 확대합니다. 라벨 전체가 보여도 바코드 막대는
+    // 충분한 픽셀 폭으로 디코더에 전달되며, 전체 영상은 계속 보관하지 않습니다.
     const band=cropCanvas(
       irayScanCanvas,
-      Math.round(targetW*.04),Math.round(targetH*.30),
-      Math.round(targetW*.92),Math.round(targetH*.42),
-      1.15
+      Math.round(targetW*.035),Math.round(targetH*.34),
+      Math.round(targetW*.93),Math.round(targetH*.32),
+      2.0
     );
     let codes=[];
+    // 네이티브 판독기는 원본 프레임에서 더 잘 찾는 기기도 있어 두 영역을 모두 확인합니다.
+    try{codes.push(...await tryNativeBarcode(irayScanCanvas))}catch{}
     try{codes.push(...await tryNativeBarcode(band))}catch{}
     let valid=filterIRaySerials(codes);
     if(!valid.length&&window.ZXing){
@@ -2884,7 +2888,7 @@ async function scanIRayVideoFrame(now=performance.now()){
     }
     releaseCanvas(band);
     if(valid.length)saveIRayLiveCode(valid[0]);
-    else if(now-irayLastAcceptedAt>1800)setLive('바코드를 초록색 사각형 안에 가로로 크게 맞춰주세요.','busy');
+    else if(now-irayLastAcceptedAt>1800)setLive('바코드 하나가 초록색 사각형 가로폭의 70% 이상 되게 맞춰주세요.','busy');
   }catch(e){
     console.error('[iRay 1D 실시간 인식 오류]',e);
   }finally{
