@@ -483,6 +483,7 @@ main{padding:14px 0!important}.card{border-radius:21px!important;border:1px soli
 #cameraPanel.irayScanner .cameraControls{grid-template-columns:1fr}
 #cameraPanel.irayScanner .guide{top:39%;height:20%;border-color:#69f0ae}
 #cameraPanel.irayScanner .guideText{bottom:14px}
+#cameraPanel.irayScanner video{cursor:crosshair}
 
 @media(max-width:520px){
   .sectionGroove{
@@ -2894,12 +2895,18 @@ async function startIRayBarcodeScanner(){
   try{
     if(!navigator.mediaDevices?.getUserMedia)throw new Error('camera unsupported');
     stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:'environment'},width:{ideal:960,max:1280},height:{ideal:540,max:720}},
+      video:{
+        facingMode:{ideal:'environment'},
+        width:{ideal:1920,max:1920},
+        height:{ideal:1080,max:1080},
+        frameRate:{ideal:24,max:30}
+      },
       audio:false
     });
     video.srcObject=stream;
     await video.play();
-    setLive('바코드를 초록색 사각형 안에 가로로 크게 맞춰주세요.','busy');
+    await focusIRayCamera(false);
+    setLive('바코드를 초록색 사각형 안에 맞춰주세요. 흐리면 화면을 한 번 눌러 초점을 맞추세요.','busy');
     irayScanLoop=requestAnimationFrame(scanIRayVideoFrame);
   }catch(e){
     stopCamera();
@@ -2907,6 +2914,39 @@ async function startIRayBarcodeScanner(){
     setStatus('iRay 카메라를 열 수 없습니다. 카메라 권한을 확인하거나 앨범선택을 이용해 주세요.','bad');
   }
 }
+
+async function focusIRayCamera(force=false){
+  const track=stream?.getVideoTracks?.()[0];
+  if(!track?.applyConstraints)return;
+  try{
+    const caps=track.getCapabilities?.()||{};
+    const advanced={};
+    const focusModes=Array.isArray(caps.focusMode)?caps.focusMode:[];
+    const exposureModes=Array.isArray(caps.exposureMode)?caps.exposureMode:[];
+    const whiteBalanceModes=Array.isArray(caps.whiteBalanceMode)?caps.whiteBalanceMode:[];
+
+    if(force&&focusModes.includes('single-shot'))advanced.focusMode='single-shot';
+    else if(focusModes.includes('continuous'))advanced.focusMode='continuous';
+    if(exposureModes.includes('continuous'))advanced.exposureMode='continuous';
+    if(whiteBalanceModes.includes('continuous'))advanced.whiteBalanceMode='continuous';
+    if(Object.keys(advanced).length)await track.applyConstraints({advanced:[advanced]});
+
+    // 터치 재초점 뒤에는 다시 연속초점으로 돌려 라벨 거리가 바뀌어도 선명도를 유지합니다.
+    if(force&&focusModes.includes('single-shot')&&focusModes.includes('continuous')){
+      await new Promise(resolve=>setTimeout(resolve,650));
+      await track.applyConstraints({advanced:[{focusMode:'continuous'}]});
+    }
+  }catch(e){
+    console.info('[iRay 초점 설정 미지원]',e);
+  }
+}
+
+video.addEventListener('click',async()=>{
+  if(selectedVendor!=='iRay'||!stream)return;
+  setLive('초점을 다시 맞추는 중…','busy');
+  await focusIRayCamera(true);
+  setLive('초점 완료 · 바코드를 초록색 사각형 안에 가로로 맞춰주세요.','busy');
+});
 
 async function captureAndExtract(){
   if(busy||!stream||!video.videoWidth){toast('카메라가 아직 준비되지 않았어요');return}
