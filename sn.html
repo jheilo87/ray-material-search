@@ -3049,6 +3049,7 @@ async function processFiles(files,opts={}){
   const batchMode=selectedVendor==='Auto'?'Auto':selectedVendor;
   const skipPersist=!!opts.skipPersist;
   const immediatePreview=!!opts.immediatePreview;
+  const downscaleIRay=!!opts.downscaleIRay;
   // 연속촬영은 한 장씩 processFiles가 호출되므로 진행 표시만 누적 촬영 장수 기준으로 계산합니다.
   const cumulativeProgress=!!opts.cumulativeProgress;
   const progressBase=cumulativeProgress?photoItems.length:0;
@@ -3077,11 +3078,19 @@ async function processFiles(files,opts={}){
     $('progressCount').textContent=`${displayCurrent}/${displayTotal}`;
     $('progressFill').style.width=`${Math.round((displayCurrent-1)/Math.max(1,displayTotal)*100)}%`;
 
+    // iRay 앨범 사진은 원본 여러 장을 한꺼번에 가공하면 모바일 메모리가
+    // 부족해질 수 있으므로 현재 처리할 사진만 축소하고 다음 장으로 넘어갑니다.
+    let sourceFile=files[localIndex];
+    if(downscaleIRay){
+      sourceFile=await makeStoredCaptureBlob(sourceFile,1800,.84);
+      files[localIndex]=null;
+    }
+
     const autoAlbum=selectedVendor==='Auto';
-    const item=await createPhotoItem(files[localIndex],autoAlbum?'Unknown':selectedVendor);
+    const item=await createPhotoItem(sourceFile,autoAlbum?'Unknown':selectedVendor);
 
     if(cumulativeProgress){
-      await persistCapturePhoto(item,files[localIndex]);
+      await persistCapturePhoto(item,sourceFile);
     }
 
     // 연속촬영은 추출을 기다리기 전에 사진 수신 성공부터 바로 보여줍니다.
@@ -3097,7 +3106,7 @@ async function processFiles(files,opts={}){
     }
 
     try{
-      const found=await extractSerial(files[localIndex]);
+      const found=await extractSerial(sourceFile);
       item.serials=unique(found);
       if(item.vendor==='iRay')item.diagnostic=lastIRayDebug;
 
@@ -3113,7 +3122,7 @@ async function processFiles(files,opts={}){
 
       if(autoAlbum && item.serials.length){
         $('progressText').textContent=`${globalIndex+1}번째 사진 업체 확인 중…`;
-        item.vendor=await detectPhotoVendor(files[localIndex],item.serials);
+        item.vendor=await detectPhotoVendor(sourceFile,item.serials);
 
         // 자동인식은 업체를 찾은 뒤 그 업체의 실제 S/N 규칙으로 한 번 더 걸러냅니다.
         // 일반 문구나 엉뚱한 바코드가 결과 목록에 섞이는 것을 막습니다.
@@ -3123,12 +3132,12 @@ async function processFiles(files,opts={}){
       addedTotal+=item.serials.length;
       if(!item.serials.length){
         failed++;
-        addFailedImage(files[localIndex],item.id);
+        addFailedImage(sourceFile,item.id);
       }
     }catch{
       if(item.vendor==='iRay')item.diagnostic=lastIRayDebug;
       failed++;
-      addFailedImage(files[localIndex],item.id);
+      addFailedImage(sourceFile,item.id);
     }
 
     if(cumulativeProgress){
@@ -3625,8 +3634,7 @@ imageInput.addEventListener('change',async()=>{
   selectedVendor=albumMode;
   try{
     if(albumMode==='iRay'){
-      const working=await makeStoredCaptureBlob(files[0],1800,.84);
-      await processFiles([working],{skipPersist:true});
+      await processFiles(files,{skipPersist:true,downscaleIRay:true});
     }else{
       await processFiles(files);
     }
