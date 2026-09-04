@@ -95,6 +95,11 @@ main{padding:16px}.card{background:rgba(255,255,255,.96);border:1px solid var(--
   width:100%;margin-top:10px;min-height:44px;border:1px solid #cfe0f5;
   border-radius:13px;background:#eaf3ff;color:#1769e0;font-size:13px;font-weight:950
 }
+.multiDoneBtn{width:100%;margin-top:9px;min-height:44px;border:0;border-radius:12px;background:#e9f8ef;color:#14743d;font-size:13px;font-weight:950}
+.multiDoneBtn:active{transform:scale(.99);background:#d9f2e3}
+.multiUndoBtn{border:1px solid #f2c46d;border-radius:999px;padding:7px 10px;background:#fff8e8;color:#9a5b00;font-size:10px;font-weight:950;white-space:nowrap}
+.multiAllDone{text-align:center;padding:34px 16px;border:1px solid #c9ead5;border-radius:17px;background:#f0fbf4;color:#14743d}
+.multiAllDoneIcon{font-size:38px}.multiAllDoneTitle{margin-top:8px;font-size:20px;font-weight:1000}.multiAllDoneSub{margin-top:6px;font-size:12px;color:#4f7a60}
 @media(max-width:480px){
   .tabs{gap:6px}.tab{padding:11px 5px;font-size:12px}
   .multiResultTools{align-items:flex-start;flex-direction:column}
@@ -939,6 +944,7 @@ let DATA = [];
 let mode = 'part';
 let MULTI_RESULTS = [];
 let MULTI_SORT = 'input';
+let MULTI_UNDO_SNAPSHOT = null;
 let RECENTS = JSON.parse(localStorage.getItem('rayRecents') || '[]');
 let FAVORITES = JSON.parse(localStorage.getItem('rayFavorites') || '[]');
 const $ = s => document.querySelector(s);
@@ -1484,13 +1490,14 @@ function renderMultiResults(){
   let html=`<div class="multiResultTools">
     <div class="multiSummary">조회 ${list.length}개 · 확인 ${found}개${bad?` · 확인 필요 ${bad}개`:''}</div>
     <div class="multiSorts">
+      ${MULTI_UNDO_SNAPSHOT?'<button class="multiUndoBtn" type="button" id="multiUndoDone">↩ 되돌리기</button>':''}
       <button class="multiSortBtn ${MULTI_SORT==='input'?'active':''}" type="button" data-multi-sort="input">입력순</button>
       <button class="multiSortBtn ${MULTI_SORT==='location'?'active':''}" type="button" data-multi-sort="location">위치순</button>
     </div>
   </div>`;
 
   let lastLoc=null;
-  list.forEach(item=>{
+  list.forEach((item,visibleIndex)=>{
     if(item.status==='found'){
       const r=item.row;
       const [floor,cls]=floorInfo(r.location);
@@ -1501,7 +1508,7 @@ function renderMultiResults(){
       }
       html+=`<article class="multiItem">
         <div class="multiItemTop">
-          <div class="multiIndex">${item.index+1}</div>
+          <div class="multiIndex">${visibleIndex+1}</div>
           <div class="multiInfo">
             <div class="multiCode">${esc(r.code)}</div>
             ${r.desc?`<div class="multiDesc">${esc(r.desc)}</div>`:''}
@@ -1512,19 +1519,24 @@ function renderMultiResults(){
           <div><div class="multiLocLabel">보관 위치</div><div class="multiLoc">${esc(loc)}</div></div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="multiFloor ${cls}">${floor}</span>${mapAvailable(loc)?`<button class="multiMapBtn" type="button" data-map-location="${esc(loc)}">📍 위치보기</button>`:''}</div>
         </div>
+        <button class="multiDoneBtn" type="button" data-multi-done="${item.index}">✓ 이 물건 정리 완료</button>
       </article>`;
     }else{
       const msg=item.status==='ambiguous'
         ?`일치하는 품번이 ${item.matches}건 있습니다. 품번을 더 정확히 입력해 주세요.`
         :'자재 DB에서 찾지 못했습니다.';
       html+=`<article class="multiItem multiNotFound">
-        <div class="multiItemTop"><div class="multiIndex">${item.index+1}</div><div class="multiInfo">
+        <div class="multiItemTop"><div class="multiIndex">${visibleIndex+1}</div><div class="multiInfo">
           <div class="multiCode">${esc(item.query)}</div>
           <div class="multiStatusBad">${msg}</div>
         </div></div>
       </article>`;
     }
   });
+
+  if(!list.length){
+    html+=`<div class="multiAllDone"><div class="multiAllDoneIcon">✅</div><div class="multiAllDoneTitle">모두 정리했어요</div><div class="multiAllDoneSub">필요하면 위의 되돌리기를 눌러 마지막 품목을 복원할 수 있습니다.</div></div>`;
+  }
 
   if(found){
     html+=`<button class="multiCopyAll" id="multiCopyAll" type="button">📋 조회 결과 전체 복사</button>`;
@@ -1533,12 +1545,34 @@ function renderMultiResults(){
   openResultModal();
 }
 
+function completeMultiItem(itemIndex){
+  const target=MULTI_RESULTS.find(x=>x.index===itemIndex);
+  if(!target)return;
+  MULTI_UNDO_SNAPSHOT={results:[...MULTI_RESULTS],items:[...SEARCH_MULTI_ITEMS]};
+  MULTI_RESULTS=MULTI_RESULTS.filter(x=>x.index!==itemIndex).map((x,i)=>({...x,index:i}));
+  const targetNorm=norm(target.query);
+  const inputIndex=SEARCH_MULTI_ITEMS.findIndex(x=>norm(x)===targetNorm);
+  if(inputIndex>=0)SEARCH_MULTI_ITEMS.splice(inputIndex,1);
+  renderMultiResults();
+  showToast(`${target.row?.code||target.query} 정리 완료`);
+}
+
+function undoMultiComplete(){
+  if(!MULTI_UNDO_SNAPSHOT)return;
+  MULTI_RESULTS=MULTI_UNDO_SNAPSHOT.results;
+  SEARCH_MULTI_ITEMS=MULTI_UNDO_SNAPSHOT.items;
+  MULTI_UNDO_SNAPSHOT=null;
+  renderMultiResults();
+  showToast('마지막 품목을 되돌렸습니다.');
+}
+
 function multiSearch(){
   if(!DATA.length){showToast('자재 DB를 먼저 불러와 주세요.');return;}
   const parsed=parseMultiQueries(getSearchMultiRaw());
   if(!parsed.queries.length){showToast('조회할 품번을 입력해 주세요.');return;}
 
   MULTI_RESULTS=parsed.queries.map((q,i)=>findMultiMaterial(q,i));
+  MULTI_UNDO_SNAPSHOT=null;
   MULTI_SORT='input';
   renderMultiResults();
 
@@ -1622,6 +1656,9 @@ $('#results').addEventListener('click', e=>{
     MULTI_SORT=sortBtn.dataset.multiSort;
     return renderMultiResults();
   }
+  const doneBtn=e.target.closest('[data-multi-done]');
+  if(doneBtn){ completeMultiItem(Number(doneBtn.dataset.multiDone)); return; }
+  if(e.target.closest('#multiUndoDone')){ undoMultiComplete(); return; }
   if(e.target.closest('#multiCopyAll')){
     const rows=sortMultiResults(MULTI_RESULTS).filter(x=>x.status==='found').map(x=>{
       const r=x.row;
