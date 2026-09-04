@@ -507,6 +507,11 @@ main{padding:14px}
 .searchMultiHelp{
   margin:7px 18px 0;color:#7c8798;font-size:10.5px;font-weight:800;line-height:1.45
 }
+.searchMultiCaptureRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 18px 0}
+.searchMultiCaptureBtn{min-height:45px;border:1px solid #b9d5ff;border-radius:13px;background:#eef6ff;color:#1769e0;font-size:13px;font-weight:1000}
+.searchMultiCaptureBtn:disabled{opacity:.5}.searchMultiCaptureFile{display:none}
+.searchMultiCaptureStatus{display:none;margin:8px 18px 0;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
+.searchMultiCaptureStatus.show{display:block}.searchMultiCaptureStatus.ok{background:#eaf8ef;color:#14743d}.searchMultiCaptureStatus.error{background:#fff0f0;color:#b42318}
 .searchMultiListTitleRow{
   margin:15px 18px 0;
   display:flex;align-items:center;justify-content:space-between;gap:10px
@@ -829,6 +834,13 @@ input,select,textarea{font-size:max(16px,1em);}
     </div>
     <div class="searchMultiStep" id="searchMultiStep">1번째 품번</div>
     <input class="searchMultiInput" id="searchMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
+    <div class="searchMultiCaptureRow">
+      <button class="searchMultiCaptureBtn" id="searchMultiCameraBtn" type="button">📷 박스 촬영</button>
+      <button class="searchMultiCaptureBtn" id="searchMultiGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
+    </div>
+    <input class="searchMultiCaptureFile" id="searchMultiCamera" type="file" accept="image/*" capture="environment">
+    <input class="searchMultiCaptureFile" id="searchMultiGallery" type="file" accept="image/*">
+    <div class="searchMultiCaptureStatus" id="searchMultiCaptureStatus" aria-live="polite"></div>
     <div class="searchMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에 있는 품번은 하이픈도 자동으로 맞춰집니다.</div>
     <div class="searchMultiListTitleRow">
       <div class="searchMultiListTitle">입력 목록</div>
@@ -1390,6 +1402,51 @@ function saveCurrentSearchMulti(){
 function nextSearchMulti(){if(saveCurrentSearchMulti())setTimeout(()=>$('#searchMultiInput')?.focus(),30);}
 function runSearchMultiFromPopup(){saveCurrentSearchMulti();if(!SEARCH_MULTI_ITEMS.length)return showToast('조회할 품번을 입력해 주세요.');closeSearchMultiPopup(false);multiSearch();}
 
+function setMultiCaptureStatus(message,type=''){
+  const el=$('#searchMultiCaptureStatus');
+  el.textContent=message;el.className=`searchMultiCaptureStatus show ${type}`;
+}
+function findPartFromCapturedText(values){
+  const raw=values.filter(Boolean).join(' '), whole=norm(raw);
+  if(!whole)return null;
+  const exact=[];
+  DATA.forEach(r=>{const key=norm(r.code);if(key.length>=5&&whole.includes(key))exact.push(r);});
+  exact.sort((a,b)=>norm(b.code).length-norm(a.code).length);
+  return exact[0]||null;
+}
+async function readMultiPartPhoto(file){
+  if(!file)return;
+  const cameraBtn=$('#searchMultiCameraBtn'),galleryBtn=$('#searchMultiGalleryBtn');
+  cameraBtn.disabled=galleryBtn.disabled=true;
+  setMultiCaptureStatus('사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.');
+  try{
+    const values=[];
+    if('BarcodeDetector' in window){
+      try{
+        const formats=await BarcodeDetector.getSupportedFormats();
+        const preferred=['qr_code','data_matrix','code_128','code_39','ean_13','ean_8','itf','codabar','pdf417'].filter(x=>formats.includes(x));
+        const detector=new BarcodeDetector(preferred.length?{formats:preferred}:undefined);
+        const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
+        const codes=await detector.detect(bitmap);codes.forEach(x=>values.push(x.rawValue||''));bitmap.close?.();
+      }catch{}
+    }
+    let found=findPartFromCapturedText(values);
+    if(!found&&window.Tesseract){
+      const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')setMultiCaptureStatus(`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`);}});
+      try{
+        await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
+        const result=await worker.recognize(file);values.push(result?.data?.text||'');
+      }finally{await worker.terminate();}
+      found=findPartFromCapturedText(values);
+    }
+    if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
+    $('#searchMultiInput').value=found.code;
+    setMultiCaptureStatus(`✅ ${found.code} 인식됨 · 맞는지 확인한 뒤 ‘다음 품번’을 눌러 주세요.`,'ok');
+    $('#searchMultiInput').focus();$('#searchMultiInput').select();
+  }catch(e){setMultiCaptureStatus(`❗ ${e.message||'사진 인식에 실패했습니다.'}`,'error');}
+  finally{cameraBtn.disabled=galleryBtn.disabled=false;}
+}
+
 function formatMultiPartToken(raw){
   const upper=String(raw||'').toUpperCase();
   const compact=norm(upper);
@@ -1629,6 +1686,10 @@ $('#searchMultiClearAll').addEventListener('click',()=>{
 });
 $('#searchMultiInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=String(e.target.value||'').toUpperCase();try{e.target.setSelectionRange(pos,pos)}catch{}});
 $('#searchMultiInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextSearchMulti();}});
+$('#searchMultiCameraBtn').addEventListener('click',()=>$('#searchMultiCamera').click());
+$('#searchMultiGalleryBtn').addEventListener('click',()=>$('#searchMultiGallery').click());
+$('#searchMultiCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMultiPartPhoto(f);});
+$('#searchMultiGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMultiPartPhoto(f);});
 $('#searchMultiList').addEventListener('click',e=>{
   const edit=e.target.closest('[data-search-multi-edit]'),del=e.target.closest('[data-search-multi-del]');
   if(edit){SEARCH_MULTI_EDIT=Number(edit.dataset.searchMultiEdit);$('#searchMultiInput').value=SEARCH_MULTI_ITEMS[SEARCH_MULTI_EDIT]||'';renderSearchMultiList();$('#searchMultiInput').focus();}
