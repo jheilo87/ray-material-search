@@ -588,6 +588,11 @@ body.incomingPopupOpen{overflow:hidden}
   box-shadow:0 8px 24px rgba(31,57,88,.06);
 }
 .rsSearchWrap .search{margin-top:0}
+.mainCaptureRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mainCaptureBtn{min-height:45px;border:1px solid #b9d5ff;border-radius:13px;background:#eef6ff;color:#1769e0;font-size:13px;font-weight:1000}
+.mainCaptureBtn:disabled{opacity:.5}.mainCaptureFile{display:none}
+.mainCaptureStatus{display:none;margin-top:8px;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
+.mainCaptureStatus.show{display:block}.mainCaptureStatus.ok{background:#eaf8ef;color:#14743d}.mainCaptureStatus.error{background:#fff0f0;color:#b42318}
 .rsSearchDesc{
   margin-top:10px;
   text-align:center;
@@ -862,6 +867,13 @@ input,select,textarea{font-size:max(16px,1em);}
     <span class="searchIcon">⌕</span>
     <input id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
   </form>
+  <div class="mainCaptureRow" id="mainCaptureRow">
+    <button class="mainCaptureBtn" id="mainCameraBtn" type="button">📷 박스 촬영</button>
+    <button class="mainCaptureBtn" id="mainGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
+  </div>
+  <input class="mainCaptureFile" id="mainCamera" type="file" accept="image/*" capture="environment">
+  <input class="mainCaptureFile" id="mainGallery" type="file" accept="image/*">
+  <div class="mainCaptureStatus" id="mainCaptureStatus" aria-live="polite"></div>
 
   <div class="rsLocationBox" id="rsLocationBox">
     <form class="rsLocationForm" id="rsLocationForm">
@@ -926,7 +938,8 @@ input,select,textarea{font-size:max(16px,1em);}
     <button class="incomingTodayClose" id="incomingTodayClose" type="button">닫기</button>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script>
 (function(){
   const close=()=>{const el=document.getElementById('v11Splash');if(!el)return;el.classList.add('hide');setTimeout(()=>el.remove(),320)};
   window.addEventListener('load',()=>setTimeout(close,800));
@@ -1079,6 +1092,8 @@ function setRsSearchTab(kind){
   const location=document.getElementById('rsLocationTab');
   const mainSearch=document.getElementById('mainSearch');
   const locBox=document.getElementById('rsLocationBox');
+  const captureRow=document.getElementById('mainCaptureRow');
+  const captureStatus=document.getElementById('mainCaptureStatus');
   const desc=document.getElementById('rsSearchDesc');
 
   [single,multi,location].forEach(x=>{
@@ -1090,18 +1105,21 @@ function setRsSearchTab(kind){
     single.classList.add('active');
     single.setAttribute('aria-selected','true');
     mainSearch.style.display='grid';
+    captureRow.style.display='grid';
     locBox.classList.remove('show');
     desc.textContent='품번 또는 품명을 입력하고 검색하세요.';
   }else if(kind==='multi'){
     multi.classList.add('active');
     multi.setAttribute('aria-selected','true');
     mainSearch.style.display='none';
+    captureRow.style.display='none';captureStatus.classList.remove('show');
     locBox.classList.remove('show');
     desc.textContent='품번을 하나씩 입력한 뒤 조회하세요.';
   }else{
     location.classList.add('active');
     location.setAttribute('aria-selected','true');
     mainSearch.style.display='none';
+    captureRow.style.display='none';captureStatus.classList.remove('show');
     locBox.classList.add('show');
     desc.textContent='보관 위치를 입력하면 해당 위치 자재를 확인합니다.';
   }
@@ -1410,6 +1428,50 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
   if(!q)return;
   showMainResults(q);
 });
+
+function findMainPartFromPhoto(values){
+  const whole=mainNorm((values||[]).filter(Boolean).join(' '));
+  if(!whole)return null;
+  const matches=MAIN_MATERIAL.filter(row=>{const code=mainNorm(row.code);return code.length>=5&&whole.includes(code);});
+  matches.sort((a,b)=>mainNorm(b.code).length-mainNorm(a.code).length);
+  return matches[0]||null;
+}
+async function readMainPartPhoto(file){
+  if(!file)return;
+  const cameraBtn=document.getElementById('mainCameraBtn'),galleryBtn=document.getElementById('mainGalleryBtn'),status=document.getElementById('mainCaptureStatus');
+  cameraBtn.disabled=galleryBtn.disabled=true;
+  status.textContent='사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.';status.className='mainCaptureStatus show';
+  try{
+    const values=[];
+    if('BarcodeDetector' in window){
+      try{
+        const formats=await BarcodeDetector.getSupportedFormats();
+        const preferred=['qr_code','data_matrix','code_128','code_39','ean_13','ean_8','itf','codabar','pdf417'].filter(x=>formats.includes(x));
+        const detector=new BarcodeDetector(preferred.length?{formats:preferred}:undefined);
+        const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
+        const codes=await detector.detect(bitmap);codes.forEach(x=>values.push(x.rawValue||''));bitmap.close?.();
+      }catch{}
+    }
+    let found=findMainPartFromPhoto(values);
+    if(!found&&window.Tesseract){
+      const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
+      try{
+        await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
+        const result=await worker.recognize(file);values.push(result?.data?.text||'');
+      }finally{await worker.terminate();}
+      found=findMainPartFromPhoto(values);
+    }
+    if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
+    const input=document.getElementById('mainQ');input.value=found.code;
+    status.textContent=`✅ ${found.code} 인식됨 · 검색 결과를 표시했습니다.`;status.className='mainCaptureStatus show ok';
+    showMainResults(found.code);
+  }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
+  finally{cameraBtn.disabled=galleryBtn.disabled=false;}
+}
+document.getElementById('mainCameraBtn').addEventListener('click',()=>document.getElementById('mainCamera').click());
+document.getElementById('mainGalleryBtn').addEventListener('click',()=>document.getElementById('mainGallery').click());
+document.getElementById('mainCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
+document.getElementById('mainGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
 
 /* iOS / Android 키보드 대응 V7
    - Android: interactive-widget=resizes-content + 100dvh 기준으로 크게 유지

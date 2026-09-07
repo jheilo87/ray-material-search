@@ -512,6 +512,10 @@ main{padding:14px}
 .searchMultiCaptureBtn:disabled{opacity:.5}.searchMultiCaptureFile{display:none}
 .searchMultiCaptureStatus{display:none;margin:8px 18px 0;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
 .searchMultiCaptureStatus.show{display:block}.searchMultiCaptureStatus.ok{background:#eaf8ef;color:#14743d}.searchMultiCaptureStatus.error{background:#fff0f0;color:#b42318}
+.singleCaptureRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.singleCaptureFile{display:none}
+.singleCaptureStatus{display:none;margin-top:8px;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
+.singleCaptureStatus.show{display:block}.singleCaptureStatus.ok{background:#eaf8ef;color:#14743d}.singleCaptureStatus.error{background:#fff0f0;color:#b42318}
 .searchMultiListTitleRow{
   margin:15px 18px 0;
   display:flex;align-items:center;justify-content:space-between;gap:10px
@@ -674,6 +678,13 @@ input,select,textarea{font-size:max(16px,1em);}
     <div class="tabs"><button class="tab active" data-mode="part">품번 검색</button><button class="tab" data-mode="location">위치 검색</button><button class="tab" data-mode="multi">다중 품번 조회</button></div>
     <div class="singleSearchPanel" id="singleSearchPanel">
       <div class="searchrow"><input id="q" type="text" inputmode="text" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 입력"><button class="go" id="go" disabled>검색</button></div>
+      <div class="singleCaptureRow">
+        <button class="searchMultiCaptureBtn" id="singleCameraBtn" type="button">📷 박스 촬영</button>
+        <button class="searchMultiCaptureBtn" id="singleGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
+      </div>
+      <input class="singleCaptureFile" id="singleCamera" type="file" accept="image/*" capture="environment">
+      <input class="singleCaptureFile" id="singleGallery" type="file" accept="image/*">
+      <div class="singleCaptureStatus" id="singleCaptureStatus" aria-live="polite"></div>
       <div class="hint" id="hint">예: RA-09A-0935 또는 0935처럼 번호 일부만 입력해도 됩니다.</div>
     </div>
     <div class="multiSearchPanel" id="multiSearchPanel">
@@ -1447,6 +1458,39 @@ async function readMultiPartPhoto(file){
   finally{cameraBtn.disabled=galleryBtn.disabled=false;}
 }
 
+async function readSinglePartPhoto(file){
+  if(!file)return;
+  const cameraBtn=$('#singleCameraBtn'),galleryBtn=$('#singleGalleryBtn'),status=$('#singleCaptureStatus');
+  cameraBtn.disabled=galleryBtn.disabled=true;
+  status.textContent='사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.';status.className='singleCaptureStatus show';
+  try{
+    const values=[];
+    if('BarcodeDetector' in window){
+      try{
+        const formats=await BarcodeDetector.getSupportedFormats();
+        const preferred=['qr_code','data_matrix','code_128','code_39','ean_13','ean_8','itf','codabar','pdf417'].filter(x=>formats.includes(x));
+        const detector=new BarcodeDetector(preferred.length?{formats:preferred}:undefined);
+        const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
+        const codes=await detector.detect(bitmap);codes.forEach(x=>values.push(x.rawValue||''));bitmap.close?.();
+      }catch{}
+    }
+    let found=findPartFromCapturedText(values);
+    if(!found&&window.Tesseract){
+      const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text'){status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}}});
+      try{
+        await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
+        const result=await worker.recognize(file);values.push(result?.data?.text||'');
+      }finally{await worker.terminate();}
+      found=findPartFromCapturedText(values);
+    }
+    if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
+    $('#q').value=found.code;
+    status.textContent=`✅ ${found.code} 인식됨 · 검색 버튼을 눌러 확인하세요.`;status.className='singleCaptureStatus show ok';
+    $('#q').focus();$('#q').select();
+  }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='singleCaptureStatus show error';}
+  finally{cameraBtn.disabled=galleryBtn.disabled=false;}
+}
+
 function formatMultiPartToken(raw){
   const upper=String(raw||'').toUpperCase();
   const compact=norm(upper);
@@ -1668,6 +1712,10 @@ document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', (
   closeResultModal(); render(DATA,false); focusSearchInput();
 }));
 $('#go').addEventListener('click', search);
+$('#singleCameraBtn').addEventListener('click',()=>$('#singleCamera').click());
+$('#singleGalleryBtn').addEventListener('click',()=>$('#singleGallery').click());
+$('#singleCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readSinglePartPhoto(f);});
+$('#singleGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readSinglePartPhoto(f);});
 $('#multiGo').addEventListener('click',multiSearch);
 $('#multiAddRow').addEventListener('click',()=>{});
 $('#multiClear').addEventListener('click',()=>{SEARCH_MULTI_ITEMS=[];});
