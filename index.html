@@ -840,6 +840,13 @@ input,select,textarea{font-size:max(16px,1em);}
     <div class="rsMultiBody">
       <div class="rsMultiStep" id="rsMultiStep">1번째 품번</div>
       <input class="rsMultiInput" id="rsMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
+      <div class="mainCaptureRow">
+        <button class="mainCaptureBtn" id="multiCameraBtn" type="button">📷 박스 촬영</button>
+        <button class="mainCaptureBtn" id="multiGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
+      </div>
+      <input class="mainCaptureFile" id="multiCamera" type="file" accept="image/*" capture="environment">
+      <input class="mainCaptureFile" id="multiGallery" type="file" accept="image/*">
+      <div class="mainCaptureStatus" id="multiCaptureStatus" aria-live="polite"></div>
       <div class="rsMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 실제 하이픈 형식으로 맞춰집니다.</div>
 
       <div class="rsMultiListTitleRow">
@@ -1468,10 +1475,46 @@ async function readMainPartPhoto(file){
   }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
   finally{cameraBtn.disabled=galleryBtn.disabled=false;}
 }
+async function readIndexMultiPartPhoto(file){
+  if(!file)return;
+  const cameraBtn=document.getElementById('multiCameraBtn'),galleryBtn=document.getElementById('multiGalleryBtn'),status=document.getElementById('multiCaptureStatus');
+  cameraBtn.disabled=galleryBtn.disabled=true;
+  status.textContent='사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.';status.className='mainCaptureStatus show';
+  try{
+    const values=[];
+    if('BarcodeDetector' in window){
+      try{
+        const formats=await BarcodeDetector.getSupportedFormats();
+        const preferred=['qr_code','data_matrix','code_128','code_39','ean_13','ean_8','itf','codabar','pdf417'].filter(x=>formats.includes(x));
+        const detector=new BarcodeDetector(preferred.length?{formats:preferred}:undefined);
+        const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
+        const codes=await detector.detect(bitmap);codes.forEach(x=>values.push(x.rawValue||''));bitmap.close?.();
+      }catch{}
+    }
+    let found=findMainPartFromPhoto(values);
+    if(!found&&window.Tesseract){
+      const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
+      try{
+        await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
+        const result=await worker.recognize(file);values.push(result?.data?.text||'');
+      }finally{await worker.terminate();}
+      found=findMainPartFromPhoto(values);
+    }
+    if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
+    const input=document.getElementById('rsMultiInput');input.value=found.code;
+    status.textContent=`✅ ${found.code} 인식됨 · 맞는지 확인한 뒤 ‘다음 품번’을 눌러 주세요.`;status.className='mainCaptureStatus show ok';
+    input.focus();input.select();
+  }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
+  finally{cameraBtn.disabled=galleryBtn.disabled=false;}
+}
 document.getElementById('mainCameraBtn').addEventListener('click',()=>document.getElementById('mainCamera').click());
 document.getElementById('mainGalleryBtn').addEventListener('click',()=>document.getElementById('mainGallery').click());
 document.getElementById('mainCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
 document.getElementById('mainGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
+document.getElementById('multiCameraBtn').addEventListener('click',()=>document.getElementById('multiCamera').click());
+document.getElementById('multiGalleryBtn').addEventListener('click',()=>document.getElementById('multiGallery').click());
+document.getElementById('multiCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readIndexMultiPartPhoto(f);});
+document.getElementById('multiGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readIndexMultiPartPhoto(f);});
 
 /* iOS / Android 키보드 대응 V7
    - Android: interactive-widget=resizes-content + 100dvh 기준으로 크게 유지
