@@ -1417,13 +1417,45 @@ function setMultiCaptureStatus(message,type=''){
   const el=$('#searchMultiCaptureStatus');
   el.textContent=message;el.className=`searchMultiCaptureStatus show ${type}`;
 }
+function capturedEditDistance(a,b){
+  a=String(a||'');b=String(b||'');
+  const prev=Array.from({length:b.length+1},(_,i)=>i),cur=new Array(b.length+1);
+  for(let i=1;i<=a.length;i++){cur[0]=i;for(let j=1;j<=b.length;j++)cur[j]=Math.min(cur[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));for(let j=0;j<=b.length;j++)prev[j]=cur[j];}
+  return prev[b.length];
+}
+function capturedPartTokens(text){
+  return String(text||'').toUpperCase().split(/\r?\n/).flatMap((line,lineNo)=>{
+    const cleaned=line.replace(/[—–_]/g,'-').replace(/[^A-Z0-9./\- ]/g,' ');
+    const parts=cleaned.match(/[A-Z0-9][A-Z0-9./\- ]{3,30}/g)||[];
+    return parts.flatMap(part=>{
+      const words=part.trim().split(/\s+/).filter(Boolean),out=[];
+      words.forEach((word,i)=>{if(norm(word).length>=5)out.push({value:word,lineNo,codeHint:/\bCODE\b/.test(line)||/\bCODE\b/.test(words.slice(0,i).join(' '))});});
+      const joined=words.filter(w=>w!=='CODE').join('');
+      if(norm(joined).length>=5)out.push({value:joined,lineNo,codeHint:/\bCODE\b/.test(line)});
+      return out;
+    });
+  });
+}
 function findPartFromCapturedText(values){
-  const raw=values.filter(Boolean).join(' '), whole=norm(raw);
+  const texts=(values||[]).filter(Boolean).map(String),whole=norm(texts.join(' '));
   if(!whole)return null;
-  const exact=[];
-  DATA.forEach(r=>{const key=norm(r.code);if(key.length>=5&&whole.includes(key))exact.push(r);});
-  exact.sort((a,b)=>norm(b.code).length-norm(a.code).length);
-  return exact[0]||null;
+  const tokens=texts.flatMap(capturedPartTokens),ranked=[];
+  DATA.forEach(row=>{
+    const code=norm(row.code);if(code.length<5)return;
+    let score=whole.includes(code)?200+code.length:0;
+    tokens.forEach(t=>{
+      const token=norm(t.value);if(!token)return;
+      if(token===code)score=Math.max(score,500+(t.codeHint?180:0)+t.lineNo);
+      else if(token.length>=5&&Math.abs(token.length-code.length)<=2){const d=capturedEditDistance(token,code),allowed=code.length>=9?2:1;if(d<=allowed)score=Math.max(score,300-d*45+(t.codeHint?180:0)+t.lineNo);}
+    });
+    if(score)ranked.push({row,score,len:code.length});
+  });
+  ranked.sort((a,b)=>b.score-a.score||b.len-a.len);
+  return ranked[0]?.row||null;
+}
+async function recognizeCapturedPart(worker,file){
+  await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./ ',preserve_interword_spaces:'1',tessedit_pageseg_mode:'6'});
+  const result=await worker.recognize(file);return result?.data?.text||'';
 }
 async function readMultiPartPhoto(file){
   if(!file)return;
@@ -1445,8 +1477,7 @@ async function readMultiPartPhoto(file){
     if(!found&&window.Tesseract){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')setMultiCaptureStatus(`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`);}});
       try{
-        await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        const result=await worker.recognize(file);values.push(result?.data?.text||'');
+        values.push(await recognizeCapturedPart(worker,file));
       }finally{await worker.terminate();}
       found=findPartFromCapturedText(values);
     }
@@ -1478,8 +1509,7 @@ async function readSinglePartPhoto(file){
     if(!found&&window.Tesseract){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text'){status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}}});
       try{
-        await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        const result=await worker.recognize(file);values.push(result?.data?.text||'');
+        values.push(await recognizeCapturedPart(worker,file));
       }finally{await worker.terminate();}
       found=findPartFromCapturedText(values);
     }
