@@ -1450,21 +1450,29 @@ function findMainPartFromPhoto(values){
       if(Math.abs(code.length-token.length)>2)continue;
       const d=partPhotoDistance(code,token),limit=code.length>=10?2:1;
       if(d<=limit&&(!best||d<best.distance||(d===best.distance&&code.length>best.length)))best={row,distance:d,length:code.length};
+      const handwriting=token.replace(/[I|L]/g,'1').replace(/O/g,'0').replace(/S/g,'5');
+      const hd=partPhotoDistance(code,handwriting);
+      if(hd<=limit&&(!best||hd<best.distance||(hd===best.distance&&code.length>best.length)))best={row,distance:hd,length:code.length};
     }
   }
   return best?.row||null;
 }
 function partPhotoDistance(a,b){const p=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=p[0];p[0]=i;for(let j=1;j<=b.length;j++){const old=p[j];p[j]=Math.min(p[j]+1,p[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}return p[b.length];}
 async function partPhotoOCRSources(file){
-  const out=[file];
+  const out=[];
   try{
     const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
-    const scale=Math.min(2,2200/Math.max(bmp.width,bmp.height));
-    for(const threshold of [145,185]){
-      const c=document.createElement('canvas');c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);
-      const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(bmp,0,0,c.width,c.height);
+    const regions=[{x:0,y:0,w:1,h:1},{x:.12,y:.32,w:.78,h:.48},{x:.18,y:.42,w:.67,h:.34}];
+    for(const region of regions){
+      const sw=bmp.width*region.w,sh=bmp.height*region.h,scale=Math.min(3,2600/Math.max(sw,sh));
+      const base=document.createElement('canvas');base.width=Math.round(sw*scale);base.height=Math.round(sh*scale);
+      const bx=base.getContext('2d',{willReadFrequently:true});bx.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,base.width,base.height);out.push(base);
+      for(const threshold of [170]){
+      const c=document.createElement('canvas');c.width=base.width;c.height=base.height;
+      const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(base,0,0);
       const im=x.getImageData(0,0,c.width,c.height),d=im.data;
       for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g<threshold?0:255;d[i]=d[i+1]=d[i+2]=v;}x.putImageData(im,0,0);out.push(c);
+      }
     }
     bmp.close?.();
   }catch{}
@@ -1491,7 +1499,7 @@ async function readMainPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for(const source of await partPhotoOCRSources(file)){const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}
+        for(const source of await partPhotoOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;source.width=source.height=1;}
       }finally{await worker.terminate();}
       found=findMainPartFromPhoto(values);
     }
@@ -1523,7 +1531,7 @@ async function readIndexMultiPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for(const source of await partPhotoOCRSources(file)){const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}
+        for(const source of await partPhotoOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;source.width=source.height=1;}
       }finally{await worker.terminate();}
       found=findMainPartFromPhoto(values);
     }
