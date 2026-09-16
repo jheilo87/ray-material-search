@@ -1576,13 +1576,19 @@ document.getElementById('mainCameraBtn').addEventListener('click',()=>document.g
 document.getElementById('mainGalleryBtn').addEventListener('click',()=>document.getElementById('mainGallery').click());
 document.getElementById('mainCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
 document.getElementById('mainGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
-document.getElementById('multiCameraBtn').addEventListener('click',()=>document.getElementById('multiCamera').click());
+document.getElementById('multiCameraBtn').addEventListener('click',()=>{
+  const camera=document.getElementById('multiCamera');
+  camera.value='';
+  camera.click();
+});
 document.getElementById('multiGalleryBtn').addEventListener('click',()=>document.getElementById('multiGallery').click());
 document.getElementById('multiNextCapture').addEventListener('click',()=>{
   if(!saveCurrentMainMulti())return;
   document.getElementById('multiNextCapture').classList.remove('show');
   document.getElementById('multiCaptureStatus').classList.remove('show');
-  setTimeout(()=>document.getElementById('multiCamera').click(),80);
+  const camera=document.getElementById('multiCamera');
+  camera.value='';
+  camera.click();
 });
 document.getElementById('multiCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readIndexMultiPartPhoto(f);});
 document.getElementById('multiGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readIndexMultiPartPhoto(f);});

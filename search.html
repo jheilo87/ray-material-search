@@ -1760,13 +1760,19 @@ $('#searchMultiClearAll').addEventListener('click',()=>{
 });
 $('#searchMultiInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=String(e.target.value||'').toUpperCase();saveSearchMultiDraft(e.target.value);try{e.target.setSelectionRange(pos,pos)}catch{}});
 $('#searchMultiInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextSearchMulti();}});
-$('#searchMultiCameraBtn').addEventListener('click',()=>$('#searchMultiCamera').click());
+$('#searchMultiCameraBtn').addEventListener('click',()=>{
+  const camera=$('#searchMultiCamera');
+  camera.value='';
+  camera.click();
+});
 $('#searchMultiGalleryBtn').addEventListener('click',()=>$('#searchMultiGallery').click());
 $('#searchMultiNextCapture').addEventListener('click',()=>{
   if(!saveCurrentSearchMulti())return;
   $('#searchMultiNextCapture').classList.remove('show');
   $('#searchMultiCaptureStatus').classList.remove('show');
-  setTimeout(()=>$('#searchMultiCamera').click(),80);
+  const camera=$('#searchMultiCamera');
+  camera.value='';
+  camera.click();
 });
 $('#searchMultiCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMultiPartPhoto(f);});
 $('#searchMultiGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMultiPartPhoto(f);});
