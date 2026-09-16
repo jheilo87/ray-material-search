@@ -12,6 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <style>
 :root{--brand:#1769e0;--ink:#14213a;--muted:#667085;--line:#dce6f5;--bg:#f3f7ff;--ok:#137a43;--bad:#b42318}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -1208,8 +1209,69 @@ function parseSerials(text,vendor){
   return unique(out).slice(0,10);
 }
 
+function isHeicSource(source){
+  const type=String(source?.type||'').toLowerCase();
+  const name=String(source?.name||'').toLowerCase();
+  return /hei[cf]/.test(type)||/\.(heic|heif)$/i.test(name);
+}
+
+async function loadImageElement(source,timeoutMs=20000){
+  const url=URL.createObjectURL(source);
+  const img=new Image();
+  img.decoding='async';
+  img._rayObjectUrl=url;
+  try{
+    await new Promise((resolve,reject)=>{
+      let done=false;
+      const finish=(fn,value)=>{if(done)return;done=true;clearTimeout(timer);fn(value)};
+      const timer=setTimeout(()=>finish(reject,new Error('IMAGE_LOAD_TIMEOUT')),timeoutMs);
+      img.onload=()=>finish(resolve);
+      img.onerror=()=>finish(reject,new Error('IMAGE_DECODE_FAILED'));
+      img.src=url;
+    });
+    if(!img.naturalWidth||!img.naturalHeight)throw new Error('IMAGE_SIZE_INVALID');
+    return img;
+  }catch(err){
+    try{URL.revokeObjectURL(url)}catch{}
+    img._rayObjectUrl='';
+    throw err;
+  }
+}
+
+async function convertHeicToJpeg(source){
+  if(typeof window.heic2any!=='function')throw new Error('HEIC_CONVERTER_UNAVAILABLE');
+  setLive('아이폰 사진을 호환 형식으로 변환 중…','busy');
+  const converted=await window.heic2any({blob:source,toType:'image/jpeg',quality:.90});
+  return Array.isArray(converted)?converted[0]:converted;
+}
+
 async function sourceToBitmap(source){
-  return source instanceof ImageBitmap ? source : await createImageBitmap(source);
+  if(typeof ImageBitmap!=='undefined' && source instanceof ImageBitmap)return source;
+  if(typeof createImageBitmap==='function'){
+    try{return await createImageBitmap(source,{imageOrientation:'from-image'})}catch{}
+  }
+  try{return await loadImageElement(source)}catch(firstError){
+    if(isHeicSource(source)){
+      const jpeg=await convertHeicToJpeg(source);
+      if(typeof createImageBitmap==='function'){
+        try{return await createImageBitmap(jpeg,{imageOrientation:'from-image'})}catch{}
+      }
+      return await loadImageElement(jpeg);
+    }
+    throw firstError;
+  }
+}
+
+function releaseDecodedImage(decoded){
+  if(!decoded)return;
+  try{decoded.close?.()}catch{}
+  try{
+    if(decoded._rayObjectUrl){
+      URL.revokeObjectURL(decoded._rayObjectUrl);
+      decoded._rayObjectUrl='';
+      decoded.removeAttribute?.('src');
+    }
+  }catch{}
 }
 
 function rotatedCanvas(bitmap,angle=0,scale=1){
@@ -1528,7 +1590,7 @@ async function tryBarcode(source){
     return [];
   }finally{
     releaseCanvas(base);
-    if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+    if(bitmap!==source)releaseDecodedImage(bitmap);
   }
 }
 
@@ -1576,7 +1638,7 @@ async function extractI3Lightweight(source){
     return [];
   }finally{
     releaseCanvas(base);
-    if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+    if(bitmap!==source)releaseDecodedImage(bitmap);
   }
 }
 
@@ -1655,7 +1717,7 @@ async function extractDellTopServiceTag(source){
   }finally{
     releaseCanvas(top);
     releaseCanvas(base);
-    if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+    if(bitmap!==source)releaseDecodedImage(bitmap);
   }
 }
 
@@ -1797,7 +1859,7 @@ async function extractSerial(source){
       releaseCanvas(binaryLabel);
       releaseCanvas(label);
       releaseCanvas(base);
-      if(bitmap && !(source instanceof ImageBitmap))bitmap.close?.();
+      if(bitmap!==source)releaseDecodedImage(bitmap);
     }
   }
 
@@ -2557,15 +2619,15 @@ async function makeStoredCaptureBlob(source,maxSide=1600,quality=.82){
   let bm=null;
   let c=null;
   try{
-    bm=await createImageBitmap(source);
+    bm=await sourceToBitmap(source);
     const ratio=Math.min(1,maxSide/Math.max(bm.width,bm.height));
-    if(ratio>=.999){bm.close?.();return source;}
+    if(ratio>=.999 && !isHeicSource(source)){releaseDecodedImage(bm);bm=null;return source;}
     c=document.createElement('canvas');
     c.width=Math.max(1,Math.round(bm.width*ratio));
     c.height=Math.max(1,Math.round(bm.height*ratio));
     const ctx=c.getContext('2d');
     ctx.drawImage(bm,0,0,bm.width,bm.height,0,0,c.width,c.height);
-    bm.close?.();
+    releaseDecodedImage(bm);
     bm=null;
     const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',quality));
     releaseCanvas(c);
@@ -2574,7 +2636,7 @@ async function makeStoredCaptureBlob(source,maxSide=1600,quality=.82){
   }catch{
     return source;
   }finally{
-    try{bm?.close?.()}catch{}
+    releaseDecodedImage(bm);
     releaseCanvas(c);
   }
 }
@@ -3164,10 +3226,14 @@ async function processFiles(files,opts={}){
         failed++;
         addFailedImage(sourceFile,item.id);
       }
-    }catch{
+    }catch(error){
+      console.error('[사진 추출 실패]',error);
       if(item.vendor==='iRay')item.diagnostic=lastIRayDebug;
       failed++;
       addFailedImage(sourceFile,item.id);
+      if(/HEIC|IMAGE_(LOAD|DECODE|SIZE)/.test(String(error?.message||error))){
+        setStatus('아이폰 사진을 열지 못했습니다. 사진 앱에서 스크린샷으로 저장한 뒤 다시 선택해 주세요.','bad');
+      }
     }
 
     if(cumulativeProgress){
