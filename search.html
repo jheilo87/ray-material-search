@@ -91,6 +91,8 @@ main{padding:16px}.card{background:rgba(255,255,255,.96);border:1px solid var(--
 }
 .multiNotFound .multiCode{color:#c92a2a}
 .multiStatusBad{margin-top:5px;color:#c92a2a;font-size:11px;font-weight:850}
+.multiEditBad{margin-top:9px;border:1px solid #efb4b4;border-radius:9px;padding:7px 11px;background:#fff;color:#b42318;font-size:11px;font-weight:950}
+.multiEditBad:active{transform:scale(.98);background:#fff0f0}
 .multiCopyAll{
   width:100%;margin-top:10px;min-height:44px;border:1px solid #cfe0f5;
   border-radius:13px;background:#eaf3ff;color:#1769e0;font-size:13px;font-weight:950
@@ -512,6 +514,8 @@ main{padding:14px}
 .searchMultiCaptureBtn:disabled{opacity:.5}.searchMultiCaptureFile{display:none}
 .searchMultiCaptureStatus{display:none;margin:8px 18px 0;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
 .searchMultiCaptureStatus.show{display:block}.searchMultiCaptureStatus.ok{background:#eaf8ef;color:#14743d}.searchMultiCaptureStatus.error{background:#fff0f0;color:#b42318}
+.searchMultiNextCapture{display:none;width:calc(100% - 36px);min-height:44px;margin:8px 18px 0;border:0;border-radius:12px;background:linear-gradient(135deg,#1769e0,#0b55c4);color:#fff;font-size:13px;font-weight:950;box-shadow:0 7px 16px rgba(23,105,224,.2)}
+.searchMultiNextCapture.show{display:block}.searchMultiNextCapture:active{transform:scale(.99)}
 .singleCaptureRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .singleCaptureFile{display:none}
 .singleCaptureStatus{display:none;margin-top:8px;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
@@ -852,6 +856,7 @@ input,select,textarea{font-size:max(16px,1em);}
     <input class="searchMultiCaptureFile" id="searchMultiCamera" type="file" accept="image/*" capture="environment">
     <input class="searchMultiCaptureFile" id="searchMultiGallery" type="file" accept="image/*">
     <div class="searchMultiCaptureStatus" id="searchMultiCaptureStatus" aria-live="polite"></div>
+    <button class="searchMultiNextCapture" id="searchMultiNextCapture" type="button">📷 다음 박스 촬영</button>
     <div class="searchMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에 있는 품번은 하이픈도 자동으로 맞춰집니다.</div>
     <div class="searchMultiListTitleRow">
       <div class="searchMultiListTitle">입력 목록</div>
@@ -1374,9 +1379,16 @@ $('#quickAllList')?.addEventListener('click',e=>{
 
 
 
-let SEARCH_MULTI_ITEMS=[];
+const SEARCH_MULTI_STORE_KEY='raySearchMultiItemsV1';
+const SEARCH_MULTI_DRAFT_KEY='raySearchMultiDraftV1';
+function loadSearchMultiSaved(){try{const v=JSON.parse(localStorage.getItem(SEARCH_MULTI_STORE_KEY)||'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}catch{return [];}}
+function saveSearchMultiSaved(){try{localStorage.setItem(SEARCH_MULTI_STORE_KEY,JSON.stringify(SEARCH_MULTI_ITEMS));}catch{}}
+function saveSearchMultiDraft(value){try{value?localStorage.setItem(SEARCH_MULTI_DRAFT_KEY,value):localStorage.removeItem(SEARCH_MULTI_DRAFT_KEY);}catch{}}
+function loadSearchMultiDraft(){try{return localStorage.getItem(SEARCH_MULTI_DRAFT_KEY)||'';}catch{return '';}}
+let SEARCH_MULTI_ITEMS=loadSearchMultiSaved();
 let SEARCH_MULTI_EDIT=-1;
 function renderSearchMultiList(){
+  saveSearchMultiSaved();
   const list=$('#searchMultiList');
   const clearAll=$('#searchMultiClearAll');
   if(clearAll)clearAll.disabled=SEARCH_MULTI_ITEMS.length===0;
@@ -1393,7 +1405,7 @@ function renderSearchMultiList(){
 }
 function openSearchMultiPopup(values=null){
   if(Array.isArray(values))SEARCH_MULTI_ITEMS=values.map(formatMultiPartToken).filter(Boolean);
-  SEARCH_MULTI_EDIT=-1;$('#searchMultiInput').value='';renderSearchMultiList();
+  SEARCH_MULTI_EDIT=-1;$('#searchMultiInput').value=loadSearchMultiDraft();renderSearchMultiList();
   $('#searchMultiOverlay').classList.add('show');document.body.classList.add('searchMultiOpen');
   setTimeout(()=>$('#searchMultiInput')?.focus(),70);
 }
@@ -1406,9 +1418,9 @@ function saveCurrentSearchMulti(){
   if(!formatted)return false;
   const normalized=norm(formatted);
   const duplicate=SEARCH_MULTI_ITEMS.findIndex((x,i)=>norm(x)===normalized && i!==SEARCH_MULTI_EDIT);
-  if(duplicate>=0){input.value='';SEARCH_MULTI_EDIT=-1;renderSearchMultiList();return true;}
+  if(duplicate>=0){input.value='';saveSearchMultiDraft('');SEARCH_MULTI_EDIT=-1;renderSearchMultiList();return true;}
   if(SEARCH_MULTI_EDIT>=0)SEARCH_MULTI_ITEMS[SEARCH_MULTI_EDIT]=formatted;else SEARCH_MULTI_ITEMS.push(formatted);
-  SEARCH_MULTI_EDIT=-1;input.value='';renderSearchMultiList();return true;
+  SEARCH_MULTI_EDIT=-1;input.value='';saveSearchMultiDraft('');renderSearchMultiList();return true;
 }
 function nextSearchMulti(){if(saveCurrentSearchMulti())setTimeout(()=>$('#searchMultiInput')?.focus(),30);}
 function runSearchMultiFromPopup(){saveCurrentSearchMulti();if(!SEARCH_MULTI_ITEMS.length)return showToast('조회할 품번을 입력해 주세요.');closeSearchMultiPopup(false);multiSearch();}
@@ -1430,14 +1442,15 @@ function findPartFromCapturedText(values){
   return best?.row||null;
 }
 function capturedPartDistance(a,b){const p=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=p[0];p[0]=i;for(let j=1;j<=b.length;j++){const old=p[j];p[j]=Math.min(p[j]+1,p[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}return p[b.length];}
-async function capturedPartOCRSources(file){
-  const out=[];
-  try{const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));const regions=[{x:0,y:0,w:1,h:1},{x:.12,y:.32,w:.78,h:.48},{x:.18,y:.42,w:.67,h:.34}];for(const region of regions){const sw=bmp.width*region.w,sh=bmp.height*region.h,scale=Math.min(3,2600/Math.max(sw,sh));const base=document.createElement('canvas');base.width=Math.round(sw*scale);base.height=Math.round(sh*scale);const bx=base.getContext('2d',{willReadFrequently:true});bx.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,base.width,base.height);out.push(base);for(const threshold of [170]){const c=document.createElement('canvas');c.width=base.width;c.height=base.height;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(base,0,0);const im=x.getImageData(0,0,c.width,c.height),d=im.data;for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g<threshold?0:255;d[i]=d[i+1]=d[i+2]=v;}x.putImageData(im,0,0);out.push(c);}}bmp.close?.();}catch{}
-  return out;
+async function* capturedPartOCRSources(file){
+  let bmp=null;
+  try{bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));const regions=[{x:0,y:0,w:1,h:1},{x:.12,y:.32,w:.78,h:.48},{x:.18,y:.42,w:.67,h:.34}];for(const region of regions){const sw=bmp.width*region.w,sh=bmp.height*region.h,scale=Math.min(2,1600/Math.max(sw,sh));const w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(sh*scale));const base=document.createElement('canvas');base.width=w;base.height=h;const bx=base.getContext('2d',{willReadFrequently:true});bx.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,w,h);yield base;base.width=base.height=1;const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,w,h);const im=x.getImageData(0,0,w,h),d=im.data;for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g<170?0:255;d[i]=d[i+1]=d[i+2]=v;}x.putImageData(im,0,0);yield c;c.width=c.height=1;}}catch{}finally{bmp?.close?.();}
 }
 async function readMultiPartPhoto(file){
   if(!file)return;
   const cameraBtn=$('#searchMultiCameraBtn'),galleryBtn=$('#searchMultiGalleryBtn');
+  const nextCapture=$('#searchMultiNextCapture');
+  nextCapture.classList.remove('show');
   cameraBtn.disabled=galleryBtn.disabled=true;
   setMultiCaptureStatus('사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.');
   try{
@@ -1456,13 +1469,14 @@ async function readMultiPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')setMultiCaptureStatus(`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`);}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for(const source of await capturedPartOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findPartFromCapturedText(values))break;}if(findPartFromCapturedText(values))break;source.width=source.height=1;}
+        for await(const source of capturedPartOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findPartFromCapturedText(values))break;}source.width=source.height=1;if(findPartFromCapturedText(values))break;}
       }finally{await worker.terminate();}
       found=findPartFromCapturedText(values);
     }
     if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
-    $('#searchMultiInput').value=found.code;
+    $('#searchMultiInput').value=found.code;saveSearchMultiDraft(found.code);
     setMultiCaptureStatus(`✅ ${found.code} 인식됨 · 맞는지 확인한 뒤 ‘다음 품번’을 눌러 주세요.`,'ok');
+    nextCapture.classList.add('show');
     $('#searchMultiInput').focus();$('#searchMultiInput').select();
   }catch(e){setMultiCaptureStatus(`❗ ${e.message||'사진 인식에 실패했습니다.'}`,'error');}
   finally{cameraBtn.disabled=galleryBtn.disabled=false;}
@@ -1489,7 +1503,7 @@ async function readSinglePartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text'){status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for(const source of await capturedPartOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findPartFromCapturedText(values))break;}if(findPartFromCapturedText(values))break;source.width=source.height=1;}
+        for await(const source of capturedPartOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findPartFromCapturedText(values))break;}source.width=source.height=1;if(findPartFromCapturedText(values))break;}
       }finally{await worker.terminate();}
       found=findPartFromCapturedText(values);
     }
@@ -1592,6 +1606,7 @@ function sortMultiResults(list){
 }
 
 function renderMultiResults(){
+  saveSearchMultiSaved();
   const list=sortMultiResults(MULTI_RESULTS);
   const found=list.filter(x=>x.status==='found').length;
   const bad=list.length-found;
@@ -1640,6 +1655,7 @@ function renderMultiResults(){
         <div class="multiItemTop"><div class="multiIndex">${visibleIndex+1}</div><div class="multiInfo">
           <div class="multiCode">${esc(item.query)}</div>
           <div class="multiStatusBad">${msg}</div>
+          <button class="multiEditBad" type="button" data-multi-edit-bad="${item.index}">✏️ 품번 수정</button>
         </div></div>
       </article>`;
     }
@@ -1742,15 +1758,21 @@ $('#searchMultiClearAll').addEventListener('click',()=>{
   renderSearchMultiList();
   setTimeout(()=>$('#searchMultiInput')?.focus(),30);
 });
-$('#searchMultiInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=String(e.target.value||'').toUpperCase();try{e.target.setSelectionRange(pos,pos)}catch{}});
+$('#searchMultiInput').addEventListener('input',e=>{const pos=e.target.selectionStart;e.target.value=String(e.target.value||'').toUpperCase();saveSearchMultiDraft(e.target.value);try{e.target.setSelectionRange(pos,pos)}catch{}});
 $('#searchMultiInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();nextSearchMulti();}});
 $('#searchMultiCameraBtn').addEventListener('click',()=>$('#searchMultiCamera').click());
 $('#searchMultiGalleryBtn').addEventListener('click',()=>$('#searchMultiGallery').click());
+$('#searchMultiNextCapture').addEventListener('click',()=>{
+  if(!saveCurrentSearchMulti())return;
+  $('#searchMultiNextCapture').classList.remove('show');
+  $('#searchMultiCaptureStatus').classList.remove('show');
+  setTimeout(()=>$('#searchMultiCamera').click(),80);
+});
 $('#searchMultiCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMultiPartPhoto(f);});
 $('#searchMultiGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMultiPartPhoto(f);});
 $('#searchMultiList').addEventListener('click',e=>{
   const edit=e.target.closest('[data-search-multi-edit]'),del=e.target.closest('[data-search-multi-del]');
-  if(edit){SEARCH_MULTI_EDIT=Number(edit.dataset.searchMultiEdit);$('#searchMultiInput').value=SEARCH_MULTI_ITEMS[SEARCH_MULTI_EDIT]||'';renderSearchMultiList();$('#searchMultiInput').focus();}
+  if(edit){SEARCH_MULTI_EDIT=Number(edit.dataset.searchMultiEdit);$('#searchMultiInput').value=SEARCH_MULTI_ITEMS[SEARCH_MULTI_EDIT]||'';saveSearchMultiDraft($('#searchMultiInput').value);renderSearchMultiList();$('#searchMultiInput').focus();}
   if(del){const i=Number(del.dataset.searchMultiDel);SEARCH_MULTI_ITEMS.splice(i,1);if(SEARCH_MULTI_EDIT===i)SEARCH_MULTI_EDIT=-1;else if(SEARCH_MULTI_EDIT>i)SEARCH_MULTI_EDIT--;renderSearchMultiList();}
 });
 
@@ -1768,6 +1790,18 @@ function pickHeader(headers, keys) {
   return headers.findIndex(h => keys.some(k => String(h||'').replace(/\s/g,'').includes(k)));
 }
 $('#results').addEventListener('click', e=>{
+  const editBad=e.target.closest('[data-multi-edit-bad]');
+  if(editBad){
+    const i=Number(editBad.dataset.multiEditBad),current=SEARCH_MULTI_ITEMS[i]||MULTI_RESULTS.find(x=>x.index===i)?.query||'';
+    const changed=window.prompt('품번을 수정해 주세요.',current);
+    if(changed!==null&&changed.trim()){
+      SEARCH_MULTI_ITEMS[i]=formatMultiPartToken(changed);
+      MULTI_RESULTS=SEARCH_MULTI_ITEMS.map((q,idx)=>findMultiMaterial(q,idx));
+      MULTI_UNDO_SNAPSHOT=null;
+      renderMultiResults();
+    }
+    return;
+  }
   const mapBtn=e.target.closest('[data-map-location]');
   if(mapBtn){ openLocationMap(mapBtn.dataset.mapLocation); return; }
   const sortBtn=e.target.closest('[data-multi-sort]');

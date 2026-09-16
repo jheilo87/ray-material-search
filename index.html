@@ -379,6 +379,8 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   font-size:11px;
   font-weight:850;
 }
+.mainMultiEditResult{margin-top:8px;border:1px solid #efb4b4;border-radius:9px;padding:7px 11px;background:#fff;color:#b42318;font-size:11px;font-weight:950}
+.mainMultiEditResult:active{transform:scale(.98);background:#fff0f0}
 .mainMultiResult.ambiguous{background:#fffaf0;cursor:pointer}
 .mainMultiResult.ambiguous .mainMultiResultNo{background:#fff2cf;color:#a96500}
 .mainMultiResult.ambiguous .mainMultiResultCode{color:#a96500}
@@ -593,6 +595,8 @@ body.incomingPopupOpen{overflow:hidden}
 .mainCaptureBtn:disabled{opacity:.5}.mainCaptureFile{display:none}
 .mainCaptureStatus{display:none;margin-top:8px;padding:9px 10px;border-radius:11px;background:#f3f6fa;color:#617085;font-size:11px;font-weight:850;line-height:1.45}
 .mainCaptureStatus.show{display:block}.mainCaptureStatus.ok{background:#eaf8ef;color:#14743d}.mainCaptureStatus.error{background:#fff0f0;color:#b42318}
+.multiNextCapture{display:none;width:100%;min-height:44px;margin-top:8px;border:0;border-radius:12px;background:linear-gradient(135deg,#1769e0,#0b55c4);color:#fff;font-size:13px;font-weight:950;box-shadow:0 7px 16px rgba(23,105,224,.2)}
+.multiNextCapture.show{display:block}.multiNextCapture:active{transform:scale(.99)}
 .rsSearchDesc{
   margin-top:10px;
   text-align:center;
@@ -847,6 +851,7 @@ input,select,textarea{font-size:max(16px,1em);}
       <input class="mainCaptureFile" id="multiCamera" type="file" accept="image/*" capture="environment">
       <input class="mainCaptureFile" id="multiGallery" type="file" accept="image/*">
       <div class="mainCaptureStatus" id="multiCaptureStatus" aria-live="polite"></div>
+      <button class="multiNextCapture" id="multiNextCapture" type="button">📷 다음 박스 촬영</button>
       <div class="rsMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 실제 하이픈 형식으로 맞춰집니다.</div>
 
       <div class="rsMultiListTitleRow">
@@ -1061,7 +1066,13 @@ function showMainLocationResults(query){
  box.classList.add('show');box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 let MAIN_SEARCH_MULTI=false;
-let MAIN_MULTI_ITEMS=[];
+const MAIN_MULTI_STORE_KEY='rayMainMultiItemsV1';
+const MAIN_MULTI_DRAFT_KEY='rayMainMultiDraftV1';
+function loadMainMultiSaved(){try{const v=JSON.parse(localStorage.getItem(MAIN_MULTI_STORE_KEY)||'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x.trim()):[];}catch{return [];}}
+function saveMainMultiSaved(){try{localStorage.setItem(MAIN_MULTI_STORE_KEY,JSON.stringify(MAIN_MULTI_ITEMS));}catch{}}
+function saveMainMultiDraft(value){try{value?localStorage.setItem(MAIN_MULTI_DRAFT_KEY,value):localStorage.removeItem(MAIN_MULTI_DRAFT_KEY);}catch{}}
+function loadMainMultiDraft(){try{return localStorage.getItem(MAIN_MULTI_DRAFT_KEY)||'';}catch{return '';}}
+let MAIN_MULTI_ITEMS=loadMainMultiSaved();
 let MAIN_MULTI_EDIT=-1;
 
 function mainUpper(value){
@@ -1133,6 +1144,7 @@ function setRsSearchTab(kind){
 }
 
 function renderMainMultiList(){
+  saveMainMultiSaved();
   const list=document.getElementById('rsMultiList');
   const clearAllBtn=document.getElementById('rsMultiClearAll');
   if(clearAllBtn) clearAllBtn.disabled=MAIN_MULTI_ITEMS.length===0;
@@ -1165,7 +1177,7 @@ function renderMainMultiList(){
 function openMainMultiPopup(){
   MAIN_SEARCH_MULTI=true;
   MAIN_MULTI_EDIT=-1;
-  document.getElementById('rsMultiInput').value='';
+  document.getElementById('rsMultiInput').value=loadMainMultiDraft();
   renderMainMultiList();
   setRsSearchTab('multi');
   document.getElementById('rsMultiOverlay').classList.add('show');
@@ -1205,6 +1217,7 @@ function saveCurrentMainMulti(){
 
   MAIN_MULTI_EDIT=-1;
   input.value='';
+  saveMainMultiDraft('');
   renderMainMultiList();
   return true;
 }
@@ -1234,6 +1247,7 @@ function findMainMultiMaterial(query,index){
 }
 
 function showMainMultiResults(){
+  saveMainMultiSaved();
   const box=document.getElementById('mainResults');
   const list=document.getElementById('mainResultList');
   const count=document.getElementById('mainResultsCount');
@@ -1300,6 +1314,7 @@ function showMainMultiResults(){
         <div class="mainMultiResultInfo">
           <div class="mainMultiResultCode">${esc(item.query)}</div>
           <div class="mainMultiResultStatus">검색되는 품번이 없습니다.</div>
+          <button class="mainMultiEditResult" type="button" data-rs-edit-result="${item.index}">✏️ 품번 수정</button>
         </div>
       </div>`;
   }).join('');
@@ -1337,6 +1352,18 @@ function runMainMultiSearch(){
 document.getElementById('mainResultsReset')?.addEventListener('click',resetMainMultiResults);
 
 document.getElementById('mainResultList').addEventListener('click',e=>{
+  const editResult=e.target.closest('[data-rs-edit-result]');
+  if(editResult){
+    const i=Number(editResult.dataset.rsEditResult);
+    if(Number.isInteger(i)&&i>=0&&i<MAIN_MULTI_ITEMS.length){
+      const changed=window.prompt('품번을 수정해 주세요.',MAIN_MULTI_ITEMS[i]||'');
+      if(changed!==null&&changed.trim()){
+        MAIN_MULTI_ITEMS[i]=mainFormatPart(changed);
+        showMainMultiResults();
+      }
+    }
+    return;
+  }
   const choice=e.target.closest('[data-rs-choice-code]');
   if(choice){
     e.stopPropagation();
@@ -1397,6 +1424,7 @@ document.getElementById('rsMultiClearAll').addEventListener('click',()=>{
 document.getElementById('rsMultiInput').addEventListener('input',e=>{
   const pos=e.target.selectionStart;
   e.target.value=mainUpper(e.target.value);
+  saveMainMultiDraft(e.target.value);
   try{e.target.setSelectionRange(pos,pos)}catch{}
 });
 document.getElementById('rsMultiInput').addEventListener('keydown',e=>{
@@ -1412,6 +1440,7 @@ document.getElementById('rsMultiList').addEventListener('click',e=>{
   if(edit){
     MAIN_MULTI_EDIT=Number(edit.dataset.rsEdit);
     document.getElementById('rsMultiInput').value=MAIN_MULTI_ITEMS[MAIN_MULTI_EDIT]||'';
+    saveMainMultiDraft(document.getElementById('rsMultiInput').value);
     renderMainMultiList();
     document.getElementById('rsMultiInput').focus();
   }
@@ -1458,25 +1487,23 @@ function findMainPartFromPhoto(values){
   return best?.row||null;
 }
 function partPhotoDistance(a,b){const p=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=p[0];p[0]=i;for(let j=1;j<=b.length;j++){const old=p[j];p[j]=Math.min(p[j]+1,p[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}return p[b.length];}
-async function partPhotoOCRSources(file){
-  const out=[];
+async function* partPhotoOCRSources(file){
+  let bmp=null;
   try{
-    const bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
+    bmp=await createImageBitmap(file,{imageOrientation:'from-image'}).catch(()=>createImageBitmap(file));
     const regions=[{x:0,y:0,w:1,h:1},{x:.12,y:.32,w:.78,h:.48},{x:.18,y:.42,w:.67,h:.34}];
     for(const region of regions){
-      const sw=bmp.width*region.w,sh=bmp.height*region.h,scale=Math.min(3,2600/Math.max(sw,sh));
-      const base=document.createElement('canvas');base.width=Math.round(sw*scale);base.height=Math.round(sh*scale);
-      const bx=base.getContext('2d',{willReadFrequently:true});bx.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,base.width,base.height);out.push(base);
-      for(const threshold of [170]){
-      const c=document.createElement('canvas');c.width=base.width;c.height=base.height;
-      const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(base,0,0);
+      const sw=bmp.width*region.w,sh=bmp.height*region.h,scale=Math.min(2,1600/Math.max(sw,sh));
+      const base=document.createElement('canvas');base.width=Math.max(1,Math.round(sw*scale));base.height=Math.max(1,Math.round(sh*scale));
+      const bx=base.getContext('2d',{willReadFrequently:true});bx.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,base.width,base.height);
+      yield base;base.width=base.height=1;
+      const c=document.createElement('canvas');c.width=Math.max(1,Math.round(sw*scale));c.height=Math.max(1,Math.round(sh*scale));
+      const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(bmp,bmp.width*region.x,bmp.height*region.y,sw,sh,0,0,c.width,c.height);
       const im=x.getImageData(0,0,c.width,c.height),d=im.data;
-      for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g<threshold?0:255;d[i]=d[i+1]=d[i+2]=v;}x.putImageData(im,0,0);out.push(c);
-      }
+      for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g<170?0:255;d[i]=d[i+1]=d[i+2]=v;}x.putImageData(im,0,0);
+      yield c;c.width=c.height=1;
     }
-    bmp.close?.();
-  }catch{}
-  return out;
+  }catch{}finally{bmp?.close?.();}
 }
 async function readMainPartPhoto(file){
   if(!file)return;
@@ -1499,7 +1526,7 @@ async function readMainPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for(const source of await partPhotoOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;source.width=source.height=1;}
+        for await(const source of partPhotoOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}source.width=source.height=1;if(findMainPartFromPhoto(values))break;}
       }finally{await worker.terminate();}
       found=findMainPartFromPhoto(values);
     }
@@ -1513,6 +1540,8 @@ async function readMainPartPhoto(file){
 async function readIndexMultiPartPhoto(file){
   if(!file)return;
   const cameraBtn=document.getElementById('multiCameraBtn'),galleryBtn=document.getElementById('multiGalleryBtn'),status=document.getElementById('multiCaptureStatus');
+  const nextCapture=document.getElementById('multiNextCapture');
+  nextCapture.classList.remove('show');
   cameraBtn.disabled=galleryBtn.disabled=true;
   status.textContent='사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.';status.className='mainCaptureStatus show';
   try{
@@ -1531,13 +1560,14 @@ async function readIndexMultiPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for(const source of await partPhotoOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;source.width=source.height=1;}
+        for await(const source of partPhotoOCRSources(file)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}source.width=source.height=1;if(findMainPartFromPhoto(values))break;}
       }finally{await worker.terminate();}
       found=findMainPartFromPhoto(values);
     }
     if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
-    const input=document.getElementById('rsMultiInput');input.value=found.code;
+    const input=document.getElementById('rsMultiInput');input.value=found.code;saveMainMultiDraft(found.code);
     status.textContent=`✅ ${found.code} 인식됨 · 맞는지 확인한 뒤 ‘다음 품번’을 눌러 주세요.`;status.className='mainCaptureStatus show ok';
+    nextCapture.classList.add('show');
     input.focus();input.select();
   }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
   finally{cameraBtn.disabled=galleryBtn.disabled=false;}
@@ -1548,6 +1578,12 @@ document.getElementById('mainCamera').addEventListener('change',async e=>{const 
 document.getElementById('mainGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readMainPartPhoto(f);});
 document.getElementById('multiCameraBtn').addEventListener('click',()=>document.getElementById('multiCamera').click());
 document.getElementById('multiGalleryBtn').addEventListener('click',()=>document.getElementById('multiGallery').click());
+document.getElementById('multiNextCapture').addEventListener('click',()=>{
+  if(!saveCurrentMainMulti())return;
+  document.getElementById('multiNextCapture').classList.remove('show');
+  document.getElementById('multiCaptureStatus').classList.remove('show');
+  setTimeout(()=>document.getElementById('multiCamera').click(),80);
+});
 document.getElementById('multiCamera').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readIndexMultiPartPhoto(f);});
 document.getElementById('multiGallery').addEventListener('change',async e=>{const f=e.target.files?.[0];e.target.value='';await readIndexMultiPartPhoto(f);});
 
