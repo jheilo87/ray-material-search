@@ -421,6 +421,8 @@ input,select,textarea{font-size:max(16px,1em);}
 .jstItemQty{flex:none;font-size:10px;font-weight:950;color:#087f8c;white-space:nowrap}
 .jstItemMeta{margin-top:3px;font-size:9.5px;font-weight:800;color:#7b8798;line-height:1.4}
 .jstSheetChip{display:inline-block;margin-right:5px;padding:2px 5px;border-radius:999px;background:#e8f7f7;color:#087f8c;font-size:8.5px;font-weight:950}
+
+.adminExtra{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}.adminExtra summary{cursor:pointer;font-weight:900;color:var(--muted)}
 </style>
 </head><body><div class="app"><header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">입고 캘린더</div><div class="rsPageSub">업체별 입고 예정일과 완료 상태</div></div></header><section class="panel"><div class="summary"><div class="sum"><b id="todayCount">0</b><span>오늘 입고</span></div><div class="sum"><b id="monthCount">0</b><span>이번 달</span></div><div class="sum"><b id="doneCount">0</b><span>완료</span></div></div><div class="nav"><button id="prev" aria-label="이전 달">‹</button><div class="monthCenter"><div class="month" id="month"></div><button class="currentMonthBtn" id="currentMonthBtn" type="button">오늘로 이동</button></div><button id="next" aria-label="다음 달">›</button></div><div class="filters" id="filters"></div><div class="board"><div class="week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div class="days" id="days"></div></div><div class="state" id="state">Calendar.xlsx를 불러오고 있습니다.</div></section><div class="adminFooter"><button class="adminOpenBtn" id="adminOpen" type="button">⚙️ 관리자 일정 관리</button></div><section class="adminPanel" id="adminPanel" aria-hidden="true">
   <div class="adminModalCard" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
@@ -432,11 +434,8 @@ input,select,textarea{font-size:max(16px,1em);}
       <button class="adminModalClose" id="adminModalClose" type="button" aria-label="관리자 창 닫기">×</button>
     </div>
     <div class="adminModalBody">
-<div class="adminTitle">일정 관리</div>
-<div class="adminNote">기존 Calendar.xlsx를 불러오거나 일정을 직접 추가할 수 있습니다. 아래 발주서 자동변환에서는 여러 파일을 한꺼번에 선택해 하나의 Calendar.xlsx로 합칩니다. 제이에스티는 월별 원자재·소모품 시트를 함께 읽습니다.</div>
-
 <div class="poBlock">
-  <div class="poTitle">발주서 일정 업데이트</div>
+  <div class="poTitle">발주서 업로드</div>
   <div class="poNote">업로드할 연도와 월을 지정한 뒤 발주서를 선택하세요. 같은 업체·같은 월의 발주서 일정만 교체되며, 직접 입력한 일정은 그대로 유지됩니다.</div>
   <div class="targetBox">
     <div class="targetTitle">업로드 대상 연월</div>
@@ -447,33 +446,31 @@ input,select,textarea{font-size:max(16px,1em);}
   </div>
   <div class="poActions">
     <button class="btn danger" id="resetAll" type="button" style="display:none">새 통합 시작</button>
-    <label class="btn soft" for="purchaseFiles">발주서 선택</label>
-  </div>
-  <div class="poActions" style="margin-top:8px">
-    <button class="btn primary" id="download" type="button">📅 캘린더 엑셀 저장</button>
-    <button class="btn soft" id="setViewMonth" type="button">선택 월로 이동</button>
+    <label class="btn soft" for="purchaseFiles">📂 발주서 업로드</label>
   </div>
   <input id="purchaseFiles" type="file" accept=".xlsx,.xls" multiple>
   <div class="selectedFiles" id="selectedFiles">
     <div class="selectedHead" id="selectedHead">선택된 발주서</div>
     <div id="selectedList"></div>
   </div>
-  <div class="adminStatus" id="adminStatus">처음부터 다시 만들려면 ‘새 통합 시작’을 누른 뒤 연월을 선택하고 발주서를 올려 주세요.</div>
+  <div class="adminStatus" id="adminStatus">발주서를 올리거나 일정을 추가한 뒤, 아래에서 엑셀을 저장하세요.</div>
 </div>
 
-<div class="poBlock">
-  <div class="poTitle">Calendar.xlsx 직접 관리</div>
-  <div class="adminActions">
-    <label class="btn soft" for="file">Calendar.xlsx 불러오기</label>
-    <button class="btn primary" id="downloadDirect" type="button">📅 캘린더 엑셀 저장</button>
-  </div>
-  <input id="file" type="file" accept=".xlsx,.xls">
   <div class="add popupAddLauncher">
     <select id="vendor" aria-hidden="true"></select>
     <input id="date" type="date" aria-hidden="true">
     <button id="add" type="button">➕ 일정 직접 추가</button>
   </div>
+<div class="poBlock">
+  <button class="btn primary" id="download" type="button" style="width:100%">📅 캘린더 엑셀 저장</button>
+  <div class="poNote">저장한 Calendar.xlsx를 GitHub의 기존 파일과 교체해 주세요.</div>
 </div>
+<details class="adminExtra"><summary>추가 설정</summary>
+  <div class="adminActions">
+    <label class="btn soft" for="file">기존 엑셀 불러오기</label>
+    <button class="btn soft" id="setViewMonth" type="button">선택 월로 이동</button>
+  </div>
+  <input id="file" type="file" accept=".xlsx,.xls">
 <div class="vacationAdminBox">
   <div class="vacationAdminTitle">🏖 회사 휴가 관리</div>
   <div class="vacationAdminNote">하계휴가·동계휴가 등 회사 휴무 기간을 직접 등록할 수 있습니다. 등록한 기간은 이 기기에 저장되어 캘린더에 표시됩니다.</div>
@@ -486,6 +483,7 @@ input,select,textarea{font-size:max(16px,1em);}
   <div class="vacationSavedList" id="vacationSavedList"></div>
 </div>
 
+</details>
 <div class="adminLogoutWrap">
   <button class="adminLogoutBtn" id="adminLogoutBtn" type="button">🔒 관리자 모드 끄기</button>
   <div class="adminLogoutHint">관리자 권한을 종료하고 일반 모드로 돌아갑니다.</div>
@@ -694,7 +692,7 @@ function loadBook(buf){
   const migrationText=legacyMigrated
     ? `\n🔄 기존 일정 ${legacyMigrated}건을 자동 분류했습니다. 세진팩·오지는 발주서, 일신·동진은 직접 입력으로 보호됩니다.`
     : '';
-  setAdminStatus(`✅ Calendar.xlsx ${events.length}건을 불러왔습니다.${migrationText}\n현재 일정 저장을 누르면 반영됩니다.`,'ok');
+  setAdminStatus(`✅ Calendar.xlsx ${events.length}건을 불러왔습니다.${migrationText}\n변경 후 캘린더 엑셀을 저장하고 GitHub에 업로드해 주세요.`,'ok');
 }
 async function auto(){
   try{
@@ -1364,21 +1362,6 @@ $('currentMonthBtn').onclick=()=>{
 };
 $('vendor').innerHTML=vendors.map(v=>`<option value="${v}">${vendorDisplay(v)}</option>`).join('');
 $('date').value=key(new Date());
-$('add').onclick=async()=>{
-  if(!$('date').value) return;
-  const d=parse($('date').value+'T00:00:00');
-  const vendor=$('vendor').value;
-  if(events.some(e=>e.vendor===vendor&&key(e.date)===key(d))){await appDialog({title:'중복 일정',message:'같은 업체의 일정이 이미 등록되어 있습니다.',icon:'⚠️'});return;}
-  const ok=await appDialog({title:'일정 추가',message:`${vendor}\n${key(d)} 일정을 추가할까요?`,icon:'➕',confirmText:'추가',cancelText:'취소'});
-  if(!ok) return;
-  events.push({id:'m-'+Date.now(),vendor,date:d,done:false,source:'manual'});
-  view=new Date(d.getFullYear(),d.getMonth(),1);
-  dedupe();render();
-  $('state').textContent='일정이 추가되었습니다. 저장 버튼으로 Calendar.xlsx를 내려받으세요.';
-  setAdminStatus(`✅ ${vendor} ${key(d)} 일정이 추가되었습니다.`,'ok');
-  await appDialog({title:'일정 추가 완료',message:`${vendor}\n${key(d)} 일정이 추가되었습니다.`,icon:'✅'});
-};
-
 $('vacationAdd').onclick=async()=>{
   const start=$('vacationStart').value;
   const end=$('vacationEnd').value;
@@ -1446,7 +1429,7 @@ $('file').onchange=async e=>{
   e.target.value='';
 };
 $('download').onclick=saveCalendar;
-$('downloadDirect').onclick=saveCalendar;
+
 
 loadCompanyVacations();
 renderVacationAdminList();
@@ -1465,7 +1448,7 @@ if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-work
   });
 })();
 
-(function(){
+document.addEventListener('DOMContentLoaded',function(){
   const overlay=document.getElementById('scheduleModalOverlay');
   const openBtn=document.getElementById('add');
   const closeBtn=document.getElementById('scheduleModalClose');
@@ -1521,7 +1504,8 @@ if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-work
   overlay?.addEventListener('click',e=>{if(e.target===overlay) closeModal();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay?.classList.contains('show')) closeModal();});
 
-  saveBtn?.addEventListener('click',function(){
+  saveBtn?.addEventListener('click',async function(){
+    if(!adminMode) return;
     const vendor=vendorEl.value;
     const dateText=dateEl.value;
     const memo=memoEl.value.trim();
@@ -1532,6 +1516,10 @@ if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-work
     const d=new Date(parts[0],parts[1]-1,parts[2]);
     if(Number.isNaN(d.getTime())){ alert('날짜를 다시 확인해주세요.'); return; }
 
+    if(events.some(e=>e.vendor===vendor&&key(e.date)===key(d))){
+      await appDialog({title:'중복 일정',message:'같은 업체의 일정이 이미 등록되어 있습니다.',icon:'⚠️'});
+      return;
+    }
     // 기존 일정 배열에 직접 입력 일정으로 저장
     if(typeof events!=='undefined'){
       events.push({
@@ -1544,15 +1532,14 @@ if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-work
       });
     }
 
-    // 기존 렌더/저장 함수가 있으면 즉시 반영
-    try{ if(typeof render==='function') render(); }catch(e){}
-    try{ if(typeof renderCalendar==='function') renderCalendar(); }catch(e){}
-    try{ if(typeof drawCalendar==='function') drawCalendar(); }catch(e){}
-    try{ if(typeof saveLocal==='function') saveLocal(); }catch(e){}
+    view=new Date(d.getFullYear(),d.getMonth(),1);
+    dedupe();
+    render();
+    setAdminStatus(`✅ ${vendor} ${key(d)} 일정 추가 완료. 캘린더 엑셀을 저장해 주세요.`,'ok');
 
     closeModal();
     memoEl.value='';
-    window.showAppToast('✅ 일정이 저장되었습니다.','success');
+    window.showAppToast('✅ 일정 추가 완료. 캘린더 엑셀을 저장해 주세요.','success');
   });
 
   // 날짜 칸에 data-date가 있으면 관리자 모드에서 클릭 시 해당 날짜로 팝업 열기
@@ -1570,7 +1557,7 @@ if('serviceWorker'in navigator) navigator.serviceWorker.register('./service-work
     if(!btn) return;
     setTimeout(()=>window.showAppToast('🗑️ 일정이 삭제되었습니다.','delete'),80);
   });
-})();
+});
 
 </script>
 
