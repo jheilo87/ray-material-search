@@ -1031,7 +1031,27 @@ document.getElementById('incomingTodayX')?.addEventListener('click',closeIncomin
 document.getElementById('incomingTodayOverlay')?.addEventListener('click',e=>{
   if(e.target===e.currentTarget)closeIncomingTodayPopup();
 });
-function getQuickData(){let rs=[],fs=[];try{rs=JSON.parse(localStorage.getItem('rayRecents')||'[]');fs=JSON.parse(localStorage.getItem('rayFavorites')||'[]')}catch(e){}return {rs:Array.isArray(rs)?rs:[],fs:Array.isArray(fs)?fs:[]}}
+function rayReadRecentHistory(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('rayRecents')||'[]');
+    if(!Array.isArray(raw))return [];
+    const seen=new Set();
+    return raw.map(x=>typeof x==='string'?{q:x,mode:'part'}:{q:String(x?.q||''),mode:x?.mode==='location'?'location':'part'})
+      .map(x=>({...x,q:x.q.trim()})).filter(x=>{
+        const key=x.mode+':'+x.q.toUpperCase();
+        if(!x.q||seen.has(key))return false;
+        seen.add(key);return true;
+      }).slice(0,10);
+  }catch{return [];}
+}
+function rayRememberRecent(q,kind='part'){
+  q=String(q||'').trim();if(!q)return rayReadRecentHistory();
+  const rows=rayReadRecentHistory().filter(x=>!(x.q.toUpperCase()===q.toUpperCase()&&x.mode===kind));
+  rows.unshift({q,mode:kind});rows.splice(10);
+  try{localStorage.setItem('rayRecents',JSON.stringify(rows));}catch{}
+  return rows;
+}
+function getQuickData(){let fs=[];try{fs=JSON.parse(localStorage.getItem('rayFavorites')||'[]')}catch{}return {rs:rayReadRecentHistory(),fs:Array.isArray(fs)?fs:[]}}
 function renderQuick(){const {rs,fs}=getQuickData();document.getElementById('recent').innerHTML=rs.length?rs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x?.q||'')}">${esc(x?.q||'')}</a>`).join(''):'<span class="empty">검색 기록 없음</span>';document.getElementById('favorite').innerHTML=fs.length?fs.slice(0,4).map(x=>`<a class="chip" href="search.html?q=${encodeURIComponent(x)}">★ ${esc(x)}</a>`).join(''):'<span class="empty">즐겨찾기 없음</span>'}
 function openQuickAll(kind){const {rs,fs}=getQuickData();const isRecent=kind==='recent';const items=isRecent?rs.map(x=>String(x?.q||'').trim()).filter(Boolean):fs.map(x=>String(x||'').trim()).filter(Boolean);const overlay=document.getElementById('quickAllOverlay'),title=document.getElementById('quickAllTitle'),meta=document.getElementById('quickAllMeta'),list=document.getElementById('quickAllList');title.textContent=isRecent?'최근 검색 전체':'즐겨찾기 전체';meta.textContent=`총 ${items.length}개`;list.innerHTML=items.length?items.map((q,i)=>`<a class="quickAllItem" href="search.html?q=${encodeURIComponent(q)}"><span class="quickAllCode">${isRecent?'': '★ '}${esc(q)}</span><span class="quickAllGo">›</span></a>`).join(''):`<div class="quickAllEmpty">${isRecent?'최근 검색 기록이 없습니다.':'즐겨찾기가 없습니다.'}</div>`;overlay.classList.add('show');document.body.classList.add('quickAllOpen')}
 function closeQuickAll(){document.getElementById('quickAllOverlay')?.classList.remove('show');document.body.classList.remove('quickAllOpen')}
@@ -1055,7 +1075,7 @@ async function loadMainMaterial(){
     return {ok:false,count:0};
   }
 }
-function showMainResults(query){const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');box.classList.remove('multiMode');const head=box.querySelector('.mainResultsHead strong');if(head)head.textContent='검색 결과';const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}const nq=mainNorm(q);const hits=MAIN_MATERIAL.filter(row=>mainNorm(row.code).includes(nq)||mainNorm(row.name).includes(nq));const shown=hits.slice(0,6);count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?q='+encodeURIComponent(q);more.style.display=hits.length?'block':'none';list.innerHTML=shown.length?shown.map(row=>`<div class="mainResult"><a class="mainResultInfo" href="search.html?q=${encodeURIComponent(row.code)}"><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></a><a class="mainResultLoc" href="search.html?map=${encodeURIComponent(row.location||'N/A')}" aria-label="${esc(row.location||'N/A')} 창고 위치 보기">📍 ${esc(row.location)} <em>위치보기</em></a></div>`).join(''):`<div class="mainResultEmpty">검색되는 품번이나 품명이 없습니다.<br>다른 검색어로 다시 확인해 주세요.</div>`;box.classList.add('show');}
+function showMainResults(query){const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');box.classList.remove('multiMode');const head=box.querySelector('.mainResultsHead strong');if(head)head.textContent='검색 결과';const q=String(query||'').trim();if(!q){box.classList.remove('show');return;}rayRememberRecent(q);renderQuick();const nq=mainNorm(q);const hits=MAIN_MATERIAL.filter(row=>mainNorm(row.code).includes(nq)||mainNorm(row.name).includes(nq));const shown=hits.slice(0,6);count.textContent=`${hits.length.toLocaleString()}건`;more.href='search.html?q='+encodeURIComponent(q);more.style.display=hits.length?'block':'none';list.innerHTML=shown.length?shown.map(row=>`<div class="mainResult"><a class="mainResultInfo" href="search.html?q=${encodeURIComponent(row.code)}"><div class="mainResultCode">${esc(row.code)}</div><div class="mainResultName">${esc(row.name||'품명 정보 없음')}</div></a><a class="mainResultLoc" href="search.html?map=${encodeURIComponent(row.location||'N/A')}" aria-label="${esc(row.location||'N/A')} 창고 위치 보기">📍 ${esc(row.location)} <em>위치보기</em></a></div>`).join(''):`<div class="mainResultEmpty">검색되는 품번이나 품명이 없습니다.<br>다른 검색어로 다시 확인해 주세요.</div>`;box.classList.add('show');}
 function showMainLocationResults(query){
  const box=document.getElementById('mainResults'),list=document.getElementById('mainResultList'),count=document.getElementById('mainResultsCount'),more=document.getElementById('mainResultMore');
  box.classList.remove('multiMode');const head=box.querySelector('.mainResultsHead strong');if(head)head.textContent='위치 검색 결과';
@@ -1466,25 +1486,22 @@ document.getElementById('mainSearch').addEventListener('submit',e=>{
 });
 
 function findMainPartFromPhoto(values){
-  const raw=(values||[]).filter(Boolean).join(' '),whole=mainNorm(raw);
-  if(!whole)return null;
-  const matches=MAIN_MATERIAL.filter(row=>{const code=mainNorm(row.code);return code.length>=5&&whole.includes(code);});
-  matches.sort((a,b)=>mainNorm(b.code).length-mainNorm(a.code).length);
-  if(matches[0])return matches[0];
-  const tokens=(raw.toUpperCase().match(/[A-Z0-9][A-Z0-9_.\/-]{3,}[A-Z0-9]/g)||[]).map(mainNorm).filter(x=>x.length>=5);
-  let best=null;
-  for(const row of MAIN_MATERIAL){
-    const code=mainNorm(row.code);if(code.length<5)continue;
-    for(const token of tokens){
-      if(Math.abs(code.length-token.length)>2)continue;
-      const d=partPhotoDistance(code,token),limit=code.length>=10?2:1;
-      if(d<=limit&&(!best||d<best.distance||(d===best.distance&&code.length>best.length)))best={row,distance:d,length:code.length};
-      const handwriting=token.replace(/[I|L]/g,'1').replace(/O/g,'0').replace(/S/g,'5');
-      const hd=partPhotoDistance(code,handwriting);
-      if(hd<=limit&&(!best||hd<best.distance||(hd===best.distance&&code.length>best.length)))best={row,distance:hd,length:code.length};
-    }
-  }
-  return best?.row||null;
+  const raw=(values||[]).filter(Boolean).join('\n').toUpperCase().replace(/[‐‑–—−]/g,'-');
+  if(!raw)return null;
+  const compact=raw.replace(/[^A-Z0-9]/g,'');
+  const exact=MAIN_MATERIAL.filter(r=>{const c=mainNorm(r.code);return c.length>=5&&compact.includes(c);});
+  const unique=[...new Map(exact.map(r=>[mainNorm(r.code),r])).values()];
+  if(unique.length===1)return unique[0];
+  if(unique.length>1)return null;
+  // Read a complete printed part number even when the material list lacks it.
+  // Do not replace a digit with a nearby registered code using edit distance.
+  const candidates=new Set();
+  const re=/(?:^|[^A-Z0-9])([A-Z]{2})[\s-]*([0-9OIL]{2})[\s-]*([A-Z])[\s-]*([0-9OIL]{4})(?![A-Z0-9])/g;
+  const digits=s=>s.replace(/O/g,'0').replace(/[IL]/g,'1');
+  for(const m of raw.matchAll(re))candidates.add(m[1]+'-'+digits(m[2])+m[3]+'-'+digits(m[4]));
+  if(candidates.size!==1)return null;
+  const code=[...candidates][0];
+  return MAIN_MATERIAL.find(r=>mainNorm(r.code)===mainNorm(code))||{code,ocrUnverified:true};
 }
 function partPhotoDistance(a,b){const p=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=p[0];p[0]=i;for(let j=1;j<=b.length;j++){const old=p[j];p[j]=Math.min(p[j]+1,p[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}return p[b.length];}
 // Bounded, single-decode part-photo pipeline (2026-09-22).
@@ -1543,20 +1560,72 @@ async function rayPartPhotoCanvas(file){
   finally{bitmap?.close?.();}
 }
 async function* partPhotoOCRSources(photo){
-  const regions=[{x:0,y:0,w:1,h:1},{x:.12,y:.32,w:.78,h:.48},{x:.18,y:.42,w:.67,h:.34}];
-  for(const r of regions){
-    const c=document.createElement('canvas');
+  // One bounded rotation and one crop at a time, released even on early success.
+  for(const angle of [0,90,270,180]){
+    const base=document.createElement('canvas');
     try{
-      c.width=Math.max(1,Math.round(photo.width*r.w));c.height=Math.max(1,Math.round(photo.height*r.h));
-      const ctx=c.getContext('2d',{willReadFrequently:true});
-      ctx.drawImage(photo,photo.width*r.x,photo.height*r.y,photo.width*r.w,photo.height*r.h,0,0,c.width,c.height);
-      yield c;
-      const pixels=ctx.getImageData(0,0,c.width,c.height),d=pixels.data;
-      for(let i=0;i<d.length;i+=4){const v=(.299*d[i]+.587*d[i+1]+.114*d[i+2])<170?0:255;d[i]=d[i+1]=d[i+2]=v;}
-      ctx.putImageData(pixels,0,0);yield c;
-    }finally{c.width=c.height=1;}
+      const swap=angle===90||angle===270;
+      base.width=swap?photo.height:photo.width;base.height=swap?photo.width:photo.height;
+      const ctx=base.getContext('2d',{willReadFrequently:true});
+      ctx.translate(base.width/2,base.height/2);ctx.rotate(angle*Math.PI/180);
+      ctx.drawImage(photo,-photo.width/2,-photo.height/2);
+      ctx.setTransform(1,0,0,1,0,0);
+      const pixels=ctx.getImageData(0,0,base.width,base.height),d=pixels.data;
+      const hist=new Uint32Array(256);
+      for(let i=0;i<d.length;i+=4)hist[d[i+1]]++;
+      const quantile=p=>{let n=0;for(let i=0;i<256;i++){n+=hist[i];if(n>=base.width*base.height*p)return i;}return 255;};
+      const low=quantile(.01),bg=quantile(.60),threshold=low+(bg-low)*.48;
+      const w=base.width,h=base.height,columns=new Uint32Array(w);
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+1]<threshold)columns[x]++;
+      const spans=[];let start=-1,last=-1;
+      const finish=()=>{
+        if(start>=0&&last-start>=7&&last-start<h*.30)spans.push({y:start,h:last-start+1});
+        start=-1;last=-1;
+      };
+      for(let y=0;y<h;y++){
+        let count=0;
+        for(let x=0;x<w;x++)if(columns[x]<h*.55&&d[(y*w+x)*4+1]<threshold)count++;
+        if(count>w*.015&&count<w*.70){if(start<0)start=y;last=y;}
+        else if(start>=0&&y-last>5)finish();
+      }
+      finish();
+      spans.sort((a,b)=>b.h-a.h);
+      // Read the largest text lines first; grid borders do not count as text.
+      for(const line of spans.slice(0,4)){
+        let left=w,right=0;const ink=new Uint32Array(w);
+        for(let y=line.y;y<line.y+line.h;y++)for(let x=0;x<w;x++)
+          if(columns[x]<h*.55&&d[(y*w+x)*4+1]<threshold){ink[x]++;}
+        // Separate text from distant table borders by horizontal whitespace.
+        let run=-1,lastInk=-1;const groups=[];
+        for(let x=0;x<w;x++){
+          if(ink[x]>0){if(run<0)run=x;lastInk=x;}
+          else if(run>=0&&x-lastInk>line.h*.85){groups.push([run,lastInk]);run=-1;}
+        }
+        if(run>=0)groups.push([run,lastInk]);
+        groups.sort((a,b)=>(b[1]-b[0])-(a[1]-a[0]));
+        if(!groups.length)continue;
+        [left,right]=groups[0];
+        if(right-left<w*.12)continue;
+        const pad=Math.max(10,Math.round(line.h*.20));
+        const x=Math.max(0,left-pad),y=Math.max(0,line.y-pad);
+        const cw=Math.min(w-x,right-left+1+pad*2),ch=Math.min(h-y,line.h+pad*2);
+        const c=document.createElement('canvas');
+        try{
+          c.width=cw;c.height=ch;c.rayPSM='7';
+          const cc=c.getContext('2d',{willReadFrequently:true});
+          cc.drawImage(base,x,y,cw,ch,0,0,cw,ch);
+          yield c;
+          // Crop-specific contrast: fixed threshold 170 erased gray label backgrounds.
+          const p=cc.getImageData(0,0,cw,ch),v=p.data;
+          for(let i=0;i<v.length;i+=4){const z=v[i+1]<threshold?0:255;v[i]=v[i+1]=v[i+2]=z;}
+          cc.putImageData(p,0,0);yield c;
+        }finally{c.width=c.height=1;}
+      }
+      base.rayPSM='11';yield base;
+    }finally{base.width=base.height=1;}
   }
 }
+
 async function readMainPartPhoto(file){
   if(!file||rayPartPhotoBusy)return;
   rayPartPhotoBusy=true;
@@ -1581,13 +1650,13 @@ async function readMainPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for await(const source of partPhotoOCRSources(photo)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;}
+        for await(const source of partPhotoOCRSources(photo)){for(const psm of [source.rayPSM||'11']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;}
       }finally{await worker.terminate();}
       found=findMainPartFromPhoto(values);
     }
     if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
     const input=document.getElementById('mainQ');input.value=found.code;
-    status.textContent=`✅ ${found.code} 인식됨 · 검색 결과를 표시했습니다.`;status.className='mainCaptureStatus show ok';
+    status.textContent=`✅ ${found.code}${found.ocrUnverified?' 읽음 · 등록 여부 확인 필요':' 인식됨'} · 검색 결과를 표시했습니다.`;status.className='mainCaptureStatus show ok';
     showMainResults(found.code);
   }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
   finally{if(photo)photo.width=photo.height=1;rayPartPhotoBusy=false;cameraBtn.disabled=galleryBtn.disabled=false;}
@@ -1618,13 +1687,13 @@ async function readIndexMultiPartPhoto(file){
       const worker=await Tesseract.createWorker('eng',1,{logger:m=>{if(m.status==='recognizing text')status.textContent=`품번 글자 인식 중… ${Math.round((m.progress||0)*100)}%`;}});
       try{
         await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_./',preserve_interword_spaces:'1'});
-        for await(const source of partPhotoOCRSources(photo)){for(const psm of ['11','7']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;}
+        for await(const source of partPhotoOCRSources(photo)){for(const psm of [source.rayPSM||'11']){await worker.setParameters({tessedit_pageseg_mode:psm});const result=await worker.recognize(source);values.push(result?.data?.text||'');if(findMainPartFromPhoto(values))break;}if(findMainPartFromPhoto(values))break;}
       }finally{await worker.terminate();}
       found=findMainPartFromPhoto(values);
     }
     if(!found)throw new Error('품번을 찾지 못했습니다. 품번 글자가 화면에 크게 보이도록 다시 찍어 주세요.');
     const input=document.getElementById('rsMultiInput');input.value=found.code;saveMainMultiDraft(found.code);
-    status.textContent=`✅ ${found.code} 인식됨 · 맞는지 확인한 뒤 ‘다음 품번’을 눌러 주세요.`;status.className='mainCaptureStatus show ok';
+    status.textContent=`✅ ${found.code}${found.ocrUnverified?' 읽음 · 등록 여부 확인 필요':' 인식됨'} · 맞는지 확인한 뒤 ‘다음 품번’을 눌러 주세요.`;status.className='mainCaptureStatus show ok';
     nextCapture.classList.add('show');
     input.focus();input.select();
   }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
@@ -1850,6 +1919,9 @@ document.getElementById('adminEntry').addEventListener('click',()=>{if(isAdmin()
 window.addEventListener('storage',e=>{if(e.key===ADMIN_KEY)refreshAdminState();});
 window.addEventListener('pageshow',refreshAdminState);
 renderQuick();status();refreshAdminState();
+window.addEventListener('pageshow',renderQuick);
+window.addEventListener('storage',e=>{if(e.key==='rayRecents'||e.key==='rayFavorites')renderQuick();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderQuick();});
 async function clearRayAppCachesOnLaunch(){
   if(!('caches' in window)||sessionStorage.getItem('rayAppCacheCleared')==='1')return;
   sessionStorage.setItem('rayAppCacheCleared','1');
