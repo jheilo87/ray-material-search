@@ -1561,7 +1561,7 @@ async function readMainPartPhoto(file){
   if(!file||rayPartPhotoBusy)return;
   rayPartPhotoBusy=true;
   let photo=null;
-  raySaveSingleDraft();
+  
   const cameraBtn=document.getElementById('mainCameraBtn'),galleryBtn=document.getElementById('mainGalleryBtn'),status=document.getElementById('mainCaptureStatus');
   cameraBtn.disabled=galleryBtn.disabled=true;
   status.textContent='사진에서 품번을 찾고 있습니다… 잠시만 기다려 주세요.';status.className='mainCaptureStatus show';
@@ -1590,13 +1590,13 @@ async function readMainPartPhoto(file){
     status.textContent=`✅ ${found.code} 인식됨 · 검색 결과를 표시했습니다.`;status.className='mainCaptureStatus show ok';
     showMainResults(found.code);
   }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
-  finally{if(photo)photo.width=photo.height=1;rayPartPhotoBusy=false;cameraBtn.disabled=galleryBtn.disabled=false;raySaveSingleDraft();}
+  finally{if(photo)photo.width=photo.height=1;rayPartPhotoBusy=false;cameraBtn.disabled=galleryBtn.disabled=false;}
 }
 async function readIndexMultiPartPhoto(file){
   if(!file||rayPartPhotoBusy)return;
   rayPartPhotoBusy=true;
   let photo=null;
-  raySaveSingleDraft();
+  
   const cameraBtn=document.getElementById('multiCameraBtn'),galleryBtn=document.getElementById('multiGalleryBtn'),status=document.getElementById('multiCaptureStatus');
   const nextCapture=document.getElementById('multiNextCapture');
   nextCapture.classList.remove('show');
@@ -1628,7 +1628,7 @@ async function readIndexMultiPartPhoto(file){
     nextCapture.classList.add('show');
     input.focus();input.select();
   }catch(e){status.textContent=`❗ ${e.message||'사진 인식에 실패했습니다.'}`;status.className='mainCaptureStatus show error';}
-  finally{if(photo)photo.width=photo.height=1;rayPartPhotoBusy=false;cameraBtn.disabled=galleryBtn.disabled=false;raySaveSingleDraft();}
+  finally{if(photo)photo.width=photo.height=1;rayPartPhotoBusy=false;cameraBtn.disabled=galleryBtn.disabled=false;}
 }
 document.getElementById('mainCameraBtn').addEventListener('click',()=>rayOpenPartCamera(readMainPartPhoto));
 document.getElementById('mainGalleryBtn').addEventListener('click',()=>document.getElementById('mainGallery').click());
@@ -1933,14 +1933,49 @@ if('serviceWorker' in navigator){
 })();
 </script>
 <script>
-function raySaveSingleDraft(){try{const input=document.getElementById('mainQ');if(input)localStorage.setItem('raySingleDraft-index',input.value);}catch{}}
+// Clear single-search state on fresh loads, restored pages and app resumes.
 (()=>{
- const input=document.getElementById('mainQ');
- try{if(input&&!input.value)input.value=localStorage.getItem('raySingleDraft-index')||'';}catch{}
- input?.addEventListener('input',raySaveSingleDraft);
- document.addEventListener('click',raySaveSingleDraft,true);
- document.addEventListener('visibilitychange',()=>{if(document.hidden)raySaveSingleDraft();});
- window.addEventListener('pagehide',raySaveSingleDraft);
+ let pickerOpen=false, pickerTimer=null, wasHidden=false;
+ const resetSingleSearch=()=>{
+   const input=document.getElementById('mainQ');
+   if(input){input.value='';input.defaultValue='';}
+   document.getElementById('mainResults')?.classList.remove('show');
+   const status=document.getElementById('mainCaptureStatus');
+   if(status){status.textContent='';status.classList.remove('show','ok','error');}
+   try{localStorage.removeItem('raySingleDraft-index');}catch{}
+ };
+ const photoActive=()=>pickerOpen || (typeof rayPartPhotoBusy!=='undefined' && rayPartPhotoBusy);
+ const resetIfIdle=()=>{if(!photoActive())resetSingleSearch();};
+ // Native photo pickers temporarily hide the app; preserve their OCR result.
+ document.querySelectorAll('input[type="file"]').forEach(input=>{
+   input.addEventListener('click',()=>{
+     clearTimeout(pickerTimer);pickerOpen=true;
+   },true);
+   const finish=()=>{
+     clearTimeout(pickerTimer);
+     pickerTimer=setTimeout(()=>{pickerOpen=false;},1000);
+   };
+   input.addEventListener('change',finish);
+   input.addEventListener('cancel',finish);
+ });
+ window.addEventListener('focus',()=>{
+   if(pickerOpen){
+     clearTimeout(pickerTimer);
+     pickerTimer=setTimeout(()=>{pickerOpen=false;},1000);
+   }
+ });
+ resetSingleSearch();
+ window.addEventListener('pageshow',()=>{
+   resetIfIdle();
+   requestAnimationFrame(resetIfIdle);
+ });
+ document.addEventListener('visibilitychange',()=>{
+   if(document.hidden){wasHidden=true;return;}
+   if(wasHidden){
+     wasHidden=false;
+     resetIfIdle();
+   }
+ });
 })();
 </script>
 
@@ -1957,7 +1992,7 @@ function raySaveSingleDraft(){try{const input=document.getElementById('mainQ');i
  }
  window.rayOpenPartCamera=async function(readPhoto){
    if(active||rayPartPhotoBusy)return;
-   raySaveSingleDraft();
+   
    try{saveMainMultiDraft(document.getElementById('rsMultiInput').value);renderMainMultiList();}catch{}
    const focus=document.activeElement;focus?.blur();
    const box=document.createElement('div');

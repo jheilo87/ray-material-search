@@ -4007,6 +4007,10 @@ ${details.join(' / ')}`,'ok');}catch(err){setAdminStatus(`원본 처리 실패: 
 const initialMode=(params.get('mode')||'').trim();
 const initialMulti=(params.get('multi')||'').trim();
  if(!keyword)return;
+ // Consume the forwarded query once so reopening does not repeat it.
+ const cleanUrl=new URL(location.href);
+ cleanUrl.searchParams.delete('q');
+ history.replaceState(history.state,'',cleanUrl.href);
  let tries=0;
  const timer=setInterval(()=>{
    tries++;
@@ -4052,14 +4056,52 @@ const initialMulti=(params.get('multi')||'').trim();
 </script>
 
 <script>
-function raySaveSingleDraft(){try{const input=document.getElementById('q');if(input)localStorage.setItem('raySingleDraft-search',input.value);}catch{}}
+function raySaveSingleDraft(){try{localStorage.removeItem('raySingleDraft-search');}catch{}}
+// Clear single-search state on fresh loads, restored pages and app resumes.
 (()=>{
- const input=document.getElementById('q');
- try{if(input&&!input.value)input.value=localStorage.getItem('raySingleDraft-search')||'';}catch{}
- input?.addEventListener('input',raySaveSingleDraft);
- document.addEventListener('click',raySaveSingleDraft,true);
- document.addEventListener('visibilitychange',()=>{if(document.hidden)raySaveSingleDraft();});
- window.addEventListener('pagehide',raySaveSingleDraft);
+ let pickerOpen=false, pickerTimer=null, wasHidden=false;
+ const resetSingleSearch=()=>{
+   const input=document.getElementById('q');
+   if(input){input.value='';input.defaultValue='';}
+   if(typeof mode!=='undefined' && mode==='part' && typeof closeResultModal==='function')closeResultModal();
+   const status=document.getElementById('singleCaptureStatus');
+   if(status){status.textContent='';status.classList.remove('show','ok','error');}
+   try{localStorage.removeItem('raySingleDraft-search');}catch{}
+ };
+ const photoActive=()=>pickerOpen || (typeof rayPartPhotoBusy!=='undefined' && rayPartPhotoBusy);
+ const resetIfIdle=()=>{if(!photoActive())resetSingleSearch();};
+ // Native photo pickers temporarily hide the app; preserve their OCR result.
+ document.querySelectorAll('input[type="file"]').forEach(input=>{
+   input.addEventListener('click',()=>{
+     clearTimeout(pickerTimer);pickerOpen=true;
+   },true);
+   const finish=()=>{
+     clearTimeout(pickerTimer);
+     pickerTimer=setTimeout(()=>{pickerOpen=false;},1000);
+   };
+   input.addEventListener('change',finish);
+   input.addEventListener('cancel',finish);
+ });
+ window.addEventListener('focus',()=>{
+   if(pickerOpen){
+     clearTimeout(pickerTimer);
+     pickerTimer=setTimeout(()=>{pickerOpen=false;},1000);
+   }
+ });
+ resetSingleSearch();
+ window.addEventListener('pageshow',event=>{
+   // An intentional incoming query is populated by the query bridge.
+   if(!event.persisted && __raySearchParams.get('q'))return;
+   resetIfIdle();
+   requestAnimationFrame(resetIfIdle);
+ });
+ document.addEventListener('visibilitychange',()=>{
+   if(document.hidden){wasHidden=true;return;}
+   if(wasHidden){
+     wasHidden=false;
+     resetIfIdle();
+   }
+ });
 })();
 </script>
 
