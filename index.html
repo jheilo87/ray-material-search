@@ -418,6 +418,12 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   .rsMultiOverlay.keyboardOpen .rsMultiBody{padding-top:9px;padding-bottom:7px}
   .rsMultiOverlay.keyboardOpen .rsMultiFoot{padding-top:9px}
 }
+.mainMultiActions{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mainMultiActions label,.mainMultiTools label{display:flex;align-items:center;gap:7px;min-height:44px;color:#526377;font-size:13px;cursor:pointer}
+.mainMultiActions input,.mainMultiTools input{width:20px;height:20px;accent-color:#16895b}
+.mainMultiActions button,.mainMultiTools button{min-height:40px;border:0;border-radius:10px;padding:8px 12px;background:#eaf9f1;color:#16895b;font-size:13px;font-weight:800;cursor:pointer}
+.mainMultiTools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;border-bottom:1px solid #edf0f4;background:#f8faf9}
+.mainMultiTools button:disabled{opacity:.4;cursor:default}
 </style>
 
 <style id="incoming-today-popup-style">
@@ -1266,7 +1272,20 @@ function findMainMultiMaterial(query,index){
   return {index,query,status:'notfound'};
 }
 
-function showMainMultiResults(){
+let MAIN_MULTI_UNDO=null;
+function mainMultiActions(item){
+  return `<div class="mainMultiActions"><label><input type="checkbox" data-main-select="${item.index}" aria-label="${esc(item.query)} 선택"> 선택</label><button type="button" data-main-done="${item.index}">✓ 정리 완료</button></div>`;
+}
+function completeMainMulti(indices){
+  const selected=new Set(indices.filter(i=>Number.isInteger(i)&&i>=0&&i<MAIN_MULTI_ITEMS.length));
+  if(!selected.size)return;
+  MAIN_MULTI_UNDO=[...MAIN_MULTI_ITEMS];
+  MAIN_MULTI_ITEMS=MAIN_MULTI_ITEMS.filter((_,i)=>!selected.has(i));
+  MAIN_MULTI_EDIT=-1;
+  renderMainMultiList();
+  showMainMultiResults(false);
+}
+function showMainMultiResults(scroll=true){
   saveMainMultiSaved();
   const box=document.getElementById('mainResults');
   const list=document.getElementById('mainResultList');
@@ -1280,7 +1299,7 @@ function showMainMultiResults(){
     list.innerHTML='<div class="mainResultEmpty">자재 DB를 아직 불러오는 중입니다.<br>잠시 후 다시 조회해 주세요.</div>';
     more.style.display='none';
     box.classList.add('show','multiMode');
-    box.scrollIntoView({behavior:'smooth',block:'start'});
+    if(scroll)box.scrollIntoView({behavior:'smooth',block:'start'});
     return;
   }
 
@@ -1291,11 +1310,11 @@ function showMainMultiResults(){
   count.textContent=`${found}/${results.length}건`;
   more.style.display='none';
 
-  list.innerHTML=results.map(item=>{
+  list.innerHTML=`<div class="mainMultiTools"><label><input type="checkbox" id="mainMultiSelectAll"> 전체 선택</label><button type="button" id="mainMultiDoneSelected" disabled>선택 완료</button>${MAIN_MULTI_UNDO?'<button type="button" id="mainMultiUndo">↩ 되돌리기</button>':''}</div>` + (results.length?results.map(item=>{
     if(item.status==='found'){
       return `
         <div class="mainMultiResult">
-          <div class="mainMultiResultNo">${item.index+1}</div>
+          ${mainMultiActions(item)}<div class="mainMultiResultNo">${item.index+1}</div>
           <div class="mainMultiResultInfo">
             <div class="mainMultiResultCode">${esc(item.row.code)}</div>
             <div class="mainMultiResultName">${esc(item.row.name||'품명 정보 없음')}</div>
@@ -1318,7 +1337,7 @@ function showMainMultiResults(){
         </button>`).join('');
       return `
         <div class="mainMultiResult ambiguous" data-rs-ambiguous="${item.index}">
-          <div class="mainMultiResultNo">${item.index+1}</div>
+          ${mainMultiActions(item)}<div class="mainMultiResultNo">${item.index+1}</div>
           <div class="mainMultiResultInfo">
             <div class="mainMultiResultCode">${esc(item.query)}</div>
             <div class="mainMultiResultStatus">${item.matches}건이 검색됩니다.</div>
@@ -1330,20 +1349,21 @@ function showMainMultiResults(){
 
     return `
       <div class="mainMultiResult bad">
-        <div class="mainMultiResultNo">${item.index+1}</div>
+        ${mainMultiActions(item)}<div class="mainMultiResultNo">${item.index+1}</div>
         <div class="mainMultiResultInfo">
           <div class="mainMultiResultCode">${esc(item.query)}</div>
           <div class="mainMultiResultStatus">검색되는 품번이 없습니다.</div>
           <button class="mainMultiEditResult" type="button" data-rs-edit-result="${item.index}">✏️ 품번 수정</button>
         </div>
       </div>`;
-  }).join('');
+  }).join(''):'<div class="mainResultEmpty">✅ 모두 정리했어요.</div>');
 
   box.classList.add('show','multiMode');
-  box.scrollIntoView({behavior:'smooth',block:'start'});
+  if(scroll)box.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function resetMainMultiResults(){
+  MAIN_MULTI_UNDO=null;
   MAIN_MULTI_ITEMS=[];
   MAIN_MULTI_EDIT=-1;
   const box=document.getElementById('mainResults');
@@ -1361,6 +1381,7 @@ function resetMainMultiResults(){
 }
 
 function runMainMultiSearch(){
+  MAIN_MULTI_UNDO=null;
   saveCurrentMainMulti();
   if(!MAIN_MULTI_ITEMS.length)return;
 
@@ -1371,7 +1392,27 @@ function runMainMultiSearch(){
 
 document.getElementById('mainResultsReset')?.addEventListener('click',resetMainMultiResults);
 
+document.getElementById('mainResultList').addEventListener('change',e=>{
+  const list=document.getElementById('mainResultList');
+  const checks=[...list.querySelectorAll('[data-main-select]')];
+  if(e.target.id==='mainMultiSelectAll')checks.forEach(c=>c.checked=e.target.checked);
+  const n=checks.filter(c=>c.checked).length;
+  const all=document.getElementById('mainMultiSelectAll');
+  if(all){all.checked=checks.length>0&&n===checks.length;all.indeterminate=n>0&&n<checks.length;}
+  const done=document.getElementById('mainMultiDoneSelected');
+  if(done){done.disabled=!n;done.textContent=n?`선택 완료 (${n})`:'선택 완료';}
+});
 document.getElementById('mainResultList').addEventListener('click',e=>{
+  const done=e.target.closest('[data-main-done]');
+  if(done){completeMainMulti([Number(done.dataset.mainDone)]);return;}
+  if(e.target.closest('#mainMultiDoneSelected')){
+    completeMainMulti([...document.querySelectorAll('[data-main-select]:checked')].map(c=>Number(c.dataset.mainSelect)));return;
+  }
+  if(e.target.closest('#mainMultiUndo')){
+    if(MAIN_MULTI_UNDO){MAIN_MULTI_ITEMS=MAIN_MULTI_UNDO;MAIN_MULTI_UNDO=null;MAIN_MULTI_EDIT=-1;renderMainMultiList();showMainMultiResults(false);}return;
+  }
+  if(e.target.closest('.mainMultiActions,.mainMultiTools'))return;
+
   const editResult=e.target.closest('[data-rs-edit-result]');
   if(editResult){
     const i=Number(editResult.dataset.rsEditResult);

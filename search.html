@@ -626,6 +626,11 @@ body.searchMultiOpen{overflow:hidden}
 }
 .locationMapLegend{display:none!important}
 
+.multiSelectionTools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;padding:6px 11px;border:1px solid #dbe6f3;border-radius:12px;background:#fff}
+.multiSelectLabel{display:flex;align-items:center;gap:7px;min-height:44px;font-size:13px;color:#526174;cursor:pointer}
+.multiSelectLabel input{width:20px;height:20px;accent-color:#16895b}
+.multiBatchDone{min-height:44px;padding:8px 14px;border:0;border-radius:10px;background:#e9f8ef;color:#14743d;font-size:13px;font-weight:900}
+.multiBatchDone:disabled{opacity:.4}
 </style>
 
 
@@ -1757,6 +1762,16 @@ function sortMultiResults(list){
   return copy;
 }
 
+let MULTI_SELECTED=new Set();
+function multiSelectionControl(item){
+  return `<label class="multiSelectLabel"><input type="checkbox" data-multi-select="${item.index}" ${MULTI_SELECTED.has(item.index)?'checked':''} aria-label="${esc(item.query)} 선택"> 선택</label>`;
+}
+function updateMultiSelection(){
+  const checks=[...document.querySelectorAll('[data-multi-select]')];
+  const n=checks.filter(c=>c.checked).length,all=$('#multiSelectAll'),button=$('#multiDoneSelected');
+  if(all){all.checked=checks.length>0&&n===checks.length;all.indeterminate=n>0&&n<checks.length;}
+  if(button){button.disabled=!n;button.textContent=n?`선택 완료 (${n})`:'선택 완료';}
+}
 function renderMultiResults(){
   saveSearchMultiSaved();
   const list=sortMultiResults(MULTI_RESULTS);
@@ -1774,6 +1789,7 @@ function renderMultiResults(){
     </div>
   </div>`;
 
+  html+=`<div class="multiSelectionTools"><label class="multiSelectLabel"><input type="checkbox" id="multiSelectAll"> 전체 선택</label><button class="multiBatchDone" type="button" id="multiDoneSelected" disabled>선택 완료</button></div>`;
   let lastLoc=null;
   list.forEach((item,visibleIndex)=>{
     if(item.status==='found'){
@@ -1784,7 +1800,7 @@ function renderMultiResults(){
         html+=`<div class="multiLocationGroup">📍 ${esc(loc)}</div>`;
         lastLoc=loc;
       }
-      html+=`<article class="multiItem">
+      html+=`<article class="multiItem">${multiSelectionControl(item)}
         <div class="multiItemTop">
           <div class="multiIndex">${visibleIndex+1}</div>
           <div class="multiInfo">
@@ -1803,40 +1819,46 @@ function renderMultiResults(){
       const msg=item.status==='ambiguous'
         ?`일치하는 품번이 ${item.matches}건 있습니다. 품번을 더 정확히 입력해 주세요.`
         :'자재 DB에서 찾지 못했습니다.';
-      html+=`<article class="multiItem multiNotFound">
+      html+=`<article class="multiItem multiNotFound">${multiSelectionControl(item)}
         <div class="multiItemTop"><div class="multiIndex">${visibleIndex+1}</div><div class="multiInfo">
           <div class="multiCode">${esc(item.query)}</div>
           <div class="multiStatusBad">${msg}</div>
           <button class="multiEditBad" type="button" data-multi-edit-bad="${item.index}">✏️ 품번 수정</button>
         </div></div>
+        <button class="multiDoneBtn" type="button" data-multi-done="${item.index}">✓ 정리 완료</button>
       </article>`;
     }
   });
 
   if(!list.length){
-    html+=`<div class="multiAllDone"><div class="multiAllDoneIcon">✅</div><div class="multiAllDoneTitle">모두 정리했어요</div><div class="multiAllDoneSub">필요하면 위의 되돌리기를 눌러 마지막 품목을 복원할 수 있습니다.</div></div>`;
+    html+=`<div class="multiAllDone"><div class="multiAllDoneIcon">✅</div><div class="multiAllDoneTitle">모두 정리했어요</div><div class="multiAllDoneSub">필요하면 위의 되돌리기를 눌러 마지막으로 완료한 품목을 복원할 수 있습니다.</div></div>`;
   }
 
   if(found){
     html+=`<button class="multiCopyAll" id="multiCopyAll" type="button">📋 조회 결과 전체 복사</button>`;
   }
   $('#results').innerHTML=html;
+  updateMultiSelection();
   openResultModal();
 }
 
-function completeMultiItem(itemIndex){
-  const target=MULTI_RESULTS.find(x=>x.index===itemIndex);
-  if(!target)return;
+function completeMultiItem(itemIndex){completeMultiItems([itemIndex]);}
+function completeMultiItems(indices){
+  const selected=new Set(indices);
+  const targets=MULTI_RESULTS.filter(x=>selected.has(x.index));
+  if(!targets.length)return;
   MULTI_UNDO_SNAPSHOT={results:[...MULTI_RESULTS],items:[...SEARCH_MULTI_ITEMS]};
-  MULTI_RESULTS=MULTI_RESULTS.filter(x=>x.index!==itemIndex).map((x,i)=>({...x,index:i}));
-  const targetNorm=norm(target.query);
-  const inputIndex=SEARCH_MULTI_ITEMS.findIndex(x=>norm(x)===targetNorm);
-  if(inputIndex>=0)SEARCH_MULTI_ITEMS.splice(inputIndex,1);
+  const queries=new Set(targets.map(x=>norm(x.query)));
+  MULTI_RESULTS=MULTI_RESULTS.filter(x=>!selected.has(x.index)).map((x,i)=>({...x,index:i}));
+  SEARCH_MULTI_ITEMS=SEARCH_MULTI_ITEMS.filter(x=>!queries.has(norm(x)));
+  MULTI_SELECTED.clear();
+  SEARCH_MULTI_EDIT=-1;
   renderMultiResults();
-  showToast(`${target.row?.code||target.query} 정리 완료`);
+  showToast(`${targets.length}개 품번 정리 완료`);
 }
 
 function undoMultiComplete(){
+  MULTI_SELECTED.clear();
   if(!MULTI_UNDO_SNAPSHOT)return;
   MULTI_RESULTS=MULTI_UNDO_SNAPSHOT.results;
   SEARCH_MULTI_ITEMS=MULTI_UNDO_SNAPSHOT.items;
@@ -1846,6 +1868,7 @@ function undoMultiComplete(){
 }
 
 function multiSearch(){
+  MULTI_SELECTED.clear();
   if(!DATA.length){showToast('자재 DB를 먼저 불러와 주세요.');return;}
   const parsed=parseMultiQueries(getSearchMultiRaw());
   if(!parsed.queries.length){showToast('조회할 품번을 입력해 주세요.');return;}
@@ -1947,7 +1970,14 @@ $('#locationMapModal').addEventListener('click', e=>{ if(e.target.id==='location
 function pickHeader(headers, keys) {
   return headers.findIndex(h => keys.some(k => String(h||'').replace(/\s/g,'').includes(k)));
 }
+$('#results').addEventListener('change', e=>{
+  const checks=[...document.querySelectorAll('[data-multi-select]')];
+  if(e.target.id==='multiSelectAll')checks.forEach(c=>c.checked=e.target.checked);
+  MULTI_SELECTED=new Set(checks.filter(c=>c.checked).map(c=>Number(c.dataset.multiSelect)));
+  updateMultiSelection();
+});
 $('#results').addEventListener('click', e=>{
+  if(e.target.closest('#multiDoneSelected')){completeMultiItems([...MULTI_SELECTED]);return;}
   const editBad=e.target.closest('[data-multi-edit-bad]');
   if(editBad){
     const i=Number(editBad.dataset.multiEditBad),current=SEARCH_MULTI_ITEMS[i]||MULTI_RESULTS.find(x=>x.index===i)?.query||'';
