@@ -2127,7 +2127,7 @@ if('serviceWorker' in navigator){
      const fit=Math.min(preview.clientWidth/video.videoWidth,preview.clientHeight/video.videoHeight);
      const width=video.videoWidth*fit*.86;
      guide.style.width=width+'px';
-     guide.style.height=Math.min(width/5,video.videoHeight*fit*.30)+'px';
+     guide.style.height=Math.min(width/3,video.videoHeight*fit*.50)+'px';
    };
    const resize=new ResizeObserver(updateGuide);resize.observe(preview);
    video.addEventListener('loadedmetadata',updateGuide);
@@ -2172,7 +2172,7 @@ if('serviceWorker' in navigator){
        note.textContent='아래 버튼을 눌러 카메라 화면을 시작해 주세요.';shoot.disabled=false;return;
      }
      if(token!==serial)return;
-     updateGuide();note.textContent='초록색 좁은 칸 안에 품번 한 줄만 맞춰 주세요. 칸 안쪽만 인식합니다.';shoot.disabled=false;
+     updateGuide();note.textContent='초록색 칸 안에 품번 한 줄만 맞춰 주세요. 칸 안쪽만 인식합니다.';shoot.disabled=false;
    }catch(e){
      if(token!==serial)return;
      active.stream?.getTracks().forEach(t=>t.stop());video.srcObject=null;
