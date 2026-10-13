@@ -1356,7 +1356,7 @@ function showMainMultiResults(scroll=true){
           <button class="mainMultiEditResult" type="button" data-rs-edit-result="${item.index}">✏️ 품번 수정</button>
         </div>
       </div>`;
-  }).join(''):'<div class="mainResultEmpty">✅ 모두 정리했어요.</div>');
+  }).join(''):'<div class="mainResultEmpty">✅ 모두 정리했어요.<div style="margin-top:15px"><button type="button" id="mainMultiNewSearch" style="width:100%;max-width:320px;min-height:52px;border:0;border-radius:14px;background:#159d70;color:#fff;font-size:16px;font-weight:900;cursor:pointer">＋ 새 품번 조회하기</button></div><div style="margin-top:9px;font-size:12px;color:#7d8798">버튼을 누르면 품번 입력창이 열립니다.</div></div>');
 
   box.classList.add('show','multiMode');
   if(scroll)box.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1403,6 +1403,7 @@ document.getElementById('mainResultList').addEventListener('change',e=>{
   if(done){done.disabled=!n;done.textContent=n?`선택 완료 (${n})`:'선택 완료';}
 });
 document.getElementById('mainResultList').addEventListener('click',e=>{
+  if(e.target.closest('#mainMultiNewSearch')){openMainMultiPopup();return;}
   const done=e.target.closest('[data-main-done]');
   if(done){completeMainMulti([Number(done.dataset.mainDone)]);return;}
   if(e.target.closest('#mainMultiDoneSelected')){
