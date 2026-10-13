@@ -1418,6 +1418,19 @@ function saveSearchMultiDraft(value){try{value?localStorage.setItem(SEARCH_MULTI
 function loadSearchMultiDraft(){try{return localStorage.getItem(SEARCH_MULTI_DRAFT_KEY)||'';}catch{return '';}}
 let SEARCH_MULTI_ITEMS=loadSearchMultiSaved();
 let SEARCH_MULTI_EDIT=-1;
+let SEARCH_MULTI_RESTORE_NOTICE_PENDING=SEARCH_MULTI_ITEMS.length>0 || !!loadSearchMultiDraft().trim();
+function showSearchMultiRestoreNotice(){
+  if(!SEARCH_MULTI_RESTORE_NOTICE_PENDING)return;
+  SEARCH_MULTI_RESTORE_NOTICE_PENDING=false;
+  const count=SEARCH_MULTI_ITEMS.length+(loadSearchMultiDraft().trim()?1:0);
+  if(!count)return;
+  const t=$('#toast');
+  t.textContent=`✅ 이전에 입력한 품번 ${count}개를 복원했습니다.`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
 function renderSearchMultiList(){
   saveSearchMultiSaved();
   const list=$('#searchMultiList');
@@ -1438,6 +1451,7 @@ function openSearchMultiPopup(values=null){
   if(Array.isArray(values))SEARCH_MULTI_ITEMS=values.map(formatMultiPartToken).filter(Boolean);
   SEARCH_MULTI_EDIT=-1;$('#searchMultiInput').value=loadSearchMultiDraft();renderSearchMultiList();
   $('#searchMultiOverlay').classList.add('show');document.body.classList.add('searchMultiOpen');
+  showSearchMultiRestoreNotice();
   setTimeout(()=>$('#searchMultiInput')?.focus(),70);
 }
 function closeSearchMultiPopup(revert=false){

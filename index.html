@@ -840,9 +840,16 @@ input,select,textarea{font-size:max(16px,1em);}
   input[type="checkbox"],input[type="radio"]{-webkit-appearance:auto;appearance:auto;}
 }
 </style>
+<style>
+/* 다중 품번 복원 안내: 기존 화면 위에 잠시 표시 */
+.rsRestoreNotice{position:absolute;z-index:10;top:76px;left:50%;transform:translate(-50%,-8px);width:max-content;max-width:calc(100% - 32px);padding:11px 16px;border:1px solid #bde7cf;border-radius:14px;background:#effbf3;color:#167347;box-shadow:0 8px 24px rgba(17,83,53,.13);font-size:13px;font-weight:850;text-align:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,transform .2s,visibility .2s}
+.rsRestoreNotice.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.rsMultiOverlay{position:fixed}
+</style>
 </head><body>
 
 <div class="rsMultiOverlay" id="rsMultiOverlay" role="dialog" aria-modal="true" aria-labelledby="rsMultiTitle">
+  <div class="rsRestoreNotice" id="rsRestoreNotice" role="status" aria-live="polite"></div>
   <div class="rsMultiBox">
     <div class="rsMultiHead">
       <div>
@@ -1205,6 +1212,23 @@ function renderMainMultiList(){
     if(body) body.scrollTop=body.scrollHeight;
   });
 }
+let MAIN_MULTI_RESTORE_SHOWN=false;
+let mainMultiRestoreTimer=null;
+function showMainMultiRestoreNotice(){
+  if(MAIN_MULTI_RESTORE_SHOWN)return;
+  MAIN_MULTI_RESTORE_SHOWN=true;
+  const count=MAIN_MULTI_ITEMS.length;
+  const draft=loadMainMultiDraft().trim();
+  if(!count && !draft)return;
+  const notice=document.getElementById('rsRestoreNotice');
+  if(!notice)return;
+  notice.textContent=count
+    ? `✓ 이전에 입력한 품번 ${count}개를 복원했습니다.${draft?' (작성 중인 품번도 복원됨)':''}`
+    : '✓ 작성 중이던 품번을 복원했습니다.';
+  notice.classList.add('show');
+  clearTimeout(mainMultiRestoreTimer);
+  mainMultiRestoreTimer=setTimeout(()=>notice.classList.remove('show'),3000);
+}
 function openMainMultiPopup(){
   MAIN_SEARCH_MULTI=true;
   MAIN_MULTI_EDIT=-1;
@@ -1213,9 +1237,12 @@ function openMainMultiPopup(){
   setRsSearchTab('multi');
   document.getElementById('rsMultiOverlay').classList.add('show');
   document.body.classList.add('rsMultiOpen');
+  showMainMultiRestoreNotice();
   setTimeout(()=>document.getElementById('rsMultiInput').focus(),70);
 }
 function closeMainMultiPopup(revertToSingle=true){
+  clearTimeout(mainMultiRestoreTimer);
+  document.getElementById('rsRestoreNotice')?.classList.remove('show');
   document.getElementById('rsMultiOverlay').classList.remove('show');
   document.body.classList.remove('rsMultiOpen');
   if(revertToSingle){
