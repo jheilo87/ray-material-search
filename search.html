@@ -686,7 +686,7 @@ input,select,textarea{font-size:max(16px,1em);}
   <section class="card searchOnly" id="searchCard">
     <div class="tabs"><button class="tab active" data-mode="part">품번 검색</button><button class="tab" data-mode="location">위치 검색</button><button class="tab" data-mode="multi">다중 품번 조회</button></div>
     <div class="singleSearchPanel" id="singleSearchPanel">
-      <div class="searchrow"><input id="q" type="text" inputmode="text" lang="en" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 입력"><button class="go" id="go" disabled>검색</button></div>
+      <div class="searchrow"><input id="q" type="text" inputmode="url" lang="en" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 입력"><button class="go" id="go" disabled>검색</button></div>
       <div class="singleCaptureRow">
         <button class="searchMultiCaptureBtn" id="singleCameraBtn" type="button">📷 박스 촬영</button>
         <button class="searchMultiCaptureBtn" id="singleGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
@@ -754,7 +754,7 @@ input,select,textarea{font-size:max(16px,1em);}
   <div class="snPartStep" id="snPartStep">
     <div class="snPartLabel">② 품번 검색 후 선택</div>
     <div class="snPartSearchWrap">
-      <input inputmode="text" lang="en" class="snPartSearch" id="snPartSearch" type="search" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 일부를 입력하세요" aria-label="촬영할 품번 검색">
+      <input inputmode="url" lang="en" class="snPartSearch" id="snPartSearch" type="search" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 일부를 입력하세요" aria-label="촬영할 품번 검색">
       <button class="snPartSearchClear" id="snPartSearchClear" type="button" aria-label="검색어 지우기">×</button>
     </div>
     <div class="snPartResults" id="snPartResults" role="listbox" aria-label="품번 검색 결과"></div>
@@ -853,7 +853,7 @@ input,select,textarea{font-size:max(16px,1em);}
       <button class="searchMultiX" id="searchMultiX" type="button" aria-label="닫기">×</button>
     </div>
     <div class="searchMultiStep" id="searchMultiStep">1번째 품번</div>
-    <input inputmode="text" lang="en" class="searchMultiInput" id="searchMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
+    <input inputmode="url" lang="en" class="searchMultiInput" id="searchMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
     <div class="searchMultiCaptureRow">
       <button class="searchMultiCaptureBtn" id="searchMultiCameraBtn" type="button">📷 박스 촬영</button>
       <button class="searchMultiCaptureBtn" id="searchMultiGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
@@ -1689,7 +1689,7 @@ function addSearchMultiRow(value=''){
   const rows=$('#multiNumberedRows');
   const row=document.createElement('div');
   row.className='multiNumberedRow';
-  row.innerHTML='<div class="multiNumberedNo"></div><input inputmode="text" lang="en" class="multiNumberedInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 입력">';
+  row.innerHTML='<div class="multiNumberedNo"></div><input inputmode="url" lang="en" class="multiNumberedInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 입력">';
   const input=row.querySelector('input');
   input.value=formatMultiPartToken(value);
   input.addEventListener('input',()=>{

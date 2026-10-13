@@ -854,7 +854,7 @@ input,select,textarea{font-size:max(16px,1em);}
 
     <div class="rsMultiBody">
       <div class="rsMultiStep" id="rsMultiStep">1번째 품번</div>
-      <input inputmode="text" lang="en" class="rsMultiInput" id="rsMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
+      <input inputmode="url" lang="en" class="rsMultiInput" id="rsMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
       <div class="mainCaptureRow">
         <button class="mainCaptureBtn" id="multiCameraBtn" type="button">📷 박스 촬영</button>
         <button class="mainCaptureBtn" id="multiGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
@@ -888,7 +888,7 @@ input,select,textarea{font-size:max(16px,1em);}
 <div class="rsSearchWrap">
   <form class="search" id="mainSearch" action="search.html" method="get">
     <span class="searchIcon">⌕</span>
-    <input inputmode="text" lang="en" id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
+    <input inputmode="url" lang="en" id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
   </form>
   <div class="mainCaptureRow" id="mainCaptureRow">
     <button class="mainCaptureBtn" id="mainCameraBtn" type="button">📷 박스 촬영</button>
@@ -901,7 +901,7 @@ input,select,textarea{font-size:max(16px,1em);}
   <div class="rsLocationBox" id="rsLocationBox">
     <form class="rsLocationForm" id="rsLocationForm">
       <span class="ico">⌕</span>
-      <input id="rsLocationQ" type="text" placeholder="위치 입력 (예: 3L2-3)" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <input lang="en" inputmode="url" id="rsLocationQ" type="text" placeholder="위치 입력 (예: 3L2-3)" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
       <button type="submit">검색</button>
     </form>
   </div>
