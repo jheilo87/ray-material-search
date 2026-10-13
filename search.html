@@ -1254,12 +1254,16 @@ function closeLocationMap(){
 }
 
 function openResultModal(){
+  // 검색 결과와 입고 알림을 동시에 쌓지 않습니다.
+  const todayPopup=document.getElementById('calendarTodayPopup');
+  if(todayPopup){todayPopup.classList.remove('show');todayPopup.setAttribute('aria-hidden','true');}
   $('#resultModal').classList.add('show');
   document.body.classList.add('modalOpen');
 }
 function closeResultModal(){
   $('#resultModal').classList.remove('show');
-  document.body.classList.remove('modalOpen');
+  if(!document.querySelector('.modal.show, .calendarModal.show, #locationMapModal.show'))document.body.classList.remove('modalOpen');
+  document.dispatchEvent(new Event('ray-result-modal-closed'));
 }
 function render(list, searched=false, showModal=false) {
   $('#count').textContent = searched ? `검색 결과 ${list.length.toLocaleString()}건` : `전체 ${DATA.length.toLocaleString()}건`;
@@ -4009,7 +4013,22 @@ window.addEventListener('blur',markOcrScreenInterrupted);
  function updateTodaySummary(showPopup=false){
    const now=new Date(),key=dateKey(now),rows=calendarRows.filter(r=>r.key===key),done=rows.filter(r=>r.completed).length,summary=byId('calendarToolSummary'),md=`${now.getMonth()+1}/${now.getDate()}`;
    if(summary){summary.className='calendarToolSummary '+(!rows.length?'none':done===rows.length?'done':'has');summary.textContent=!rows.length?`⚪ ${md} 오늘 입고 없음`:done===rows.length?`✅ ${md} 오늘 입고 완료 (${done}/${rows.length})`:`🟢 ${md} 오늘 입고 ${rows.length}건`;}
-   if(showPopup&&rows.length){const storeKey='rayCalendarPopup-'+key;if(!localStorage.getItem(storeKey)){byId('calendarTodayPopupTitle').textContent=`📦 ${md} 오늘 입고 ${rows.length}건`;byId('calendarTodayPopupVendors').innerHTML=rows.map(r=>`${r.completed?'✅':'•'} ${r.vendor}`).join('<br>');openModal('calendarTodayPopup');localStorage.setItem(storeKey,'shown');}}
+   if(showPopup&&rows.length){
+     const storeKey='rayCalendarPopup-'+key;
+     if(!localStorage.getItem(storeKey)){
+       const showToday=()=>{
+         if(localStorage.getItem(storeKey))return;
+         if(document.querySelector('#resultModal.show, #locationMapModal.show, .quickAllOverlay.show, .adminModal.show, .calendarModal.show'))return;
+         byId('calendarTodayPopupTitle').textContent=`📦 ${md} 오늘 입고 ${rows.length}건`;
+         byId('calendarTodayPopupVendors').textContent='';
+         rows.forEach((r,i)=>{if(i)byId('calendarTodayPopupVendors').appendChild(document.createElement('br'));byId('calendarTodayPopupVendors').appendChild(document.createTextNode(`${r.completed?'✅':'•'} ${r.vendor}`));});
+         openModal('calendarTodayPopup');localStorage.setItem(storeKey,'shown');
+       };
+       if(document.querySelector('#resultModal.show, #locationMapModal.show, .quickAllOverlay.show, .adminModal.show, .calendarModal.show')){
+         document.addEventListener('ray-result-modal-closed',showToday,{once:true});
+       }else showToday();
+     }
+   }
  }
  function renderCalendar(){const y=viewDate.getFullYear(),m=viewDate.getMonth();byId('calendarMonth').textContent=`${y}년 ${m+1}월`;const first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),todayKey=dateKey(new Date());let html='';for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);d.setHours(0,0,0,0);const key=dateKey(d),other=d.getMonth()!==m,events=calendarRows.filter(r=>r.key===key&&(activeVendor==='전체'||r.vendor===activeVendor));html+=`<div class="calendarDay${other?' other':''}${key===todayKey?' today':''}${d<today?' past':''}${events.length?' has-events':''}" data-day-key="${key}"><div class="calendarDate">${d.getDate()}</div><div class="calendarEvents">${events.map(e=>`<div class="calendarEvent ${VENDOR_CLASS[e.vendor]||''}${e.completed?' completed':''}">${e.vendor}</div>`).join('')}</div></div>`;}byId('calendarDays').innerHTML=html;byId('calendarDays').querySelectorAll('.has-events').forEach(el=>el.addEventListener('click',()=>openDay(el.dataset.dayKey)));const monthCount=calendarRows.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===m&&(activeVendor==='전체'||r.vendor===activeVendor)).length;byId('calendarDataState').textContent=calendarRows.length?`현재 표시: ${monthCount}건 · 전체 저장 일정 ${calendarRows.length}건`:'저장된 입고 일정이 없습니다.';}
  function renderAll(){renderFilters();renderCalendar();updateTodaySummary(false);if(selectedDayKey&&byId('calendarDayModal').classList.contains('show'))renderDayModal();}
@@ -4044,6 +4063,7 @@ window.addEventListener('blur',markOcrScreenInterrupted);
 ${details.join(' / ')}`,'ok');}catch(err){setAdminStatus(`원본 처리 실패: ${err.message}`,'error');}e.target.value='';});
  byId('calendarManualAdd')?.addEventListener('click',()=>{const vendor=byId('calendarManualVendor').value,d=cellDate(byId('calendarManualDate').value);if(!d)return alert('입고 날짜를 선택해 주세요.');const key=dateKey(d);if(calendarRows.some(r=>r.vendor===vendor&&r.key===key))return alert('같은 업체의 일정이 이미 등록되어 있습니다.');calendarRows.push({vendor,date:d,key,completed:false});calendarRows.sort((a,b)=>a.date-b.date||a.vendor.localeCompare(b.vendor,'ko'));viewDate=new Date(d.getFullYear(),d.getMonth(),1);byId('calendarManualDate').value='';markChanged(`${vendor} ${key} 일정을 추가했습니다.`);});
  byId('calendarSaveBtn')?.addEventListener('click',()=>{syncBook();XLSX.writeFile(calendarBook,'Calendar.xlsx',{compression:true,cellDates:true});byId('calendarSaveBtn').disabled=true;setAdminStatus('✅ 새 Calendar.xlsx 저장 완료 · GitHub의 기존 Calendar.xlsx와 교체하면 됩니다.','ok');});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal('calendarTodayPopup');});
  byId('calendarDayModalClose')?.addEventListener('click',()=>closeModal('calendarDayModal'));byId('calendarTodayPopupClose')?.addEventListener('click',()=>closeModal('calendarTodayPopup'));byId('calendarTodayPopupOpen')?.addEventListener('click',()=>{closeModal('calendarTodayPopup');byId('calendarToolBtn')?.click();});
  ['calendarDayModal','calendarTodayPopup'].forEach(id=>byId(id)?.addEventListener('click',e=>{if(e.target.id===id)closeModal(id);}));
  renderAll();loadRemoteCalendar();
