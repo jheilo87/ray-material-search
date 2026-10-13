@@ -424,6 +424,11 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 .mainMultiActions button,.mainMultiTools button{min-height:40px;border:0;border-radius:10px;padding:8px 12px;background:#eaf9f1;color:#16895b;font-size:13px;font-weight:800;cursor:pointer}
 .mainMultiTools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;border-bottom:1px solid #edf0f4;background:#f8faf9}
 .mainMultiTools button:disabled{opacity:.4;cursor:default}
+
+/* 단일 품번 조회: 검색 결과에서 바로 새 검색 시작 */
+.mainNewSearchBtn{display:block;width:calc(100% - 28px);margin:12px 14px 14px;min-height:49px;border:0;border-radius:14px;background:#e8f7ff;color:#078fc9;font-size:16px;font-weight:950;cursor:pointer}
+.mainNewSearchBtn:active{background:#d3efff;transform:scale(.99)}
+.mainResults.multiMode .mainNewSearchBtn{display:none}
 </style>
 
 <style id="incoming-today-popup-style">
@@ -904,7 +909,7 @@ input,select,textarea{font-size:max(16px,1em);}
   <div class="rsSearchDesc" id="rsSearchDesc">품번 또는 품명을 입력하고 검색하세요.</div>
 </div>
 
-<section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><div class="mainResultsHeadActions"><span id="mainResultsCount"></span><button class="mainResultsReset" id="mainResultsReset" type="button">초기화</button></div></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a></section>
+<section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><div class="mainResultsHeadActions"><span id="mainResultsCount"></span><button class="mainResultsReset" id="mainResultsReset" type="button">초기화</button></div></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a><button class="mainNewSearchBtn" id="mainNewSearchBtn" type="button">🔎 새로 검색하기</button></section>
 <a class="hero blue" href="search.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="M4 7.5V16l5.4 3"/><path d="M20 7.5v4.2"/><path d="m12 12 3.2-1.8"/><circle cx="17.2" cy="16.7" r="3.1"/><path d="m19.5 19 2 2"/></svg></span></div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
 <a class="hero green" href="sn.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4"/><path d="M7 10v4M10 9v6M13 10v4M16 9v6"/></svg></span></div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
 <a class="calendar" id="incomingCalendarCard" href="calendar.html"><div class="ico"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17"/><path d="M8 13h3v3H8zM14 13h2.5M14 16h2.5"/></svg></span></div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
@@ -1519,6 +1524,16 @@ document.getElementById('rsMultiList').addEventListener('click',e=>{
 bindMainSingleInput();
 setRsSearchTab('single');
 renderMainMultiList();
+
+document.getElementById('mainNewSearchBtn').addEventListener('click',()=>{
+  setRsSearchTab('single');
+  const input=document.getElementById('mainQ');
+  input.value='';
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  document.getElementById('mainResults').classList.remove('show','multiMode');
+  input.scrollIntoView({behavior:'smooth',block:'center'});
+  input.focus({preventScroll:true});
+});
 
 document.getElementById('mainSearch').addEventListener('submit',e=>{
   e.preventDefault();
