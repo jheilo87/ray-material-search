@@ -631,6 +631,12 @@ body.searchMultiOpen{overflow:hidden}
 .multiSelectLabel input{width:20px;height:20px;accent-color:#16895b}
 .multiBatchDone{min-height:44px;padding:8px 14px;border:0;border-radius:10px;background:#e9f8ef;color:#14743d;font-size:13px;font-weight:900}
 .multiBatchDone:disabled{opacity:.4}
+
+/* 메인 페이지 스타일의 3개 독립 버튼 */
+#searchCard .tabs{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px!important;background:transparent!important;padding:0!important;margin-bottom:18px!important}
+#searchCard .tab{min-width:0;min-height:60px;padding:10px 3px!important;border:1px solid #d6e3f0!important;border-radius:15px!important;background:#f4f8fd!important;color:#506d96!important;font-size:clamp(11px,3.2vw,16px)!important;font-weight:900!important;letter-spacing:-.6px;box-shadow:0 3px 8px #17324d0b!important;white-space:nowrap}
+#searchCard .tab.active{background:linear-gradient(135deg,#0ca9dc,#087fcb)!important;border-color:#0795cf!important;color:#fff!important;box-shadow:0 5px 13px #078fd133!important}
+#searchCard .tab:active{transform:scale(.98)}
 </style>
 
 
@@ -717,7 +723,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </header>
 <main>
   <section class="card searchOnly" id="searchCard">
-    <div class="tabs"><button class="tab active" data-mode="part">품번 검색</button><button class="tab" data-mode="location">위치 검색</button><button class="tab" data-mode="multi">다중 품번 조회</button></div>
+    <div class="tabs"><button class="tab active" data-mode="part">단일검색</button><button class="tab" data-mode="multi">다중품번조회</button><button class="tab" data-mode="location">위치검색</button></div>
     <div class="singleSearchPanel" id="singleSearchPanel">
       <div class="searchrow"><input id="q" type="text" inputmode="url" lang="en" disabled autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="품번 또는 품명 입력"><button class="go" id="go" disabled>검색</button></div>
       <div class="singleCaptureRow">
