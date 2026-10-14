@@ -613,6 +613,39 @@ input,select,textarea{font-size:max(16px,1em);}
   input[type="checkbox"],input[type="radio"]{-webkit-appearance:auto;appearance:auto;}
 }
 </style>
+<style id="ray-network-style">
+#rayNetworkBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(94vw,520px);z-index:2147483000;background:#fff;border:1px solid #f1c7a3;border-radius:16px;padding:12px 14px;box-shadow:0 10px 35px #14213a33;display:none;align-items:center;gap:10px;font-family:system-ui,sans-serif;color:#55370d;font-size:13px}
+#rayNetworkBar.show{display:flex}#rayNetworkText{flex:1;line-height:1.45}#rayNetworkRetry{border:0;border-radius:11px;padding:10px 12px;background:#1769e0;color:white;font-weight:800;white-space:nowrap}
+</style>
+<script id="ray-network-recovery">
+(function(){
+'use strict';
+let failed=false,busy=false,retryTimer=null,lastTry=0,bar=null,msg=null;
+const nativeFetch=window.fetch.bind(window);
+function ui(){if(bar)return;bar=document.createElement('div');bar.id='rayNetworkBar';bar.setAttribute('role','status');bar.innerHTML='<span aria-hidden="true">⚠️</span><span id="rayNetworkText"></span><button type="button" id="rayNetworkRetry">재시도</button>';document.body.appendChild(bar);msg=bar.querySelector('#rayNetworkText');bar.querySelector('button').addEventListener('click',()=>retry(true));paint();}
+function paint(){if(!document.body)return;uiIfNeeded();if(!bar)return;bar.classList.toggle('show',failed||!navigator.onLine);msg.textContent=!navigator.onLine?'인터넷 연결이 끊겼습니다. 연결되면 자동으로 다시 시도합니다.':'자재 데이터 연결에 실패했습니다. 자동 재시도 중입니다.';}
+function uiIfNeeded(){if(!bar&&document.body)ui();}
+function setFailed(value){failed=value;paint();if(value)schedule();else if(retryTimer){clearTimeout(retryTimer);retryTimer=null;}}
+function schedule(){if(retryTimer)return;retryTimer=setTimeout(()=>{retryTimer=null;if(failed&&navigator.onLine)retry(false);else if(failed)schedule();},15000);}
+window.fetch=async function(input,init){
+ const url=typeof input==='string'?input:(input&&input.url)||'';
+ const watched=/\b(material|calendar)\.xlsx(?:[?#]|$)/i.test(url);
+ try{const result=await nativeFetch(input,init);if(watched){if(!result.ok)setFailed(true);else setFailed(false);}return result;}
+ catch(err){if(watched)setFailed(true);throw err;}
+};
+async function retry(manual){if(busy)return;if(!navigator.onLine){setFailed(true);return;}if(!manual&&Date.now()-lastTry<8000)return;lastTry=Date.now();busy=true;
+ try{
+  if(typeof loadRemoteExcel==='function')await loadRemoteExcel();
+  else if(typeof loadProductCatalog==='function')await loadProductCatalog();
+  else if(typeof loadMainMaterial==='function'){const result=await loadMainMaterial();if(result&&result.ok){const q=document.querySelector('#mainSearchInput, #mainSearch, #q');if(q&&q.value)q.dispatchEvent(new Event('input',{bubbles:true}));}}
+ }catch(e){setFailed(true);}finally{busy=false;if(failed)schedule();}
+}
+window.addEventListener('online',()=>{if(failed){paint();retry(false);}else paint();});
+window.addEventListener('offline',()=>{failed=true;paint();schedule();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&failed)retry(false);});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ui();if(!navigator.onLine)setFailed(true);});else {ui();if(!navigator.onLine)setFailed(true);}
+})();
+</script>
 </head>
 <body>
 <div class="app">
