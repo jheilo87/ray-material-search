@@ -4097,7 +4097,7 @@ window.addEventListener('blur',markOcrScreenInterrupted);
        renderAll();
        byId('calendarDataState').textContent=calendarRows.length?`GitHub ${fileName} 연결 완료 · 전체 ${calendarRows.length}건`:`GitHub ${fileName} 연결 완료 · 아직 일정 없음`;
        setAdminStatus(`✅ GitHub ${fileName} 자동 연결 완료 · 기존 일정 ${calendarRows.length}건`,'ok');
-       updateTodaySummary(true);return;
+       updateTodaySummary(false);return;
      }catch(err){lastError=err?.message||String(err);}
    }
    ensureBook();renderAll();
