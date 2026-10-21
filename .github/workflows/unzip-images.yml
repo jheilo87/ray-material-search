@@ -1,0 +1,67 @@
+name: Unpack RAY Smart Images
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Unpack part_images.zip into part_images
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path, PurePosixPath
+          from zipfile import ZipFile
+          from shutil import copyfileobj
+
+          zip_path = Path('part_images.zip')
+          if not zip_path.is_file():
+              raise SystemExit('Upload part_images.zip to the repository root first.')
+
+          count = 0
+          with ZipFile(zip_path) as archive:
+              for info in archive.infolist():
+                  if info.is_dir():
+                      continue
+
+                  relative = PurePosixPath(info.filename.replace('\\', '/'))
+                  if relative.is_absolute() or '..' in relative.parts:
+                      raise SystemExit(f'Unsafe path in ZIP: {info.filename}')
+                  if not relative.parts or relative.parts[0] == '__MACOSX':
+                      continue
+
+                  # A Samsung ZIP may contain either part_images/ or its contents.
+                  if relative.parts[0] == 'part_images':
+                      destination = Path(*relative.parts)
+                  else:
+                      destination = Path('part_images', *relative.parts)
+
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  with archive.open(info) as src, destination.open('wb') as dst:
+                      copyfileobj(src, dst)
+                  count += 1
+
+          if count == 0:
+              raise SystemExit('ZIP did not contain any files.')
+          print(f'Extracted {count} files into part_images/.')
+          PY
+
+      - name: Save images to GitHub
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A part_images/
+          if git diff --cached --quiet; then
+            echo "No image changes to save."
+          else
+            git commit -m "Add RAY Smart part images"
+            git push
+          fi
