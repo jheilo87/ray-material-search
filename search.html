@@ -705,6 +705,35 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&failed)re
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ui();if(!navigator.onLine)setFailed(true);});else {ui();if(!navigator.onLine)setFailed(true);}
 })();
 </script>
+<style>
+
+/* RaySmart 현품표 사진 조회: 원래 검색/위치 기능 보존 */
+.rayPartPhotoThumb{display:grid;place-items:center;flex:none;width:76px;height:76px;padding:3px;overflow:hidden;background:#fff;border:1px solid #dce6ef;border-radius:13px;box-shadow:0 3px 10px rgba(20,48,84,.08);cursor:zoom-in}
+.rayPartPhotoThumb img{display:block;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#fff}
+.rayPartPhotoThumb:focus-visible{outline:3px solid #06a5df;outline-offset:2px}
+.itemHead .rayPartPhotoThumb{margin-left:auto;margin-right:4px;}
+.multiItemTop .rayPartPhotoThumb{margin-left:auto;width:68px;height:68px;}
+.mainResult.rayHasPhoto{grid-template-columns:66px minmax(0,1fr) auto;}
+.mainResult .rayPartPhotoThumb{width:62px;height:62px;}
+.rayPhotoOverlay{position:fixed;inset:0;z-index:200500;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(12,25,46,.78);backdrop-filter:blur(4px)}
+.rayPhotoOverlay.show{display:flex}
+.rayPhotoCard{display:flex;flex-direction:column;gap:10px;width:min(94vw,730px);max-height:90dvh;min-height:200px;padding:15px;background:#fff;border-radius:20px;box-shadow:0 18px 70px rgba(0,0,0,.35)}
+.rayPhotoHeader{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rayPhotoTitle{font-weight:950;font-size:18px;color:#183c71;overflow-wrap:anywhere}
+.rayPhotoClose,.rayPhotoNav{border:1px solid #dce6ef;border-radius:11px;background:#f3f7fc;color:#183c71;font-weight:900;min-height:40px;min-width:43px;cursor:pointer}
+.rayPhotoStage{display:flex;align-items:center;justify-content:center;position:relative;min-height:140px;flex:1;overflow:auto;background:#f6f8fb;border-radius:13px}
+.rayPhotoFull{display:block;max-height:min(61dvh,650px);max-width:100%;width:auto;height:auto;object-fit:contain;}
+.rayPhotoFooter{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.rayPhotoCaption{min-width:0;flex:1;text-align:center;color:#667085;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+@media(max-width:460px){
+ .itemHead .rayPartPhotoThumb{width:64px;height:64px;margin-right:2px}
+ .multiItemTop .rayPartPhotoThumb{width:60px;height:60px}
+ .mainResult.rayHasPhoto{grid-template-columns:54px minmax(0,1fr) auto;gap:7px}
+ .mainResult .rayPartPhotoThumb{width:51px;height:51px;border-radius:10px}
+ .rayPhotoCard{padding:11px}
+}
+
+</style>
 </head>
 <body>
 <div id="splash" aria-hidden="true" style="display:none"><div class="splashInner"><div class="rayMark">Ray</div><div class="splashTitle">자재검색</div><div class="splashSub">빠르고 정확하게 자재 위치를 찾습니다.</div><div class="splashVer">V 1.0</div></div></div>
@@ -4378,6 +4407,110 @@ function raySaveSingleDraft(){try{localStorage.removeItem('raySingleDraft-search
  document.addEventListener('visibilitychange',()=>{if(document.hidden)close();});
  window.addEventListener('pagehide',close);
 })();
+</script>
+<script>
+
+/* RaySmart 현품표 사진 조회: 자료 로딩 실패 시 기존 검색 동작은 그대로 유지 */
+(function(){
+  'use strict';
+  let photoMap = Object.create(null);
+  let active = null;
+  const $q=(s,root=document)=>root.querySelector(s);
+  const validFile=(file)=>typeof file==='string' && /^[A-Z0-9-]+__[a-f0-9]{12}\.(?:png|jpg|jpeg|webp)$/i.test(file);
+  const codeKey=(v)=>String(v||'').trim().toUpperCase().replace(/\s+/g,'').replace(/[‐–—]/g,'-');
+  const pictures=(code)=>(photoMap[codeKey(code)]||[]).filter(r=>validFile(r.file));
+  const fileSrc=(record)=>'./part_images/'+encodeURIComponent(record.file);
+  function createThumb(code){
+    const arr=pictures(code);if(!arr.length)return null;
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='rayPartPhotoThumb';
+    btn.setAttribute('aria-label',code+' 자재 그림 확대');
+    btn.title='현품표 그림 보기'+(arr.length>1?' ('+arr.length+'장)':'');
+    btn.dataset.rayPhotoCode=code;
+    const img=document.createElement('img');
+    img.src=fileSrc(arr[0]);img.alt=code+' 자재 그림';img.loading='lazy';img.decoding='async';
+    img.onerror=()=>{btn.remove();};
+    btn.appendChild(img);return btn;
+  }
+  function applyThumbnails(){
+    for(const el of document.querySelectorAll('#results .item, #results .multiItem, #mainResultList .mainResult')){
+      if(el.querySelector('.rayPartPhotoThumb'))continue;
+      const codeEl=$q('.code, .multiCode, .mainResultCode',el);
+      if(!codeEl)continue;
+      const code=codeKey(codeEl.textContent);
+      const thumb=createThumb(code);
+      if(!thumb)continue;
+      if(el.matches('.mainResult')){
+        el.classList.add('rayHasPhoto');
+        el.insertBefore(thumb,el.firstChild);
+      }else if(el.matches('.item')){
+        const hdr=$q('.itemHead',el);
+        const favorite=$q('.fav',hdr||el);
+        if(hdr)hdr.insertBefore(thumb,favorite||null);
+      }else{
+        const hdr=$q('.multiItemTop',el);
+        if(hdr)hdr.appendChild(thumb);
+      }
+    }
+  }
+  let waiting=false;
+  function queueApply(){if(waiting)return;waiting=true;requestAnimationFrame(()=>{waiting=false;applyThumbnails();});}
+  function initObserver(){
+    ['results','mainResultList'].forEach(id=>{
+      const node=document.getElementById(id);
+      if(node){new MutationObserver(queueApply).observe(node,{childList:true,subtree:true});}
+    });
+  }
+  function ensureViewer(){
+    let outer=document.getElementById('rayPhotoOverlay');if(outer)return outer;
+    outer=document.createElement('div');outer.id='rayPhotoOverlay';outer.className='rayPhotoOverlay';
+    outer.setAttribute('role','dialog');outer.setAttribute('aria-modal','true');outer.setAttribute('aria-label','자재 그림 크게 보기');
+    outer.innerHTML='<div class="rayPhotoCard"><div class="rayPhotoHeader"><strong class="rayPhotoTitle"></strong><button type="button" class="rayPhotoClose" aria-label="그림 닫기">닫기 ✕</button></div><div class="rayPhotoStage"><img class="rayPhotoFull" alt="현품표 자재 그림"></div><div class="rayPhotoFooter"><button type="button" class="rayPhotoNav rayPhotoPrev" aria-label="이전 그림">‹</button><span class="rayPhotoCaption"></span><button type="button" class="rayPhotoNav rayPhotoNext" aria-label="다음 그림">›</button></div></div>';
+    outer.addEventListener('click',e=>{if(e.target===outer || e.target.closest('.rayPhotoClose'))closeViewer();});
+    $q('.rayPhotoPrev',outer).addEventListener('click',()=>stepViewer(-1));
+    $q('.rayPhotoNext',outer).addEventListener('click',()=>stepViewer(1));
+    document.body.appendChild(outer);return outer;
+  }
+  function redrawViewer(){
+    if(!active)return;
+    const overlay=ensureViewer(),pic=active.arr[active.index];
+    $q('.rayPhotoTitle',overlay).textContent=active.code+' · 자재 그림';
+    const img=$q('.rayPhotoFull',overlay);
+    img.src=fileSrc(pic);img.alt=active.code+' 자재 현품표 그림';
+    $q('.rayPhotoCaption',overlay).textContent=(active.index+1)+' / '+active.arr.length+' · '+(pic.category||'')+' · '+(pic.source||'')+' · '+(pic.sheet||'');
+    $q('.rayPhotoPrev',overlay).disabled=active.arr.length<2;
+    $q('.rayPhotoNext',overlay).disabled=active.arr.length<2;
+  }
+  function openViewer(code){
+    const arr=pictures(code);if(!arr.length)return;
+    active={code,arr,index:0};redrawViewer();
+    ensureViewer().classList.add('show');$q('.rayPhotoClose',ensureViewer()).focus();
+  }
+  function closeViewer(){
+    const overlay=document.getElementById('rayPhotoOverlay');
+    if(overlay)overlay.classList.remove('show');active=null;
+  }
+  function stepViewer(delta){if(!active)return;active.index=(active.index+delta+active.arr.length)%active.arr.length;redrawViewer();}
+  function init(){
+    initObserver();
+    document.addEventListener('click',e=>{
+      const button=e.target.closest('.rayPartPhotoThumb');if(!button)return;
+      e.preventDefault();e.stopPropagation();openViewer(button.dataset.rayPhotoCode);
+    });
+    document.addEventListener('keydown',e=>{
+      if(!active)return;
+      if(e.key==='Escape')closeViewer();
+      else if(e.key==='ArrowLeft')stepViewer(-1);
+      else if(e.key==='ArrowRight')stepViewer(1);
+    });
+    fetch('./part_images/map.json',{cache:'no-store'})
+      .then(r=>{if(!r.ok)throw new Error('그림 목록 없음');return r.json();})
+      .then(obj=>{photoMap=obj||Object.create(null);queueApply();})
+      .catch(()=>{ /* 이미지가 없거나 연결이 안 될 때는 기존 검색만 표시 */ });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+
 </script>
 </body>
 </html>
