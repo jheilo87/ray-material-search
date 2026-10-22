@@ -347,6 +347,11 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
   font-weight:950;
 }
 .mainMultiResultInfo{min-width:0}
+/* 다중 품번 검색: 품번/품명 영역에 현품표 그림을 함께 배치 */
+.mainMultiResultInfo.rayHasPhoto{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:10px}
+.mainMultiResultInfo .mainMultiResultText{min-width:0}
+.mainMultiResultInfo .rayPartPhotoThumb{width:64px;height:64px;margin:0}
+@media(max-width:460px){.mainMultiResultInfo.rayHasPhoto{grid-template-columns:54px minmax(0,1fr);gap:8px}.mainMultiResultInfo .rayPartPhotoThumb{width:54px;height:54px;border-radius:10px}}
 .mainMultiResultCode{
   color:#183c71;
   font-size:15px;
@@ -1455,8 +1460,10 @@ function showMainMultiResults(scroll=true){
         <div class="mainMultiResult">
           ${mainMultiActions(item)}<div class="mainMultiResultNo">${item.index+1}</div>
           <div class="mainMultiResultInfo">
-            <div class="mainMultiResultCode">${esc(item.row.code)}</div>
-            <div class="mainMultiResultName">${esc(item.row.name||'품명 정보 없음')}</div>
+            <div class="mainMultiResultText">
+              <div class="mainMultiResultCode">${esc(item.row.code)}</div>
+              <div class="mainMultiResultName">${esc(item.row.name||'품명 정보 없음')}</div>
+            </div>
           </div>
           <a class="mainMultiResultLoc" href="search.html?map=${encodeURIComponent(item.row.location||'N/A')}">📍 ${esc(item.row.location||'N/A')} · 위치보기</a>
         </div>`;
@@ -2339,11 +2346,21 @@ if('serviceWorker' in navigator){
 (function(){
   'use strict';
   let photoMap = Object.create(null);
+  let compactPhotoMap = Object.create(null);
   let active = null;
   const $q=(s,root=document)=>root.querySelector(s);
   const validFile=(file)=>typeof file==='string' && /^[A-Z0-9-]+__[a-f0-9]{12}\.(?:png|jpg|jpeg|webp)$/i.test(file);
-  const codeKey=(v)=>String(v||'').trim().toUpperCase().replace(/\s+/g,'').replace(/[‐–—]/g,'-');
-  const pictures=(code)=>(photoMap[codeKey(code)]||[]).filter(r=>validFile(r.file));
+  const codeKey=(v)=>String(v||'').trim().toUpperCase().replace(/\s+/g,'').replace(/[‐‑‒–—−]/g,'-');
+  const compactCodeKey=(v)=>codeKey(v).replace(/[-_.\/]/g,'');
+  // 하이픈 없이 입력한 품번도 원래 현품표 코드에 연결합니다.
+  function indexPhotos(){
+    compactPhotoMap=Object.create(null);
+    for(const [code, records] of Object.entries(photoMap)){
+      const compact=compactCodeKey(code);
+      if(compact && !Object.prototype.hasOwnProperty.call(compactPhotoMap,compact))compactPhotoMap[compact]=records;
+    }
+  }
+  const pictures=(code)=>(photoMap[codeKey(code)]||compactPhotoMap[compactCodeKey(code)]||[]).filter(r=>validFile(r.file));
   const fileSrc=(record)=>'./part_images/'+encodeURIComponent(record.file);
   function createThumb(code){
     const arr=pictures(code);if(!arr.length)return null;
@@ -2358,9 +2375,9 @@ if('serviceWorker' in navigator){
     btn.appendChild(img);return btn;
   }
   function applyThumbnails(){
-    for(const el of document.querySelectorAll('#results .item, #results .multiItem, #mainResultList .mainResult')){
+    for(const el of document.querySelectorAll('#results .item, #results .multiItem, #mainResultList .mainResult, #mainResultList .mainMultiResult:not(.bad):not(.ambiguous)')){
       if(el.querySelector('.rayPartPhotoThumb'))continue;
-      const codeEl=$q('.code, .multiCode, .mainResultCode',el);
+      const codeEl=$q('.code, .multiCode, .mainResultCode, .mainMultiResultCode',el);
       if(!codeEl)continue;
       const code=codeKey(codeEl.textContent);
       const thumb=createThumb(code);
@@ -2368,6 +2385,10 @@ if('serviceWorker' in navigator){
       if(el.matches('.mainResult')){
         el.classList.add('rayHasPhoto');
         el.insertBefore(thumb,el.firstChild);
+      }else if(el.matches('.mainMultiResult')){
+        const info=$q('.mainMultiResultInfo',el);
+        const details=$q('.mainMultiResultText',info||el);
+        if(info&&details){info.classList.add('rayHasPhoto');info.insertBefore(thumb,details);}
       }else if(el.matches('.item')){
         const hdr=$q('.itemHead',el);
         const favorite=$q('.fav',hdr||el);
@@ -2430,7 +2451,7 @@ if('serviceWorker' in navigator){
     });
     fetch('./part_images/map.json',{cache:'no-store'})
       .then(r=>{if(!r.ok)throw new Error('그림 목록 없음');return r.json();})
-      .then(obj=>{photoMap=obj||Object.create(null);queueApply();})
+      .then(obj=>{photoMap=obj||Object.create(null);indexPhotos();queueApply();})
       .catch(()=>{ /* 이미지가 없거나 연결이 안 될 때는 기존 검색만 표시 */ });
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

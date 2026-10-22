@@ -4414,11 +4414,21 @@ function raySaveSingleDraft(){try{localStorage.removeItem('raySingleDraft-search
 (function(){
   'use strict';
   let photoMap = Object.create(null);
+  let compactPhotoMap = Object.create(null);
   let active = null;
   const $q=(s,root=document)=>root.querySelector(s);
   const validFile=(file)=>typeof file==='string' && /^[A-Z0-9-]+__[a-f0-9]{12}\.(?:png|jpg|jpeg|webp)$/i.test(file);
-  const codeKey=(v)=>String(v||'').trim().toUpperCase().replace(/\s+/g,'').replace(/[‐–—]/g,'-');
-  const pictures=(code)=>(photoMap[codeKey(code)]||[]).filter(r=>validFile(r.file));
+  const codeKey=(v)=>String(v||'').trim().toUpperCase().replace(/\s+/g,'').replace(/[‐‑‒–—−]/g,'-');
+  const compactCodeKey=(v)=>codeKey(v).replace(/[-_.\/]/g,'');
+  // 하이픈 없이 입력한 품번도 원래 현품표 코드에 연결합니다.
+  function indexPhotos(){
+    compactPhotoMap=Object.create(null);
+    for(const [code, records] of Object.entries(photoMap)){
+      const compact=compactCodeKey(code);
+      if(compact && !Object.prototype.hasOwnProperty.call(compactPhotoMap,compact))compactPhotoMap[compact]=records;
+    }
+  }
+  const pictures=(code)=>(photoMap[codeKey(code)]||compactPhotoMap[compactCodeKey(code)]||[]).filter(r=>validFile(r.file));
   const fileSrc=(record)=>'./part_images/'+encodeURIComponent(record.file);
   function createThumb(code){
     const arr=pictures(code);if(!arr.length)return null;
@@ -4505,7 +4515,7 @@ function raySaveSingleDraft(){try{localStorage.removeItem('raySingleDraft-search
     });
     fetch('./part_images/map.json',{cache:'no-store'})
       .then(r=>{if(!r.ok)throw new Error('그림 목록 없음');return r.json();})
-      .then(obj=>{photoMap=obj||Object.create(null);queueApply();})
+      .then(obj=>{photoMap=obj||Object.create(null);indexPhotos();queueApply();})
       .catch(()=>{ /* 이미지가 없거나 연결이 안 될 때는 기존 검색만 표시 */ });
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
