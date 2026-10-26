@@ -434,6 +434,21 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 .mainNewSearchBtn{display:block;width:calc(100% - 28px);margin:12px 14px 14px;min-height:49px;border:0;border-radius:14px;background:#e8f7ff;color:#078fc9;font-size:16px;font-weight:950;cursor:pointer}
 .mainNewSearchBtn:active{background:#d3efff;transform:scale(.99)}
 .mainResults.multiMode .mainNewSearchBtn{display:none}
+
+/* RaySmart 현품표 QR 스캔 추가: 기존 검색/사진 기능 유지 */
+.rayQrTools{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;margin-top:9px}
+.rayQrButton{min-height:46px;width:100%;border:1px solid #b3d9fb;border-radius:13px;background:#eaf6ff;color:#075c9b;font-size:15px;font-weight:950;cursor:pointer}
+.rayQrButton:active{background:#d8efff}
+.rayQrTip{font-size:11px;color:#687d96;line-height:1.5;text-align:center}
+.rayQrOverlay{position:fixed;inset:0;z-index:2147483647;background:#101a2a;color:#fff;display:flex;flex-direction:column;padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));gap:12px}
+.rayQrOverlayTop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rayQrOverlayTop strong{font-size:19px}
+.rayQrClose{min-height:42px;border:1px solid #8598b4;border-radius:10px;padding:8px 16px;background:#293d56;color:#fff;font-weight:900}
+.rayQrPreview{position:relative;flex:1;min-height:160px;overflow:hidden;border-radius:14px;background:#000}
+.rayQrPreview video{width:100%;height:100%;object-fit:cover}
+.rayQrGuide{position:absolute;inset:24% 12%;border:3px solid #55efae;border-radius:20px;box-shadow:0 0 0 200vmax rgba(0,0,0,.24);pointer-events:none}
+.rayQrNote{text-align:center;line-height:1.5;color:#d5e2f4;font-size:14px;min-height:42px}
+
 </style>
 
 <style id="incoming-today-popup-style">
@@ -1013,6 +1028,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     <button class="mainCaptureBtn" id="mainCameraBtn" type="button">📷 박스 촬영</button>
     <button class="mainCaptureBtn" id="mainGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
   </div>
+  <div class="rayQrTools" id="rayQrTools"><button class="rayQrButton" id="rayQrScanBtn" type="button">▣ 현품표 QR · 바코드 스캔</button><div class="rayQrTip">스캐너가 없으면 휴대폰 카메라, 또는 위 검색칸에 직접 입력하세요.</div></div>
   <input class="mainCaptureFile" id="mainCamera" type="file" accept="image/*" capture="environment">
   <input class="mainCaptureFile" id="mainGallery" type="file" accept="image/*">
   <div class="mainCaptureStatus" id="mainCaptureStatus" aria-live="polite"></div>
@@ -1274,20 +1290,23 @@ function setRsSearchTab(kind){
     single.setAttribute('aria-selected','true');
     mainSearch.style.display='grid';
     captureRow.style.display='grid';
+    document.getElementById('rayQrTools').style.display='grid';
     locBox.classList.remove('show');
     desc.textContent='품번 또는 품명을 입력하고 검색하세요.';
   }else if(kind==='multi'){
     multi.classList.add('active');
     multi.setAttribute('aria-selected','true');
     mainSearch.style.display='none';
-    captureRow.style.display='none';captureStatus.classList.remove('show');
+    captureRow.style.display='none';
+    document.getElementById('rayQrTools').style.display='none';captureStatus.classList.remove('show');
     locBox.classList.remove('show');
     desc.textContent='품번을 하나씩 입력한 뒤 조회하세요.';
   }else{
     location.classList.add('active');
     location.setAttribute('aria-selected','true');
     mainSearch.style.display='none';
-    captureRow.style.display='none';captureStatus.classList.remove('show');
+    captureRow.style.display='none';
+    document.getElementById('rayQrTools').style.display='none';captureStatus.classList.remove('show');
     locBox.classList.add('show');
     desc.textContent='보관 위치를 입력하면 해당 위치 자재를 확인합니다.';
   }
@@ -2457,5 +2476,139 @@ if('serviceWorker' in navigator){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 
+</script>
+<script id="raysmart-qr-live-scanner">
+/* Scan QR/Code128 via mobile camera. Keyboard-style Bluetooth scanners use the normal search field. */
+(function(){
+ 'use strict';
+ const onHome=!!document.getElementById('mainQ');
+ const button=document.getElementById('rayQrScanBtn');
+ if(!button)return;
+ let current=null;
+ function report(message,isError){
+   const el=document.getElementById(onHome?'mainCaptureStatus':'singleCaptureStatus');
+   if(!el)return;
+   el.textContent=message;
+   el.className=(onHome?'mainCaptureStatus':'singleCaptureStatus')+' show '+(isError?'error':'ok');
+ }
+ function cleanText(value){
+   const s=String(value||'').trim().toUpperCase().replace(/[‐‑‒–—−]/g,'-');
+   return /^[A-Z0-9][A-Z0-9._\/-]{0,79}$/.test(s)?s:'';
+ }
+ function close(){
+   const state=current;if(!state)return;
+   current=null;state.done=true;
+   if(state.raf)cancelAnimationFrame(state.raf);
+   if(state.reader){try{state.reader.reset();}catch(_){}}
+   if(state.stream){for(const track of state.stream.getTracks())track.stop();}
+   if(state.video){state.video.pause();state.video.srcObject=null;}
+   state.box.remove();
+ }
+ function accept(text){
+   const state=current;if(!state||state.done)return;
+   const code=cleanText(text);
+   if(!code){state.note.textContent='품번 형식의 QR/바코드가 아닙니다. 품번 코드만 스캔해 주세요.';return;}
+   state.done=true;close();
+   if(onHome){
+     try{setRsSearchTab('single');}catch(_){/* unchanged tab if not ready */}
+     const input=document.getElementById('mainQ');
+     input.value=code;input.dispatchEvent(new Event('input',{bubbles:true}));
+     if(typeof MAIN_MATERIAL!=='undefined'&&MAIN_MATERIAL.length&&typeof showMainResults==='function'){
+       showMainResults(code);
+       report('✅ '+code+' · QR/바코드 인식 및 검색 완료',false);
+     }else{
+       report('✅ '+code+' · 품번 입력 완료. 데이터 연결 후 검색해 주세요.',false);
+     }
+   }else{
+     const tab=document.querySelector('.tab[data-mode="part"]');
+     if(tab&&!tab.classList.contains('active'))tab.click();
+     const input=document.getElementById('q');
+     input.value=code;input.dispatchEvent(new Event('input',{bubbles:true}));
+     const go=document.getElementById('go');
+     if(go&&!go.disabled){go.click();report('✅ '+code+' · QR/바코드 인식 및 검색 완료',false);}
+     else report('✅ '+code+' · 데이터 연결 후 검색 버튼을 눌러 주세요.',false);
+   }
+ }
+ function loadZXing(){
+   if(window.ZXing?.BrowserMultiFormatReader)return Promise.resolve();
+   if(window.__rayQrZxingLoading)return window.__rayQrZxingLoading;
+   window.__rayQrZxingLoading=new Promise((resolve,reject)=>{
+     const src='https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+     const existing=[...document.scripts].find(s=>s.src===src);
+     if(existing){
+       let n=0;const id=setInterval(()=>{
+         if(window.ZXing?.BrowserMultiFormatReader){clearInterval(id);resolve();}
+         else if(++n>=60){clearInterval(id);reject(new Error('QR 인식 라이브러리를 불러오지 못했습니다.'));}
+       },100);
+       return;
+     }
+     const tag=document.createElement('script');tag.src=src;tag.async=true;
+     tag.onload=()=>window.ZXing?.BrowserMultiFormatReader?resolve():reject(new Error('QR 인식 기능이 지원되지 않습니다.'));
+     tag.onerror=()=>reject(new Error('QR 인식 라이브러리 연결에 실패했습니다.'));
+     document.head.appendChild(tag);
+   }).catch(e=>{window.__rayQrZxingLoading=null;throw e;});
+   return window.__rayQrZxingLoading;
+ }
+ async function start(){
+   if(current)return;
+   if(!navigator.mediaDevices?.getUserMedia){report('이 환경에서는 카메라를 열 수 없습니다. HTTPS로 접속하거나 품번 직접 입력을 이용해 주세요.',true);return;}
+   const box=document.createElement('div');box.className='rayQrOverlay';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label','현품표 QR 스캔');
+   box.innerHTML='<div class="rayQrOverlayTop"><strong>📷 현품표 QR 스캔</strong><button class="rayQrClose" type="button">닫기</button></div><div class="rayQrPreview"><video autoplay muted playsinline></video><div class="rayQrGuide"></div></div><div class="rayQrNote" aria-live="polite">카메라를 준비하고 있어요…</div>';
+   document.body.appendChild(box);
+   const video=box.querySelector('video'),note=box.querySelector('.rayQrNote');
+   const state={box,video,note,stream:null,reader:null,raf:0,done:false};current=state;
+   box.querySelector('.rayQrClose').addEventListener('click',close);
+   box.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}});
+   box.querySelector('.rayQrClose').focus();
+   try{
+     let detector=null;
+     if(window.BarcodeDetector){
+       try{
+         const formats=typeof BarcodeDetector.getSupportedFormats==='function'?await BarcodeDetector.getSupportedFormats():[];
+         const preferred=['qr_code','code_128','code_39','data_matrix'].filter(f=>formats.includes(f));
+         if(preferred.length)detector=new BarcodeDetector({formats:preferred});
+       }catch(_){/* Fall back to ZXing */}
+     }
+     if(state!==current)return;
+     if(detector){
+       const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+       if(state!==current){stream.getTracks().forEach(t=>t.stop());return;}
+       state.stream=stream;video.srcObject=stream;await video.play();
+       note.textContent='초록색 영역에 현품표 QR코드를 맞춰 주세요. 인식하면 자동으로 검색합니다.';
+       let inFlight=false,last=0;
+       const frame=async(ts)=>{
+         if(state!==current||state.done)return;
+         state.raf=requestAnimationFrame(frame);
+         if(inFlight||ts-last<280||video.readyState<2)return;
+         inFlight=true;last=ts;
+         try{const codes=await detector.detect(video);if(state===current&&codes.length)accept(codes[0].rawValue);}
+         catch(_){/* temporary bad frame */}
+         finally{inFlight=false;}
+       };
+       state.raf=requestAnimationFrame(frame);
+     }else{
+       note.textContent='QR 인식 기능을 준비하고 있습니다…';
+       await loadZXing();
+       if(state!==current)return;
+       const reader=new ZXing.BrowserMultiFormatReader();state.reader=reader;
+       note.textContent='현품표 QR코드를 카메라 가운데에 맞춰 주세요.';
+       reader.decodeFromVideoDevice(undefined,video,(result)=>{
+         if(state!==current||state.done)return;
+         if(result){accept(typeof result.getText==='function'?result.getText():result.text);}
+       }).catch(error=>{
+         if(state===current){note.textContent='인식기를 시작하지 못했습니다. 닫은 뒤 다시 시도하거나 직접 입력해 주세요.';report('QR 카메라 시작 실패: '+(error.message||'카메라 오류'),true);}
+       });
+     }
+   }catch(error){
+     if(state!==current)return;
+     let why=error?.name==='NotAllowedError'?'카메라 권한이 거부됐습니다. 브라우저 설정에서 허용해 주세요.':(error?.message||'카메라 실행 실패');
+     note.textContent=why+' · 닫고 직접 품번 입력을 이용할 수 있어요.';
+     report(why,true);
+   }
+ }
+ button.addEventListener('click',start);
+ window.addEventListener('pagehide',close);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)close();});
+})();
 </script>
 </body></html>
