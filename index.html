@@ -1,8 +1,9 @@
-<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content"><meta name="theme-color" content="#f7f9fc">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="format-detection" content="telephone=no"><link rel="manifest" href="manifest.webmanifest"><title>RaySmart</title>
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content" name="viewport"/><meta content="#f7f9fc" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="default" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="telephone=no" name="format-detection"/><link href="manifest.webmanifest" rel="manifest"/><title>RaySmart</title>
 <style>
 :root{--blue:#06a5df;--green:#28b779;--purple:#5b39d2;--ink:#10223d;--muted:#778093;--line:#e1e6ee;--bg:#f4f7fb}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:var(--ink)}button,input{font:inherit}.app{max-width:720px;margin:auto;min-height:100dvh;padding:8px 8px 28px}.shell{background:#fff;border:1px solid #edf0f4;border-radius:28px;box-shadow:0 8px 28px #23395d0b;padding:26px 24px 24px}.top{display:flex;align-items:flex-start}.logo{font-size:48px;font-weight:1000;font-style:italic;letter-spacing:-4px;background:linear-gradient(110deg,#05a7e1 15%,#0b87db 48%,#2aa965 72%);-webkit-background-clip:text;background-clip:text;color:transparent}.logo small{font-size:30px;letter-spacing:-2px}.icons{display:flex;gap:18px;font-size:28px;color:#72798b;padding-top:10px}.sub{margin-top:2px;color:#7d8391;font-size:19px}.search{display:grid;grid-template-columns:48px 1fr;align-items:center;margin-top:36px;border:1px solid #d9dee7;border-radius:22px;height:76px;padding:0 18px;box-shadow:inset 0 0 0 1px #f4f6f8}.searchIcon{font-size:35px;color:#777f91}.search input{border:0;outline:0;font-size:20px;min-width:0;color:#26364f}.search input::placeholder{color:#8b91a0}.scan{border:0;background:transparent;font-size:28px;color:#737b8d}.hero{margin-top:24px;border-radius:23px;min-height:177px;padding:28px 28px;display:grid;grid-template-columns:150px 1fr 64px;align-items:center;text-decoration:none}.hero.blue{border:1.5px solid #83d6f3;background:linear-gradient(135deg,#eefbff,#f6fbff)}.hero.green{border:1.5px solid #9bddb8;background:linear-gradient(135deg,#f1fff7,#f9fffb)}.bigIcon{font-size:75px;text-align:center}.hero.blue .bigIcon,.hero.blue h2{color:#079dd7}.hero.green .bigIcon,.hero.green h2{color:#22ad6b}.hero h2{font-size:32px;margin:0 0 10px}.hero p{margin:0;color:#616b7d;font-size:18px}.arrow{width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:38px;box-shadow:0 8px 22px #395b831a}.hero.blue .arrow{color:#08a2dc}.hero.green .arrow{color:#25b26f}.calendar{margin-top:24px;border:1.5px solid #d5cff8;background:#f7f5ff;border-radius:22px;min-height:138px;display:grid;grid-template-columns:120px 1fr 64px;align-items:center;padding:22px;text-decoration:none}.calendar .ico{font-size:66px;color:var(--purple);text-align:center}.calendar h2{margin:0 0 7px;color:var(--purple);font-size:29px}.calendar p{margin:0;color:#48546b;font-size:17px;line-height:1.45;word-break:keep-all}.calendar .go{width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:38px;color:var(--purple);box-shadow:0 8px 22px #395b831a}.db{margin-top:24px;border:1px solid var(--line);border-radius:19px;min-height:88px;display:grid;grid-template-columns:56px 1fr auto;align-items:center;padding:14px 20px;text-decoration:none;color:var(--ink)}.db .ico{font-size:34px;color:#20af70}.db strong{font-size:19px}.pill{margin-left:12px;background:#e7f8ee;color:#2aae69;padding:7px 14px;border-radius:999px;font-weight:800}.db .chev{font-size:30px;color:#7c8494}.quick{margin-top:20px;border:1px solid var(--line);border-radius:20px;overflow:hidden}.qsec{padding:20px 22px}.qsec+.qsec{border-top:1px solid #e7eaf0}.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.qhead strong{font-size:19px}.qhead span{color:#7c8391}.chips{display:flex;gap:10px;overflow-x:auto;padding-bottom:2px}.chip{white-space:nowrap;border:1px solid #e0e4eb;border-radius:999px;background:#fff;padding:10px 16px;color:#33415a;font-size:16px;text-decoration:none}.empty{color:#9aa2b0;font-size:15px}.adminEntry{margin-top:18px;width:100%;min-height:58px;border:1px solid var(--line);border-radius:17px;background:#fff;color:#526174;font-weight:900;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px}.adminEntry:active{transform:scale(.99)}.foot{text-align:center;color:#8a92a1;padding:20px 0 2px;font-size:14px}@media(max-width:520px){.shell{padding:24px 18px}.logo{font-size:40px}.logo small{font-size:25px}.hero{grid-template-columns:105px 1fr 52px;padding:23px 16px}.bigIcon{font-size:58px}.hero h2{font-size:27px}.hero p{font-size:16px}.arrow{width:50px;height:50px}.calendar{grid-template-columns:82px 1fr 52px;padding:18px 14px}.calendar .ico{font-size:53px}.calendar h2{font-size:25px}.calendar p{font-size:15px}.calendar .go{width:50px;height:50px}.search{height:70px}.search input{font-size:18px}}
 
@@ -449,8 +450,194 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 .rayQrGuide{position:absolute;inset:24% 12%;border:3px solid #55efae;border-radius:20px;box-shadow:0 0 0 200vmax rgba(0,0,0,.24);pointer-events:none}
 .rayQrNote{text-align:center;line-height:1.5;color:#d5e2f4;font-size:14px;min-height:42px}
 
-</style>
 
+
+/* 2026-10-26 하단 카드 세련화 미리보기 */
+.dbDashboard{
+  position:relative;
+  overflow:hidden;
+  margin-top:20px;
+  padding:18px 18px 16px;
+  border:1px solid #d8e6df;
+  border-radius:24px;
+  background:linear-gradient(180deg,#ffffff 0%,#fbfefc 100%);
+  box-shadow:0 16px 32px rgba(26,54,93,.08);
+}
+.dbDashboard::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:4px;
+  background:linear-gradient(90deg,#28b779,#7ad9a7);
+}
+.dbDashHead{align-items:flex-start}
+.dbDashTitle{gap:12px}
+.dbDashIcon{
+  width:44px;height:44px;border-radius:16px;
+  background:linear-gradient(135deg,#e8fbf1,#dff7ea);
+  color:#1d9e63;font-size:24px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+.dbDashTitle strong{font-size:18px;letter-spacing:-.4px}
+.dbDashOverall{
+  padding:8px 12px;
+  font-size:12px;
+  border:1px solid transparent;
+  box-shadow:0 6px 16px rgba(25,60,110,.06);
+}
+.dbDashOverall.ok{background:#eaf9f0;color:#1d8f58;border-color:#d2f0df}
+.dbDashRows{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #edf2f0;
+  gap:10px;
+}
+.dbDashRow{
+  grid-template-columns:auto 1fr auto;
+  gap:10px;
+  min-height:unset;
+  padding:12px 13px;
+  border:1px solid #e9eff3;
+  border-radius:16px;
+  background:#f9fbfd;
+}
+.dbDashRow.ok{background:linear-gradient(180deg,#f8fdf9,#f3fbf6);border-color:#dbefe2}
+.dbDot{width:10px;height:10px}
+.dbDashName{font-size:14px;font-weight:950}
+.dbDashValue{
+  font-size:12px;
+  font-weight:950;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#eef2f6;
+}
+.dbDashRow.ok .dbDashValue{background:#e6f8ed;color:#238a55}
+.dbDashTime{
+  margin-top:13px;
+  padding-top:2px;
+  text-align:left;
+  font-size:11px;
+}
+
+.quick{
+  margin-top:20px;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  display:grid;
+  gap:12px;
+}
+.qsec{
+  position:relative;
+  padding:18px 18px 16px;
+  border:1px solid #e8edf4;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 12px 24px rgba(30,55,90,.06);
+  overflow:hidden;
+}
+.qsec+.qsec{border-top:1px solid #e8edf4}
+.qsec::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  border-radius:0 4px 4px 0;
+}
+.qsec:first-child::before{background:linear-gradient(180deg,#18a3db,#67d0f5)}
+.qsec:last-child::before{background:linear-gradient(180deg,#5b39d2,#8b72eb)}
+.qhead{margin-bottom:12px}
+.qhead strong{
+  display:flex;align-items:center;gap:8px;
+  font-size:17px;letter-spacing:-.4px;
+}
+.qsec:first-child .qhead strong::before,
+.qsec:last-child .qhead strong::before{
+  display:grid;place-items:center;
+  width:30px;height:30px;border-radius:10px;
+  font-size:15px;font-weight:900;
+}
+.qsec:first-child .qhead strong::before{content:"⟳";background:#ecf8fe;color:#1296cb}
+.qsec:last-child .qhead strong::before{content:"★";background:#f3efff;color:#5b39d2}
+.quickAllBtn{
+  padding:7px 11px;
+  border-radius:999px;
+  background:#f3f6fa;
+  color:#667085;
+  font-size:12px;
+  font-weight:950;
+}
+.chips{gap:8px;flex-wrap:wrap;overflow:visible;padding-bottom:0}
+.chip{
+  padding:10px 14px;
+  border-color:#e6ebf2;
+  border-radius:14px;
+  background:#f8fafc;
+  font-size:14px;
+  font-weight:800;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+}
+.qsec:first-child .chip{color:#1d4c73;background:#f5fbff}
+.qsec:last-child .chip{color:#493b83;background:#f8f6ff}
+.empty{
+  display:block;
+  padding:14px 0 4px;
+  color:#98a2b3;
+  font-size:14px;
+  font-weight:700;
+}
+
+.adminEntry{
+  margin-top:18px;
+  min-height:60px;
+  border:1px solid #d7e2ee;
+  border-radius:20px;
+  background:linear-gradient(135deg,#ffffff,#f7fbff);
+  color:#364a66;
+  font-size:16px;
+  box-shadow:0 14px 26px rgba(28,53,91,.06);
+}
+.adminEntry.admin{background:linear-gradient(135deg,#fbf8ff,#f4efff)}
+.adminEntry.logout{background:linear-gradient(135deg,#fffafa,#fff4f4)}
+
+.rmVersionArea{
+  margin-top:16px;
+  border-top:0;
+  padding-top:0;
+  padding:16px 16px 14px;
+  border:1px solid #e3e9f1;
+  border-radius:20px;
+  background:linear-gradient(180deg,#ffffff,#fafcff);
+  box-shadow:0 12px 24px rgba(30,55,90,.05);
+}
+.rmVersionButton{
+  min-height:56px;
+  border:1px solid #d7e1eb;
+  border-radius:16px;
+  background:#f7fafc;
+  color:#34465f;
+  font-size:15px;
+  font-weight:950;
+}
+.rmVersionArea p{margin-top:10px;font-size:12px;color:#7d8a9a}
+.foot{padding:22px 0 4px;color:#96a0ad}
+
+@media(max-width:520px){
+  .dbDashboard{padding:16px 14px 14px}
+  .dbDashIcon{width:40px;height:40px;border-radius:14px;font-size:22px}
+  .dbDashTitle strong{font-size:16px}
+  .dbDashRow{padding:11px 11px;border-radius:15px}
+  .qsec{padding:16px 14px 14px;border-radius:20px}
+  .qhead strong{font-size:16px}
+  .qsec:first-child .qhead strong::before,
+  .qsec:last-child .qhead strong::before{width:28px;height:28px;font-size:14px}
+  .chip{padding:9px 12px;font-size:13px}
+  .adminEntry{min-height:56px;border-radius:18px}
+  .rmVersionArea{padding:14px 13px 13px;border-radius:18px}
+  .rmVersionButton{min-height:53px;border-radius:15px;font-size:14px}
+}
+
+</style>
 <style id="incoming-today-popup-style">
 .incomingTodayOverlay{
   position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;z-index:10050!important;width:100vw!important;height:100dvh!important;
@@ -495,8 +682,6 @@ body{background:linear-gradient(180deg,#f2f6fb 0%,#edf3f9 100%)}
 }
 body.incomingPopupOpen{overflow:hidden}
 </style>
-
-
 <style id="incoming-vendor-color-style">
 /* 입고 캘린더와 동일한 업체별 색상 */
 .incomingVendorText{font-weight:1000}
@@ -519,7 +704,6 @@ body.incomingPopupOpen{overflow:hidden}
   background:transparent;
 }
 </style>
-
 <style id="incoming-card-highlight-style">
 .calendar.hasIncoming{
   border-color:#8a74e8!important;
@@ -846,7 +1030,6 @@ body.rsMultiOpen{overflow:hidden}
 body.quickAllOpen{overflow:hidden}
 @media(max-width:520px){.quickAllBox{max-height:86dvh}.quickAllTitle{font-size:18px}.quickAllItem{padding:12px 13px}.quickAllCode{font-size:14px}}
 </style>
-
 <style id="ios-safari-compat">
 /* iPhone / iOS Safari compatibility — existing features unchanged */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
@@ -866,7 +1049,6 @@ input,select,textarea{font-size:max(16px,1em);}
 .rsRestoreNotice.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
 .rsMultiOverlay{position:fixed}
 </style>
-
 <style id="rs-modern-search-buttons">
 /* 검색 탭을 독립적인 프리미엄 버튼으로 표시: 기존 ID/동작 유지 */
 .rsSearchTabs{
@@ -973,128 +1155,254 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 }
 
 </style>
-</head><body>
-
-<div class="rsMultiOverlay" id="rsMultiOverlay" role="dialog" aria-modal="true" aria-labelledby="rsMultiTitle">
-  <div class="rsRestoreNotice" id="rsRestoreNotice" role="status" aria-live="polite"></div>
-  <div class="rsMultiBox">
-    <div class="rsMultiHead">
-      <div>
-        <div class="rsMultiTitle" id="rsMultiTitle">다중 품번 조회</div>
-        <div class="rsMultiCount" id="rsMultiCount">0개 입력됨</div>
-      </div>
-      <button class="rsMultiClose" id="rsMultiClose" type="button" aria-label="닫기">×</button>
-    </div>
-
-    <div class="rsMultiBody">
-      <div class="rsMultiStep" id="rsMultiStep">1번째 품번</div>
-      <input inputmode="url" lang="en" class="rsMultiInput" id="rsMultiInput" type="text" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="품번을 입력하세요">
-      <div class="mainCaptureRow">
-        <button class="mainCaptureBtn" id="multiCameraBtn" type="button">📷 박스 촬영</button>
-        <button class="mainCaptureBtn" id="multiGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
-      </div>
-      <input class="mainCaptureFile" id="multiCamera" type="file" accept="image/*" capture="environment">
-      <input class="mainCaptureFile" id="multiGallery" type="file" accept="image/*">
-      <div class="mainCaptureStatus" id="multiCaptureStatus" aria-live="polite"></div>
-      <button class="multiNextCapture" id="multiNextCapture" type="button">📷 다음 박스 촬영</button>
-      <div class="rsMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 실제 하이픈 형식으로 맞춰집니다.</div>
-
-      <div class="rsMultiListTitleRow">
-        <div class="rsMultiListTitle">입력 목록</div>
-        <button class="rsMultiClearAll" id="rsMultiClearAll" type="button">전체 삭제</button>
-      </div>
-      <div class="rsMultiList" id="rsMultiList"></div>
-    </div>
-
-    <div class="rsMultiFoot">
-      <button class="rsMultiNext" id="rsMultiNext" type="button">다음 품번</button>
-      <button class="rsMultiGo" id="rsMultiGo" type="button">조회하기</button>
-    </div>
-  </div>
+<style id="rm-home-new-preview">
+/* Only content BELOW the original search/result area is redesigned. */
+.rmHub{margin-top:28px}
+.rmHubHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:0 2px 13px}
+.rmHubEyebrow{font-size:10px;font-weight:950;letter-spacing:2px;color:#008bc5}
+.rmHubHeader h2{font-size:21px;line-height:1.3;letter-spacing:-.9px;color:#132a48;margin:5px 0 0;font-weight:950}
+.rmHubCaption{font-size:11px;font-weight:700;color:#8a96a7;padding-bottom:3px}
+.rmHubTiles{display:grid;grid-template-columns:1fr;gap:12px}
+.rmPrimaryTile{isolation:isolate;overflow:hidden;position:relative;display:flex;justify-content:space-between;align-items:center;min-height:176px;border:1px solid #153e69;border-radius:24px;text-decoration:none;background:linear-gradient(122deg,#0b2344 0%,#114778 68%,#176b99 100%);color:#fff;padding:25px 27px;box-shadow:0 9px 20px rgba(13,47,83,.16)}
+.rmPrimaryTile:before{content:"";position:absolute;right:-74px;top:-124px;width:290px;height:290px;border:35px solid rgba(255,255,255,.06);border-radius:50%;pointer-events:none;z-index:-1}
+.rmPrimaryTile:after{content:"";position:absolute;right:28px;bottom:-80px;width:160px;height:160px;background:rgba(29,152,198,.13);border-radius:50%;z-index:-1}
+.rmPrimaryContent{position:relative;z-index:1;min-width:0}
+.rmPrimaryLabel{display:inline-flex;align-items:center;gap:8px;font-size:10px;font-weight:950;letter-spacing:1.2px;color:#a1e3ff}
+.rmLiveDot{width:7px;height:7px;border-radius:50%;background:#5cedb7;box-shadow:0 0 0 4px rgba(92,237,183,.1)}
+.rmPrimaryTile h3{font-size:29px;line-height:1.2;letter-spacing:-1px;margin:12px 0 7px;color:#fff;font-weight:1000}
+.rmPrimaryTile p{color:#d0e7f4;font-size:13px;line-height:1.45;margin:0}
+.rmPrimaryCTA{display:inline-flex;align-items:center;gap:12px;margin-top:15px;padding:8px 12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:10px;color:#fff;font-size:12px;font-weight:900}
+.rmPrimaryCTA span{font-size:17px;line-height:1}
+.rmPrimaryIllustration{color:#84d8ff;flex:0 0 auto;width:115px;height:115px;padding:3px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.16));opacity:.96}
+.rmPrimaryIllustration svg{width:100%;height:100%}
+.rmSecondaryGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rmActionTile.calendar,.rmActionTile{display:flex;position:relative;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-width:0;min-height:171px;padding:19px 18px 16px;margin:0;border:1px solid #dae5ef;border-radius:20px;text-decoration:none;box-shadow:0 5px 17px rgba(29,56,85,.045);background:#fff;overflow:hidden;transition:transform .13s ease}
+.rmActionTile.rmSnTile{background:#effbf6;border-color:#c4ead8}
+.rmActionTile.rmCalTile{background:#f4f2ff;border-color:#ddd7f6}
+.rmActionTile.calendar:before,.rmActionTile.calendar:after{display:none}
+.rmActionIcon{width:46px;height:46px;display:grid;place-items:center;background:#d9f6e8;color:#159f70;border-radius:15px;margin-bottom:15px}
+.rmCalTile .rmActionIcon{background:#e5e0ff;color:#6848d6}
+.rmActionIcon svg{width:26px;height:26px}
+.rmActionText{min-width:0;width:100%}
+.rmActionText h3{font-size:19px;line-height:1.25;font-weight:1000;letter-spacing:-.7px;margin:0 0 6px;color:#133f37}
+.rmCalTile .rmActionText h3{color:#42318b}
+.rmActionTile .rmActionText p,.rmActionTile.calendar p{font-size:12px;line-height:1.45;margin:0;color:#5c7880;word-break:keep-all;font-weight:650;overflow-wrap:anywhere}
+.rmCalTile.calendar .rmActionText p{color:#746a94}
+.rmActionArrow{position:absolute;top:21px;right:18px;font-size:19px;font-weight:800;color:#28a779}
+.rmCalTile .rmActionArrow{color:#7661d3}
+.rmActionTile.calendar.hasIncoming{border-color:#e5d49f}
+.rmActionTile.calendar.hasIncoming .rmActionText p{background:none;border:0;padding:0;box-shadow:none;font-size:11px}
+.rmActionTile.calendar.hasIncoming .rmActionText p .incomingVendorText{color:inherit}
+.rmActionTile.calendar.hasIncoming:before,.rmActionTile.calendar.hasIncoming:after{display:none!important}
+.rmActionTile:hover,.rmPrimaryTile:hover{transform:translateY(-2px)}
+.rmActionTile:active,.rmPrimaryTile:active{transform:scale(.987)}
+/* The original data dashboard, search history, admin panel, and controls follow unmodified. */
+.rmVersionArea{margin-top:20px;border-top:1px solid #e7ecf1;padding-top:18px;text-align:center}
+.rmVersionButton{width:100%;min-height:51px;border:1px solid #d4dce6;border-radius:15px;background:#fff;color:#41536c;display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px;font-weight:900;box-shadow:0 4px 12px rgba(20,40,68,.03);cursor:pointer}
+.rmMonitorIcon{font-size:20px;color:#1479b7}
+.rmVersionArrow{font-size:23px;color:#8190a1}
+.rmVersionArea p{margin:9px 0 0;color:#8996a5;font-size:11px}
+/* PC layout / explicit switch: the upper header stays untouched. */
+@media(min-width:850px){
+ .app{max-width:1060px}
+ .rmHubTiles{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr)}
+ .rmPrimaryTile{min-height:236px}
+ .rmSecondaryGrid{align-self:stretch}
+ .rmActionTile.calendar,.rmActionTile{min-height:236px;padding:24px 20px}
+ .rmActionIcon{width:53px;height:53px;margin-bottom:36px}
+ .rmPrimaryTile h3{font-size:32px}
+}
+html.rmForceDesktop .app{max-width:1120px;width:100%}
+html.rmForceDesktop .rmHubTiles{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr)}
+html.rmForceDesktop .rmPrimaryTile,html.rmForceDesktop .rmActionTile{min-height:236px}
+html.rmForceMobile .app{max-width:720px}
+html.rmForceMobile .rmHubTiles{grid-template-columns:1fr}
+html.rmForceMobile .rmPrimaryTile{min-height:176px}
+html.rmForceMobile .rmActionTile{min-height:171px}
+@media(max-width:500px){
+ .rmHub{margin-top:23px}
+ .rmPrimaryTile{min-height:174px;padding:19px 20px}
+ .rmPrimaryTile h3{font-size:28px}
+ .rmPrimaryIllustration{width:100px;height:100px;margin-right:-8px}
+ .rmActionTile.calendar,.rmActionTile{min-height:161px;padding:17px 14px 15px}
+ .rmActionIcon{width:43px;height:43px;margin-bottom:15px}
+ .rmActionText h3{font-size:18px}
+ .rmActionArrow{top:17px;right:14px}
+}
+@media(max-width:340px){.rmPrimaryIllustration{width:76px;height:76px}.rmActionText h3{font-size:16px}.rmActionTile,.rmActionTile.calendar{padding:15px 11px}}
+</style>
+<style id="rm-action-horizontal-card-refresh">
+/* Redesign only S/N and Calendar action tiles; keep original RaySmart upper controls. */
+.rmHub .rmSecondaryGrid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-self:stretch}
+.rmHub .rmActionTile.rmSnTile,.rmHub .rmActionTile.rmCalTile.calendar{
+  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:17px;
+  padding:20px 21px;margin:0;min-height:112px;height:auto;border-radius:22px;
+  text-decoration:none;overflow:hidden;box-shadow:0 6px 17px rgba(25,60,92,.055);
+  position:relative;isolation:isolate;
+}
+.rmHub .rmActionTile.rmSnTile{background:linear-gradient(114deg,#edfcf9 0%,#e5f8f2 69%,#ccf1e7 100%);border:1px solid #b8e7da}
+.rmHub .rmActionTile.rmCalTile.calendar{background:linear-gradient(114deg,#f7f4ff 0%,#f0edff 69%,#e8e0ff 100%);border:1px solid #dcd3fb}
+.rmHub .rmActionTile.rmSnTile::after,.rmHub .rmActionTile.rmCalTile.calendar::after{
+  content:'';position:absolute;right:-42px;bottom:-108px;width:184px;height:184px;
+  border:24px solid rgba(255,255,255,.35);border-radius:50%;pointer-events:none;z-index:-1;
+}
+.rmHub .rmActionTile.rmSnTile .rmActionIcon,.rmHub .rmActionTile.rmCalTile .rmActionIcon{
+  display:grid;place-items:center;flex:0 0 62px;width:62px;height:62px;margin:0;
+  border-radius:18px;box-shadow:0 3px 8px rgba(10,64,63,.04)
+}
+.rmHub .rmActionTile.rmSnTile .rmActionIcon{background:#d6f6e9;color:#069976}
+.rmHub .rmActionTile.rmCalTile .rmActionIcon{background:#e5dcff;color:#6950cf}
+.rmHub .rmActionIcon svg{width:31px;height:31px}
+.rmHub .rmActionText{flex:1 1 auto;min-width:0;position:relative;z-index:1}
+.rmHub .rmActionEyebrow{font-size:10px;letter-spacing:1.35px;font-weight:950;color:#119676;display:block;margin-bottom:6px;line-height:1.2}
+.rmHub .rmCalTile .rmActionEyebrow{color:#7862cf}
+.rmHub .rmActionText h3{font-size:21px;font-weight:950;margin:0 0 5px;line-height:1.24;color:#154f48;letter-spacing:-.75px}
+.rmHub .rmCalTile .rmActionText h3{color:#44318b}
+.rmHub .rmActionText p,.rmHub .rmActionTile.calendar .rmActionText p{
+  margin:0;line-height:1.4;font-size:12px;color:#5d8079;font-weight:660
+}
+.rmHub .rmCalTile.calendar .rmActionText p{color:#796d9d}
+.rmHub .rmActionTile .rmActionArrow,.rmHub .rmActionTile.rmCalTile .rmActionArrow{
+  position:static;align-self:center;flex:0 0 33px;width:33px;height:33px;border-radius:50%;
+  display:grid;place-items:center;background:rgba(255,255,255,.72);font-size:17px;
+  color:#099673;transform:none;box-shadow:0 2px 8px rgba(27,69,63,.04)
+}
+.rmHub .rmActionTile.rmCalTile .rmActionArrow{color:#7053c5}
+@media (min-width:850px){
+ .rmHub .rmActionTile.rmSnTile,.rmHub .rmActionTile.rmCalTile.calendar{min-height:112px;}
+ .rmHub .rmSecondaryGrid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:500px){
+ .rmHub .rmActionTile.rmSnTile,.rmHub .rmActionTile.rmCalTile.calendar{min-height:112px;padding:17px 17px;gap:13px;border-radius:19px}
+ .rmHub .rmActionTile.rmSnTile .rmActionIcon,.rmHub .rmActionTile.rmCalTile .rmActionIcon{flex-basis:54px;width:54px;height:54px;border-radius:16px}
+ .rmHub .rmActionIcon svg{width:28px;height:28px}
+ .rmHub .rmActionText h3{font-size:19px}
+ .rmHub .rmActionTile .rmActionArrow,.rmHub .rmActionTile.rmCalTile .rmActionArrow{flex-basis:31px;width:31px;height:31px}
+}
+@media (max-width:330px){.rmHub .rmActionTile.rmSnTile,.rmHub .rmActionTile.rmCalTile.calendar{padding:13px 10px;gap:9px}.rmHub .rmActionText h3{font-size:17px}}
+</style></head><body>
+<div aria-labelledby="rsMultiTitle" aria-modal="true" class="rsMultiOverlay" id="rsMultiOverlay" role="dialog">
+<div aria-live="polite" class="rsRestoreNotice" id="rsRestoreNotice" role="status"></div>
+<div class="rsMultiBox">
+<div class="rsMultiHead">
+<div>
+<div class="rsMultiTitle" id="rsMultiTitle">다중 품번 조회</div>
+<div class="rsMultiCount" id="rsMultiCount">0개 입력됨</div>
 </div>
-<div class="v11Splash" id="v11Splash" aria-hidden="true"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="topActions"><a class="archiveEntry" id="archiveEntry" href="archive.html" aria-label="자료실 열기"><span class="archiveEntryIcon">▣</span><span>자료실</span></a><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div></div>
-<div class="rsSearchTabs" role="tablist" aria-label="검색 방식">
-  <button class="rsSearchTab single active" id="rsSingleTab" type="button" role="tab" aria-selected="true">단일 검색</button>
-  <button class="rsSearchTab multi" id="rsMultiTab" type="button" role="tab" aria-selected="false">다중 품번 조회</button>
-  <button class="rsSearchTab location" id="rsLocationTab" type="button" role="tab" aria-selected="false">위치 검색</button>
+<button aria-label="닫기" class="rsMultiClose" id="rsMultiClose" type="button">×</button>
 </div>
-
+<div class="rsMultiBody">
+<div class="rsMultiStep" id="rsMultiStep">1번째 품번</div>
+<input autocapitalize="characters" autocomplete="off" autocorrect="off" class="rsMultiInput" enterkeyhint="next" id="rsMultiInput" inputmode="url" lang="en" placeholder="품번을 입력하세요" spellcheck="false" type="text"/>
+<div class="mainCaptureRow">
+<button class="mainCaptureBtn" id="multiCameraBtn" type="button">📷 박스 촬영</button>
+<button class="mainCaptureBtn" id="multiGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
+</div>
+<input accept="image/*" capture="environment" class="mainCaptureFile" id="multiCamera" type="file"/>
+<input accept="image/*" class="mainCaptureFile" id="multiGallery" type="file"/>
+<div aria-live="polite" class="mainCaptureStatus" id="multiCaptureStatus"></div>
+<button class="multiNextCapture" id="multiNextCapture" type="button">📷 다음 박스 촬영</button>
+<div class="rsMultiHelp">소문자는 자동으로 대문자로 바뀌고, DB에서 확인되는 품번은 실제 하이픈 형식으로 맞춰집니다.</div>
+<div class="rsMultiListTitleRow">
+<div class="rsMultiListTitle">입력 목록</div>
+<button class="rsMultiClearAll" id="rsMultiClearAll" type="button">전체 삭제</button>
+</div>
+<div class="rsMultiList" id="rsMultiList"></div>
+</div>
+<div class="rsMultiFoot">
+<button class="rsMultiNext" id="rsMultiNext" type="button">다음 품번</button>
+<button class="rsMultiGo" id="rsMultiGo" type="button">조회하기</button>
+</div>
+</div>
+</div>
+<div aria-hidden="true" class="v11Splash" id="v11Splash"><div class="v11SplashInner"><div class="v11SplashLogo">Ray<small>Smart</small></div><div class="v11SplashSub">자재 · S/N · 입고관리</div><div class="v11SplashVer">V1.0</div><div class="v11Loader"><i></i><i></i><i></i></div></div></div><div class="app"><main class="shell"><div class="top"><div><div class="logo">Ray<small>Smart</small></div><div class="sub">자재 · S/N · 입고관리</div></div><div class="topActions"><a aria-label="자료실 열기" class="archiveEntry" href="archive.html" id="archiveEntry"><span class="archiveEntryIcon">▣</span><span>자료실</span></a><div class="adminState" id="adminState"><span class="adminStateDot"></span><span id="adminStateText">일반</span></div></div></div>
+<div aria-label="검색 방식" class="rsSearchTabs" role="tablist">
+<button aria-selected="true" class="rsSearchTab single active" id="rsSingleTab" role="tab" type="button">단일 검색</button>
+<button aria-selected="false" class="rsSearchTab multi" id="rsMultiTab" role="tab" type="button">다중 품번 조회</button>
+<button aria-selected="false" class="rsSearchTab location" id="rsLocationTab" role="tab" type="button">위치 검색</button>
+</div>
 <div class="rsSearchWrap">
-  <form class="search" id="mainSearch" action="search.html" method="get">
-    <span class="searchIcon">⌕</span>
-    <input inputmode="url" lang="en" id="mainQ" name="q" type="search" placeholder="품번 또는 품명 검색" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="search">
-  </form>
-  <div class="mainCaptureRow" id="mainCaptureRow">
-    <button class="mainCaptureBtn" id="mainCameraBtn" type="button">📷 박스 촬영</button>
-    <button class="mainCaptureBtn" id="mainGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
-  </div>
-  <div class="rayQrTools" id="rayQrTools"><button class="rayQrButton" id="rayQrScanBtn" type="button">▣ 현품표 QR · 바코드 스캔</button><div class="rayQrTip">스캐너가 없으면 휴대폰 카메라, 또는 위 검색칸에 직접 입력하세요.</div></div>
-  <input class="mainCaptureFile" id="mainCamera" type="file" accept="image/*" capture="environment">
-  <input class="mainCaptureFile" id="mainGallery" type="file" accept="image/*">
-  <div class="mainCaptureStatus" id="mainCaptureStatus" aria-live="polite"></div>
-
-  <div class="rsLocationBox" id="rsLocationBox">
-    <form class="rsLocationForm" id="rsLocationForm">
-      <span class="ico">⌕</span>
-      <input lang="en" inputmode="url" id="rsLocationQ" type="text" placeholder="위치 입력 (예: 3L2-3)" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
-      <button type="submit">검색</button>
-    </form>
-  </div>
-
-  <div class="rsSearchDesc" id="rsSearchDesc">품번 또는 품명을 입력하고 검색하세요.</div>
+<form action="search.html" class="search" id="mainSearch" method="get">
+<span class="searchIcon">⌕</span>
+<input autocapitalize="characters" autocomplete="off" autocorrect="off" enterkeyhint="search" id="mainQ" inputmode="url" lang="en" name="q" placeholder="품번 또는 품명 검색" spellcheck="false" type="search"/>
+</form>
+<div class="mainCaptureRow" id="mainCaptureRow">
+<button class="mainCaptureBtn" id="mainCameraBtn" type="button">📷 박스 촬영</button>
+<button class="mainCaptureBtn" id="mainGalleryBtn" type="button">🖼️ 앨범에서 선택</button>
 </div>
-
-<section class="mainResults" id="mainResults" aria-live="polite"><div class="mainResultsHead"><strong>검색 결과</strong><div class="mainResultsHeadActions"><span id="mainResultsCount"></span><button class="mainResultsReset" id="mainResultsReset" type="button">초기화</button></div></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" id="mainResultMore" href="search.html">전체 결과 보기 ›</a><button class="mainNewSearchBtn" id="mainNewSearchBtn" type="button">🔎 새로 검색하기</button></section>
-<a class="hero blue" href="search.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5-8 4.5-8-4.5Z"/><path d="M4 7.5V16l5.4 3"/><path d="M20 7.5v4.2"/><path d="m12 12 3.2-1.8"/><circle cx="17.2" cy="16.7" r="3.1"/><path d="m19.5 19 2 2"/></svg></span></div><div><h2>자재 검색</h2><p>품번, 자재명 검색</p></div><div class="arrow">›</div></a>
-<a class="hero green" href="sn.html"><div class="bigIcon"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5v4M4 5h4M20 5v4M20 5h-4M4 19v-4M4 19h4M20 19v-4M20 19h-4"/><path d="M7 10v4M10 9v6M13 10v4M16 9v6"/></svg></span></div><div><h2>S/N 추출</h2><p>QR/바코드 스캔</p></div><div class="arrow">›</div></a>
-<a class="calendar" id="incomingCalendarCard" href="calendar.html"><div class="ico"><span class="rsCardIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="3"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17"/><path d="M8 13h3v3H8zM14 13h2.5M14 16h2.5"/></svg></span></div><div><h2>입고 캘린더</h2><p id="todayText">오늘 입고 일정을 확인합니다.</p></div><div class="go">›</div></a>
-<section class="dbDashboard" aria-label="GitHub DB 연동 상태">
-  <div class="dbDashHead">
-    <div class="dbDashTitle">
-      <div class="dbDashIcon">◉</div>
-      <strong>GitHub DB 최신 상태</strong>
-    </div>
-    <div class="dbDashOverall" id="dbOverall">확인 중</div>
-  </div>
-  <div class="dbDashRows">
-    <div class="dbDashRow" id="materialDbRow">
-      <span class="dbDot"></span>
-      <span class="dbDashName">자재검색 연동</span>
-      <span class="dbDashValue" id="materialDbValue">확인 중</span>
-    </div>
-    <div class="dbDashRow" id="calendarDbRow">
-      <span class="dbDot"></span>
-      <span class="dbDashName">캘린더 연동</span>
-      <span class="dbDashValue" id="calendarDbValue">확인 중</span>
-    </div>
-  </div>
-  <div class="dbDashTime" id="dbSyncTime">마지막 확인 · 확인 중</div>
+<div class="rayQrTools" id="rayQrTools"><button class="rayQrButton" id="rayQrScanBtn" type="button">▣ 현품표 QR · 바코드 스캔</button><div class="rayQrTip">스캐너가 없으면 휴대폰 카메라, 또는 위 검색칸에 직접 입력하세요.</div></div>
+<input accept="image/*" capture="environment" class="mainCaptureFile" id="mainCamera" type="file"/>
+<input accept="image/*" class="mainCaptureFile" id="mainGallery" type="file"/>
+<div aria-live="polite" class="mainCaptureStatus" id="mainCaptureStatus"></div>
+<div class="rsLocationBox" id="rsLocationBox">
+<form class="rsLocationForm" id="rsLocationForm">
+<span class="ico">⌕</span>
+<input autocapitalize="characters" autocomplete="off" autocorrect="off" id="rsLocationQ" inputmode="url" lang="en" placeholder="위치 입력 (예: 3L2-3)" spellcheck="false" type="text"/>
+<button type="submit">검색</button>
+</form>
+</div>
+<div class="rsSearchDesc" id="rsSearchDesc">품번 또는 품명을 입력하고 검색하세요.</div>
+</div>
+<section aria-live="polite" class="mainResults" id="mainResults"><div class="mainResultsHead"><strong>검색 결과</strong><div class="mainResultsHeadActions"><span id="mainResultsCount"></span><button class="mainResultsReset" id="mainResultsReset" type="button">초기화</button></div></div><div class="mainResultList" id="mainResultList"></div><a class="mainResultMore" href="search.html" id="mainResultMore">전체 결과 보기 ›</a><button class="mainNewSearchBtn" id="mainNewSearchBtn" type="button">🔎 새로 검색하기</button></section>
+<section aria-label="업무 메뉴" class="rmHub">
+<div class="rmHubHeader"><div><span class="rmHubEyebrow">QUICK ACCESS</span><h2>업무 바로가기</h2></div><span class="rmHubCaption">자주 쓰는 업무를 빠르게</span></div>
+<div class="rmHubTiles">
+<a class="rmPrimaryTile" href="search.html">
+<div class="rmPrimaryContent"><span class="rmPrimaryLabel"><span class="rmLiveDot"></span> MATERIAL SEARCH</span><h3>자재 검색</h3><p>품번 · 자재명 · 자재 위치</p><span class="rmPrimaryCTA">자재 검색 바로가기 <span aria-hidden="true">↗</span></span></div>
+<span aria-hidden="true" class="rmPrimaryIllustration"><svg fill="none" viewbox="0 0 108 108"><rect height="58" rx="14" stroke="currentColor" stroke-width="3" width="58" x="13" y="28"></rect><path d="M13 43L42 58L71 43M42 58V86M15 43L42 28L70 43" stroke="currentColor" stroke-linejoin="round" stroke-width="3"></path><circle cx="76" cy="75" fill="#0d355b" r="18" stroke="#9de7ff" stroke-width="4"></circle><path d="M89 88L104 102" stroke="#9de7ff" stroke-linecap="round" stroke-width="5"></path></svg></span>
+</a>
+<div class="rmSecondaryGrid">
+<a class="rmActionTile rmSnTile" href="sn.html"><span aria-hidden="true" class="rmActionIcon"><svg fill="none" viewbox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M4 16v4h4M16 20h4v-4M7 10v4m3-5v6m3-5v4m3-5v6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg></span><div class="rmActionText"><span class="rmActionEyebrow">QUICK SCAN</span><h3>S/N 추출</h3><p>시리얼번호 스캔</p></div><span aria-hidden="true" class="rmActionArrow">↗</span></a>
+<a class="rmActionTile rmCalTile calendar" href="calendar.html" id="incomingCalendarCard"><span aria-hidden="true" class="rmActionIcon"><svg fill="none" viewbox="0 0 24 24"><rect height="16" rx="3" stroke="currentColor" stroke-width="1.7" width="18" x="3" y="5"></rect><path d="M7.5 3v4M16.5 3v4M3 10h18M8 14h3v3H8" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span><div class="rmActionText"><span class="rmActionEyebrow">INBOUND SCHEDULE</span><h3>입고 캘린더</h3><p id="todayText">오늘 입고 일정 확인</p></div><span aria-hidden="true" class="rmActionArrow">↗</span></a>
+</div>
+</div>
 </section>
-<div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><button class="quickAllBtn" id="recentAllBtn" type="button">전체 보기 ›</button></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><button class="quickAllBtn" id="favoriteAllBtn" type="button">전체 보기 ›</button></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><div class="foot">© RAY Corp. All rights reserved.</div></main></div>
-
-<div class="quickAllOverlay" id="quickAllOverlay" role="dialog" aria-modal="true" aria-labelledby="quickAllTitle">
-  <div class="quickAllBox">
-    <div class="quickAllHead">
-      <div><div class="quickAllTitle" id="quickAllTitle">전체 보기</div><div class="quickAllMeta" id="quickAllMeta"></div></div>
-      <button class="quickAllClose" id="quickAllClose" type="button" aria-label="닫기">×</button>
-    </div>
-    <div class="quickAllList" id="quickAllList"></div>
-  </div>
+<section aria-label="GitHub DB 연동 상태" class="dbDashboard">
+<div class="dbDashHead">
+<div class="dbDashTitle">
+<div class="dbDashIcon">◉</div>
+<strong>GitHub DB 최신 상태</strong>
 </div>
-
-<div class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog" aria-modal="true" aria-labelledby="incomingTodayTitle">
-  <div class="incomingTodayBox">
-    <button class="incomingTodayX" id="incomingTodayX" type="button" aria-label="닫기">×</button>
-    <div class="incomingTodayIcon">▦</div>
-    <div class="incomingTodayTitle" id="incomingTodayTitle">오늘 입고가 있습니다</div>
-    <div class="incomingTodayDate" id="incomingTodayDate"></div>
-    <div class="incomingTodayList" id="incomingTodayList"></div>
-    <label class="incomingTodayDontShow">
-      <input id="incomingTodayDontShow" type="checkbox">
-      <span>오늘 다시 보지 않기</span>
-    </label>
-    <button class="incomingTodayClose" id="incomingTodayClose" type="button">닫기</button>
-  </div>
+<div class="dbDashOverall" id="dbOverall">확인 중</div>
+</div>
+<div class="dbDashRows">
+<div class="dbDashRow" id="materialDbRow">
+<span class="dbDot"></span>
+<span class="dbDashName">자재검색 연동</span>
+<span class="dbDashValue" id="materialDbValue">확인 중</span>
+</div>
+<div class="dbDashRow" id="calendarDbRow">
+<span class="dbDot"></span>
+<span class="dbDashName">캘린더 연동</span>
+<span class="dbDashValue" id="calendarDbValue">확인 중</span>
+</div>
+</div>
+<div class="dbDashTime" id="dbSyncTime">마지막 확인 · 확인 중</div>
+</section>
+<div class="quick"><section class="qsec"><div class="qhead"><strong>최근 검색</strong><button class="quickAllBtn" id="recentAllBtn" type="button">전체 보기 ›</button></div><div class="chips" id="recent"></div></section><section class="qsec"><div class="qhead"><strong>즐겨찾기</strong><button class="quickAllBtn" id="favoriteAllBtn" type="button">전체 보기 ›</button></div><div class="chips" id="favorite"></div></section></div><button class="adminEntry" id="adminEntry" type="button">🔒 관리자 모드</button><section aria-label="화면 전환" class="rmVersionArea"><button aria-pressed="false" class="rmVersionButton" id="rmViewButton" type="button"><span aria-hidden="true" class="rmMonitorIcon">▣</span><span id="rmViewText">PC 버전 보기</span><span aria-hidden="true" class="rmVersionArrow">›</span></button><p>휴대폰에서도 PC 화면으로 전환할 수 있어요.</p></section>
+<div class="foot">© RAY Corp. All rights reserved.</div></main></div>
+<div aria-labelledby="quickAllTitle" aria-modal="true" class="quickAllOverlay" id="quickAllOverlay" role="dialog">
+<div class="quickAllBox">
+<div class="quickAllHead">
+<div><div class="quickAllTitle" id="quickAllTitle">전체 보기</div><div class="quickAllMeta" id="quickAllMeta"></div></div>
+<button aria-label="닫기" class="quickAllClose" id="quickAllClose" type="button">×</button>
+</div>
+<div class="quickAllList" id="quickAllList"></div>
+</div>
+</div>
+<div aria-labelledby="incomingTodayTitle" aria-modal="true" class="incomingTodayOverlay" id="incomingTodayOverlay" role="dialog">
+<div class="incomingTodayBox">
+<button aria-label="닫기" class="incomingTodayX" id="incomingTodayX" type="button">×</button>
+<div class="incomingTodayIcon">▦</div>
+<div class="incomingTodayTitle" id="incomingTodayTitle">오늘 입고가 있습니다</div>
+<div class="incomingTodayDate" id="incomingTodayDate"></div>
+<div class="incomingTodayList" id="incomingTodayList"></div>
+<label class="incomingTodayDontShow">
+<input id="incomingTodayDontShow" type="checkbox"/>
+<span>오늘 다시 보지 않기</span>
+</label>
+<button class="incomingTodayClose" id="incomingTodayClose" type="button">닫기</button>
+</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script>
@@ -2172,8 +2480,8 @@ if('serviceWorker' in navigator){
 .mainLocationViewer.show{display:block}
 .mainLocationViewer iframe{display:block;width:100%;height:100%;border:0;background:transparent}
 </style>
-<div class="mainLocationViewer" id="mainLocationViewer" aria-hidden="true">
-  <iframe id="mainLocationFrame" title="창고 위치 확인"></iframe>
+<div aria-hidden="true" class="mainLocationViewer" id="mainLocationViewer">
+<iframe id="mainLocationFrame" title="창고 위치 확인"></iframe>
 </div>
 <script>
 (function(){
@@ -2271,7 +2579,6 @@ if('serviceWorker' in navigator){
  });
 })();
 </script>
-
 <script>
 /* In-page bounded camera: no external camera activity or full-size JPEG. */
 (()=>{
@@ -2611,4 +2918,32 @@ if('serviceWorker' in navigator){
  document.addEventListener('visibilitychange',()=>{if(document.hidden)close();});
 })();
 </script>
-</body></html>
+<script id="rm-version-behavior">
+(function(){
+ var button=document.getElementById('rmViewButton');
+ var label=document.getElementById('rmViewText');
+ var viewport=document.querySelector('meta[name="viewport"]');
+ if(!button||!label||!viewport)return;
+ var original=viewport.content;
+ function isDesktop(){
+  if(document.documentElement.classList.contains('rmForceDesktop'))return true;
+  if(document.documentElement.classList.contains('rmForceMobile'))return false;
+  return window.matchMedia('(min-width:850px)').matches;
+ }
+ function display(){
+  var pc=isDesktop();
+  label.textContent=pc?'모바일 버전 보기':'PC 버전 보기';
+  button.setAttribute('aria-pressed',String(pc));
+  button.setAttribute('aria-label',label.textContent);
+ }
+ button.addEventListener('click',function(){
+  var next=isDesktop()?'mobile':'desktop';
+  document.documentElement.classList.remove('rmForceDesktop','rmForceMobile');
+  document.documentElement.classList.add(next==='desktop'?'rmForceDesktop':'rmForceMobile');
+  viewport.content=next==='desktop'?'width=1100,initial-scale=1,viewport-fit=cover':original;
+  display();
+ });
+ window.addEventListener('resize',display);
+ display();
+})();
+</script></body></html>
