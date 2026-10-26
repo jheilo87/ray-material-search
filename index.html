@@ -1280,7 +1280,24 @@ html.rmForceMobile .rmActionTile{min-height:171px}
  .rmHub .rmActionTile .rmActionArrow,.rmHub .rmActionTile.rmCalTile .rmActionArrow{flex-basis:31px;width:31px;height:31px}
 }
 @media (max-width:330px){.rmHub .rmActionTile.rmSnTile,.rmHub .rmActionTile.rmCalTile.calendar{padding:13px 10px;gap:9px}.rmHub .rmActionText h3{font-size:17px}}
-</style></head><body>
+</style><style id="rayStockTileStyle">
+/* RaySmart: 기존 업무 카드와 동일한 구성의 입출고 등록 카드 */
+.rmHub .rmActionTile.rmInoutTile{background:linear-gradient(114deg,#fff8ef 0%,#fff1de 69%,#ffe8c6 100%);border:1px solid #f1dbb7;min-height:112px;position:relative;overflow:hidden}
+.rmHub .rmActionTile.rmInoutTile::after{content:"";position:absolute;right:-40px;bottom:-76px;width:190px;height:190px;border:25px solid rgba(239,180,97,.10);border-radius:50%;pointer-events:none}
+.rmHub .rmActionTile.rmInoutTile .rmActionIcon{background:#ffebc9;color:#b97221}
+.rmHub .rmInoutTile .rmActionEyebrow{color:#ba792f}
+.rmHub .rmInoutTile .rmActionText h3{color:#78511c}
+.rmHub .rmInoutTile .rmActionText p{color:#8d7355}
+.rmHub .rmActionTile.rmInoutTile .rmActionArrow{color:#a76c26}
+@media(max-width:520px){.rmHub .rmActionTile.rmInoutTile{min-height:112px;padding:17px;gap:13px;border-radius:19px}.rmHub .rmActionTile.rmInoutTile .rmActionIcon{width:54px;height:54px;flex-basis:54px;border-radius:16px}}
+
+.rmHub .rmActionTile.rmInoutTile{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:17px;min-height:112px;height:auto;padding:20px 21px;border-radius:22px;box-shadow:0 6px 17px rgba(25,60,92,.055);isolation:isolate}
+.rmHub .rmActionTile.rmInoutTile .rmActionIcon{display:grid;place-items:center;flex:0 0 62px;width:62px;height:62px;margin:0;border-radius:18px;box-shadow:0 3px 8px rgba(66,45,23,.04)}
+.rmHub .rmActionTile.rmInoutTile .rmActionText{flex:1 1 auto;min-width:0;position:relative;z-index:1}
+.rmHub .rmActionTile.rmInoutTile .rmActionArrow{position:static;align-self:center;flex:0 0 33px;width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.75);font-size:17px;transform:none;box-shadow:0 2px 8px rgba(50,50,36,.04)}
+@media(max-width:500px){.rmHub .rmActionTile.rmInoutTile{gap:13px;padding:17px;border-radius:19px}.rmHub .rmActionTile.rmInoutTile .rmActionIcon{width:54px;height:54px;flex-basis:54px;border-radius:16px}.rmHub .rmActionTile.rmInoutTile .rmActionArrow{width:31px;height:31px;flex-basis:31px}}
+</style>
+</head><body>
 <div aria-labelledby="rsMultiTitle" aria-modal="true" class="rsMultiOverlay" id="rsMultiOverlay" role="dialog">
 <div aria-live="polite" class="rsRestoreNotice" id="rsRestoreNotice" role="status"></div>
 <div class="rsMultiBox">
@@ -1354,6 +1371,7 @@ html.rmForceMobile .rmActionTile{min-height:171px}
 <div class="rmSecondaryGrid">
 <a class="rmActionTile rmSnTile" href="sn.html"><span aria-hidden="true" class="rmActionIcon"><svg fill="none" viewbox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M4 16v4h4M16 20h4v-4M7 10v4m3-5v6m3-5v4m3-5v6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path></svg></span><div class="rmActionText"><span class="rmActionEyebrow">QUICK SCAN</span><h3>S/N 추출</h3><p>시리얼번호 스캔</p></div><span aria-hidden="true" class="rmActionArrow">↗</span></a>
 <a class="rmActionTile rmCalTile calendar" href="calendar.html" id="incomingCalendarCard"><span aria-hidden="true" class="rmActionIcon"><svg fill="none" viewbox="0 0 24 24"><rect height="16" rx="3" stroke="currentColor" stroke-width="1.7" width="18" x="3" y="5"></rect><path d="M7.5 3v4M16.5 3v4M3 10h18M8 14h3v3H8" stroke="currentColor" stroke-linecap="round" stroke-width="1.7"></path></svg></span><div class="rmActionText"><span class="rmActionEyebrow">INBOUND SCHEDULE</span><h3>입고 캘린더</h3><p id="todayText">오늘 입고 일정 확인</p></div><span aria-hidden="true" class="rmActionArrow">↗</span></a>
+<a class="rmActionTile rmInoutTile" href="inout.html" aria-label="QR 입고·출고 등록 화면으로 이동"><span aria-hidden="true" class="rmActionIcon"><svg fill="none" viewBox="0 0 24 24"><path d="M4 8V4h4M16 4h4v4M4 16v4h4M16 20h4v-4M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="rmActionText"><span class="rmActionEyebrow">STOCK IN / OUT</span><h3>입고·출고 등록</h3><p>QR 스캔 · 엑셀 기록</p></div><span aria-hidden="true" class="rmActionArrow">↗</span></a>
 </div>
 </div>
 </section>
