@@ -654,6 +654,63 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .hwScannerActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.hwScannerActions button{min-height:42px;border:0;border-radius:11px;font-size:12px;font-weight:900}.hwScannerAdd{background:#e0f6e9;color:#16774d}.hwScannerFocus{background:#28b779;color:white}
 .hwScannerStatus{margin-top:10px;border-radius:10px;background:#edf8f2;color:#326349;padding:10px;font-size:12px;font-weight:850;line-height:1.5;overflow-wrap:anywhere}.hwScannerStatus.ok{background:#e5f7ec;color:#0f7043}.hwScannerStatus.bad{background:#fff0ed;color:#ae2d20}.hwScannerFoot{margin-top:8px;font-size:10px;color:#748478;line-height:1.55}
 </style>
+<!-- ray-smart-unified-ui-styles -->
+<style id="ray-smart-unified-ui">
+
+/* RaySmart unified visual system (2026-10-26) — styling only, preserve all application IDs and scripts */
+:root{--rm-navy:#102f54;--rm-ink:#172e4e;--rm-muted:#738199;--rm-bg:#f5f8fc;--rm-border:#e1e9f3;--rm-soft-shadow:0 12px 28px rgba(22,50,89,.07)}
+html,body{scroll-padding-top:14px}
+body{background:linear-gradient(180deg,#f4f8fc 0%,#fbfdff 440px)!important;color:var(--rm-ink)!important}
+button,a,input,select{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #78c4fa;outline-offset:2px}
+.rsNavBtn{background:#f2f7fb!important;border:1px solid #e2eaf3!important;box-shadow:0 6px 14px rgba(30,61,93,.06)!important;color:#2c648a!important;border-radius:13px!important}
+.rsNavBtn:active{transform:scale(.94)!important;background:#e6f5fa!important}
+@media(hover:hover){.rsNavBtn:hover{background:#e8f7ff!important}}
+
+/* Serial scanning: mint tool cards, same navigation as RaySmart home */
+.actions .share:disabled{background:#edf1f6!important;color:#8792a3!important;box-shadow:none!important;opacity:1!important}
+
+body{--rm-accent:#1eae77;--rm-wash:#e7f8f1}
+.app{padding:8px 8px 32px!important}
+.rsHeader{position:relative!important;margin:0!important;padding:20px 19px 19px!important;background:#fff!important;border:1px solid #e3ede8!important;border-radius:26px!important;box-shadow:var(--rm-soft-shadow)!important;overflow:hidden!important;text-align:left!important}
+.rsHeader::before{content:"";position:absolute;inset:0 18px auto;height:3px;background:linear-gradient(90deg,#1fae78,#7fdfb0);border-radius:0 0 8px 8px}
+.rsHeaderBrand{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;padding:0 104px 0 0!important;text-align:left!important;min-height:75px!important}
+.rsBrand{font-size:32px!important;font-weight:1000!important;letter-spacing:-2px!important}
+.rsBrand small{font-size:12px!important;color:#8e9daa!important;letter-spacing:0!important;-webkit-text-fill-color:#8e9daa!important}
+.rsPageTitle{font-size:18px!important;color:#177e5a!important;font-weight:1000!important;margin-top:5px!important}
+.rsPageSub{font-size:11px!important;color:#778b9a!important;margin-top:4px!important}
+.rsNavBtn{top:25px!important;left:auto!important;width:40px!important;height:40px!important}
+.rsBack{right:66px!important}.rsHome{right:18px!important}
+main{padding:16px 0 0!important}
+.card{position:relative;border:1px solid #e1ede7!important;border-radius:24px!important;background:#fff!important;box-shadow:var(--rm-soft-shadow)!important;padding:19px!important;margin-bottom:15px!important}
+main>.card:first-child{overflow:hidden!important}
+main>.card:first-child::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#22b77a,#9be3c0);pointer-events:none}
+.cardTitle{font-size:19px!important;letter-spacing:-.6px!important;color:#183752!important}
+.sub{font-size:12px!important;line-height:1.55!important;color:#77879b!important}
+.vendorLogoGrid{gap:10px!important;margin-top:14px!important}
+.vendorLogoGrid .vendor{border:1.5px solid #dce9e5!important;border-radius:18px!important;background:linear-gradient(145deg,#fff,#f8fcfb)!important;box-shadow:0 7px 15px rgba(24,71,55,.065)!important;transition:transform .15s ease,box-shadow .15s ease!important}
+.vendorLogoGrid .vendor.active{border:1.5px solid #25af79!important;background:linear-gradient(135deg,#1fb477,#159f6a)!important;color:#fff!important;box-shadow:0 9px 22px rgba(23,160,104,.20)!important}
+.vendorLogoGrid .vendor:active{transform:scale(.98)!important}
+.sectionGroove{background:linear-gradient(90deg,transparent,#b8dfce,transparent)!important;opacity:.85!important}
+.modeBtns{gap:10px!important}
+.modeBtn{border-radius:19px!important;border:1.5px solid #b4e7d0!important;background:linear-gradient(145deg,#f6fdf9,#e9f9f2)!important;color:#148e60!important;box-shadow:0 8px 0 rgba(33,170,110,.055),0 12px 20px rgba(27,81,65,.065)!important}
+.modeBtn.activeMode{background:linear-gradient(135deg,#20b87b,#128e61)!important;border-color:#159766!important;color:#fff!important;box-shadow:0 8px 20px rgba(23,160,104,.18)!important}
+.modeCopy strong{letter-spacing:-.65px!important}
+.hwScannerToggle{border:1px solid #c8e9d8!important;background:linear-gradient(130deg,#f4fdf8,#eaf8f2)!important;border-radius:18px!important;box-shadow:0 7px 17px rgba(19,116,72,.055)!important}
+.hwScannerSection{margin-top:17px!important}
+.resultHead{padding:1px 1px 5px!important}.count{border-radius:999px!important;background:#e6f8ed!important;color:#148453!important}
+.list .row{border-color:#e2eee7!important;border-radius:17px!important;background:#fbfefc!important}
+.actions .action{border-radius:15px!important;min-height:51px!important}
+.actions .copy{background:#e5f8ee!important;color:#138954!important}
+.actions .share:not(.ready){background:#edf1f6!important;color:#8792a3!important;box-shadow:none!important}
+.actions .share{background:linear-gradient(130deg,#0e815b,#27b383)!important;box-shadow:0 8px 20px rgba(21,134,95,.15)!important}
+.teamsSelfBar{border-radius:17px!important;background:#f7fbff!important}
+.catalogSyncCard{border-radius:19px!important;background:linear-gradient(135deg,#f6fdfa,#edf9f2)!important}
+.resetAll{border-radius:15px!important}
+@media(min-width:900px){.app{max-width:960px!important}main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:17px}main>.card{min-width:0;margin-bottom:0!important}main>.card.progress{grid-column:1/-1}main>.card:nth-of-type(3){grid-column:2}main>.card:first-child{grid-column:1}main>.card:nth-of-type(3):last-child{grid-column:2}}
+@media(max-width:520px){.rsHeader{padding:21px 15px 16px!important}.rsHeaderBrand{padding-right:96px!important;min-height:79px!important}.rsBrand{font-size:30px!important}.rsPageTitle{font-size:17px!important}.rsNavBtn{top:25px!important;width:38px!important;height:38px!important}.rsBack{right:58px!important}.rsHome{right:13px!important}.card{padding:16px!important;border-radius:22px!important}.modeBtn{border-radius:17px!important}}
+
+</style>
 </head>
 <body>
 <div class="app">

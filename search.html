@@ -749,6 +749,65 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 }
 
 </style>
+<!-- ray-smart-unified-ui-styles -->
+<style id="ray-smart-unified-ui">
+
+/* RaySmart unified visual system (2026-10-26) — styling only, preserve all application IDs and scripts */
+:root{--rm-navy:#102f54;--rm-ink:#172e4e;--rm-muted:#738199;--rm-bg:#f5f8fc;--rm-border:#e1e9f3;--rm-soft-shadow:0 12px 28px rgba(22,50,89,.07)}
+html,body{scroll-padding-top:14px}
+body{background:linear-gradient(180deg,#f4f8fc 0%,#fbfdff 440px)!important;color:var(--rm-ink)!important}
+button,a,input,select{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #78c4fa;outline-offset:2px}
+.rsNavBtn{background:#f2f7fb!important;border:1px solid #e2eaf3!important;box-shadow:0 6px 14px rgba(30,61,93,.06)!important;color:#2c648a!important;border-radius:13px!important}
+.rsNavBtn:active{transform:scale(.94)!important;background:#e6f5fa!important}
+@media(hover:hover){.rsNavBtn:hover{background:#e8f7ff!important}}
+
+/* Search: RaySmart navy search workstation */
+.headerTitle{text-align:left!important}
+.headerTagline{text-align:left!important}
+#searchCard .tab.active{background:linear-gradient(145deg,#e9faff,#dcf4fe)!important;color:#087faf!important;border:1px solid #7dd8f5!important;box-shadow:0 5px 0 #c0ecfa,0 8px 18px rgba(19,147,199,.13)!important}
+
+body{--rm-accent:#159dd0;--rm-wash:#ebf8fe}
+.app{padding:8px 8px 30px!important}
+#appHeader{position:relative!important;overflow:hidden!important;margin:0!important;padding:22px 20px 18px!important;border:1px solid #e5edf5!important;border-radius:26px!important;background:#fff!important;box-shadow:var(--rm-soft-shadow)!important}
+#appHeader::before{content:"";position:absolute;top:0;left:18px;right:18px;height:3px;border-radius:0 0 6px 6px;background:linear-gradient(90deg,#159dd0,#35c9b3)}
+.headerTop{position:relative!important;display:block!important;min-height:66px}
+.headerBrand{display:block!important;padding:0 98px 0 0!important;text-align:left!important}
+.headerTitle{font-size:34px!important;line-height:1.12!important;font-weight:1000!important;letter-spacing:-1.8px!important}
+.headerTitle small{font-size:12px!important;font-weight:900!important;letter-spacing:0!important;color:#8b9daf!important;background:none!important;-webkit-text-fill-color:#8b9daf!important}
+.headerTagline{margin-top:6px!important;font-size:17px!important;font-weight:950!important;color:#183856!important;letter-spacing:-.4px!important}
+.rsBack,.rsHome{top:5px!important;left:auto!important;width:40px!important;height:40px!important}
+.rsBack{right:52px!important}.rsHome{right:0!important}
+.headerState{margin-top:9px!important;padding:12px 13px!important;background:linear-gradient(105deg,#f6fbff,#fafdff)!important;border-radius:17px!important;border-color:#e1ebf4!important;box-shadow:inset 0 1px 0 #fff!important}
+.headerStateMain{font-weight:950!important;color:#244562!important}.headerStateSub{color:#7a8da0!important}.headerStateBadge{box-shadow:0 3px 11px rgba(23,65,97,.05)!important}
+main{padding:16px 0 0!important}
+.card{border:1px solid #e0eaf2!important;border-radius:24px!important;box-shadow:var(--rm-soft-shadow)!important;background:#fff!important}
+#searchCard{position:relative;padding:18px!important;overflow:hidden}
+#searchCard::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#24c2ef 0%,#147ab9 100%);pointer-events:none}
+.tabs{display:grid!important;gap:9px!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;margin-bottom:16px!important}
+.tab{min-height:57px!important;padding:10px 6px!important;border:1px solid #e0e8f3!important;background:#f8fafc!important;color:#59708d!important;border-radius:17px!important;box-shadow:0 6px 0 rgba(44,77,108,.04),0 8px 18px rgba(29,59,89,.05)!important;font-size:12px!important;font-weight:950!important;transition:transform .14s,background .14s,box-shadow .14s!important}
+.tab.active{background:linear-gradient(145deg,#e9faff,#dcf4fe)!important;color:#087faf!important;border:1px solid #7dd8f5!important;box-shadow:0 5px 0 #c0ecfa,0 8px 18px rgba(19,147,199,.13)!important}
+.tab:active{transform:translateY(2px)!important}
+.searchrow{gap:9px!important;margin-top:12px!important}
+.searchrow input{height:59px!important;border:1px solid #dbe5ef!important;border-radius:17px!important;background:#fff!important;box-shadow:0 6px 14px rgba(45,65,90,.04)!important}
+.searchrow .go{height:59px!important;border:0!important;border-radius:17px!important;background:linear-gradient(135deg,#0c315c,#156a9a)!important;box-shadow:0 9px 19px rgba(11,77,123,.19)!important;color:white!important}
+.singleCaptureRow{gap:9px!important;margin-top:13px!important}
+.searchMultiCaptureBtn{border:1px solid #b9dafa!important;border-radius:15px!important;background:#f0f7ff!important;color:#156cad!important;box-shadow:0 4px 11px rgba(27,96,152,.04)!important;min-height:47px!important;font-weight:950!important}
+.rayQrButton{border:1px solid #9bd4fc!important;border-radius:15px!important;background:linear-gradient(110deg,#e6f6ff,#effaff)!important;color:#096aa1!important;box-shadow:0 5px 15px rgba(24,103,160,.05)!important}
+.multiSearchBtn,.multiCopyAll{border-radius:14px!important;box-shadow:0 8px 16px rgba(19,69,112,.10)!important}
+#quickBox{padding:17px 16px!important;box-shadow:var(--rm-soft-shadow)!important}
+.quickHead{gap:7px!important}.quickHead .quickTitle{font-weight:950!important;color:#243951!important}
+.quickAllBtn{background:#f1f5fa!important;border-radius:999px!important;padding:7px 10px!important;color:#60748d!important}
+.chips{display:flex!important;gap:8px!important;flex-wrap:wrap!important;overflow:visible!important}
+.chip{padding:9px 12px!important;border:1px solid #e1eaf2!important;background:#f7faff!important;border-radius:13px!important;font-weight:850!important}
+#uploadCard{padding:17px 16px!important;box-shadow:var(--rm-soft-shadow)!important}
+#uploadCard .filebtn,#uploadCard button{border-radius:12px!important}
+#results .item,.item{border:1px solid #e1eaf3!important;border-radius:20px!important;box-shadow:0 8px 21px rgba(29,57,96,.055)!important}
+.modalPanel,.quickAllPanel{border-radius:23px!important}
+@media(min-width:900px){.app{max-width:960px!important}.card{border-radius:25px!important}#searchCard{padding:23px!important}.tab{font-size:15px!important}}
+@media(max-width:520px){#appHeader{padding:21px 15px 16px!important}.headerTop{min-height:67px}.headerBrand{padding:0 91px 0 0!important}.headerTitle{font-size:31px!important}.headerTagline{font-size:16px!important}.rsBack,.rsHome{width:38px!important;height:38px!important}.rsBack{right:48px!important}.tabs{gap:7px!important}.tab{font-size:11.5px!important;min-height:55px!important}.searchrow .go{min-width:73px!important}#searchCard{padding:15px!important}}
+
+</style>
 </head>
 <body>
 <div id="splash" aria-hidden="true" style="display:none"><div class="splashInner"><div class="rayMark">Ray</div><div class="splashTitle">자재검색</div><div class="splashSub">빠르고 정확하게 자재 위치를 찾습니다.</div><div class="splashVer">V 1.0</div></div></div>

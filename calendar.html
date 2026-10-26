@@ -424,6 +424,62 @@ input,select,textarea{font-size:max(16px,1em);}
 
 .adminExtra{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}.adminExtra summary{cursor:pointer;font-weight:900;color:var(--muted)}
 </style>
+<!-- ray-smart-unified-ui-styles -->
+<style id="ray-smart-unified-ui">
+
+/* RaySmart unified visual system (2026-10-26) — styling only, preserve all application IDs and scripts */
+:root{--rm-navy:#102f54;--rm-ink:#172e4e;--rm-muted:#738199;--rm-bg:#f5f8fc;--rm-border:#e1e9f3;--rm-soft-shadow:0 12px 28px rgba(22,50,89,.07)}
+html,body{scroll-padding-top:14px}
+body{background:linear-gradient(180deg,#f4f8fc 0%,#fbfdff 440px)!important;color:var(--rm-ink)!important}
+button,a,input,select{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #78c4fa;outline-offset:2px}
+.rsNavBtn{background:#f2f7fb!important;border:1px solid #e2eaf3!important;box-shadow:0 6px 14px rgba(30,61,93,.06)!important;color:#2c648a!important;border-radius:13px!important}
+.rsNavBtn:active{transform:scale(.94)!important;background:#e6f5fa!important}
+@media(hover:hover){.rsNavBtn:hover{background:#e8f7ff!important}}
+
+/* Inbound schedule: soft purple visual system, no calendar data logic changed */
+body{--rm-accent:#7454d2;--rm-wash:#f1ecff;background:linear-gradient(180deg,#f4f2ff 0%,#f9fbff 450px)!important}
+.app{padding:8px 8px 32px!important}
+.rsHeader{position:relative!important;margin:0!important;padding:20px 19px 19px!important;border:1px solid #e7e1f3!important;border-radius:26px!important;background:#fff!important;box-shadow:var(--rm-soft-shadow)!important;text-align:left!important;overflow:hidden!important}
+.rsHeader::before{content:"";position:absolute;inset:0 18px auto;height:3px;background:linear-gradient(90deg,#7454d2,#c1adff);border-radius:0 0 8px 8px}
+.rsHeaderBrand{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;padding:0 104px 0 0!important;min-height:75px!important;text-align:left!important}
+.rsBrand{font-size:32px!important;letter-spacing:-2px!important;font-weight:1000!important}
+.rsBrand small{font-size:12px!important;color:#8e9daa!important;letter-spacing:0!important;-webkit-text-fill-color:#8e9daa!important}
+.rsPageTitle{font-size:18px!important;color:#6746c7!important;letter-spacing:-.5px!important;margin-top:5px!important}
+.rsPageSub{font-size:11px!important;color:#778b9a!important;margin-top:4px!important}
+.rsNavBtn{top:25px!important;left:auto!important;width:40px!important;height:40px!important}
+.rsBack{right:66px!important}.rsHome{right:18px!important}
+.panel{position:relative;overflow:hidden!important;margin:16px 0 14px!important;border:1px solid #e6e2f0!important;border-radius:24px!important;background:#fff!important;box-shadow:var(--rm-soft-shadow)!important;padding:19px 17px 18px!important}
+.panel::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#7957d5,#a58bf1);pointer-events:none}
+.summary{gap:9px!important}
+.sum{position:relative;border-radius:17px!important;min-height:83px;padding:14px 5px 12px!important;border:1px solid #e7e2f6;background:linear-gradient(155deg,#f7f4ff,#f0eaff)!important}
+.sum:nth-child(2){background:linear-gradient(155deg,#f0f9ff,#e6f5ff)!important;border-color:#d5eafa!important}
+.sum:nth-child(3){background:linear-gradient(155deg,#f3fcf6,#e6f8ed)!important;border-color:#d5eedf!important}
+.sum b{font-size:26px!important;font-weight:1000!important;color:#684ac6!important}
+.sum:nth-child(2) b{color:#1688ba!important}.sum:nth-child(3) b{color:#159366!important}
+.sum span{font-size:11px!important;color:#67738b!important}
+.nav{margin-top:19px!important;gap:11px!important}
+.nav button:not(.currentMonthBtn){height:45px!important;border:1px solid #e4d9f4!important;border-radius:14px!important;background:#f6f2ff!important;color:#6745c8!important;box-shadow:0 6px 13px rgba(79,42,141,.055)!important}
+.month{font-size:22px!important;color:#293b58!important;letter-spacing:-.6px!important}
+.currentMonthBtn{background:#f4edff!important;border-color:#ded1f7!important;color:#6746c7!important;min-height:29px!important;padding:5px 12px!important}
+.filters{gap:7px!important;padding:17px 0 12px!important}
+.filter{border:1px solid #e1dcef!important;border-radius:15px!important;background:#faf9ff!important;color:#675a87!important;box-shadow:0 4px 10px rgba(62,54,115,.03)!important}
+.filter.active{background:#7454d2!important;border-color:#7454d2!important;color:#fff!important;box-shadow:0 6px 14px rgba(89,53,164,.16)!important}
+.board{border:1px solid #e8e5f2!important;border-radius:17px!important;box-shadow:0 6px 14px rgba(56,37,110,.045)!important}
+.week{background:linear-gradient(90deg,#f2efff,#f6f2ff)!important;color:#6f609a!important}
+.week span{padding:12px 2px!important;font-size:11px!important}
+.day{border-color:#edeaf4!important;transition:background .1s!important}
+.day.today{box-shadow:inset 0 0 0 2px #a48ce9!important;background:#fdfaff!important}
+.date{font-size:12px!important}
+.day:not(.other):active{background:#f7f3ff!important}
+.event{border-radius:7px!important}
+.state{font-size:12px!important;color:#8190a3!important;margin-top:14px!important}
+.adminFooter button,.adminFooter .adminBtn{border-radius:17px!important;background:#faf8ff!important;border:1px solid #ddd7ee!important;color:#6753a2!important;box-shadow:0 8px 15px rgba(65,49,117,.06)!important}
+.adminPanel{border-radius:22px!important}
+@media(min-width:900px){.app{max-width:960px!important}.day{min-height:103px!important}.event{font-size:10px!important}.week span{font-size:13px!important}}
+@media(max-width:520px){.rsHeader{padding:21px 15px 16px!important}.rsHeaderBrand{padding-right:98px!important;min-height:79px!important}.rsBrand{font-size:30px!important}.rsPageTitle{font-size:17px!important}.rsNavBtn{top:25px!important;width:38px!important;height:38px!important}.rsBack{right:58px!important}.rsHome{right:13px!important}.panel{padding:15px 12px 17px!important;margin-top:15px!important;border-radius:22px!important}.sum{min-height:78px!important}.sum b{font-size:24px!important}.month{font-size:19px!important}.filter{font-size:11px!important}.day{min-height:78px}}
+
+</style>
 </head><body><div class="app"><header class="rsHeader"><button class="rsNavBtn rsBack" id="rsBackBtn" type="button" aria-label="뒤로가기">←</button><a class="rsNavBtn rsHome" href="index.html" aria-label="홈으로">⌂</a><div class="rsHeaderBrand"><div class="rsBrand">RaySmart <small>V1.0</small></div><div class="rsPageTitle">입고 캘린더</div><div class="rsPageSub">업체별 입고 예정일과 완료 상태</div></div></header><section class="panel"><div class="summary"><div class="sum"><b id="todayCount">0</b><span>오늘 입고</span></div><div class="sum"><b id="monthCount">0</b><span>이번 달</span></div><div class="sum"><b id="doneCount">0</b><span>완료</span></div></div><div class="nav"><button id="prev" aria-label="이전 달">‹</button><div class="monthCenter"><div class="month" id="month"></div><button class="currentMonthBtn" id="currentMonthBtn" type="button">오늘로 이동</button></div><button id="next" aria-label="다음 달">›</button></div><div class="filters" id="filters"></div><div class="board"><div class="week"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div><div class="days" id="days"></div></div><div class="state" id="state">Calendar.xlsx를 불러오고 있습니다.</div></section><div class="adminFooter"><button class="adminOpenBtn" id="adminOpen" type="button">⚙️ 관리자 일정 관리</button></div><section class="adminPanel" id="adminPanel" aria-hidden="true">
   <div class="adminModalCard" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
     <div class="adminModalHeader">
