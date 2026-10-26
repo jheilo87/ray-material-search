@@ -646,6 +646,14 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&failed)re
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{ui();if(!navigator.onLine)setFailed(true);});else {ui();if(!navigator.onLine)setFailed(true);}
 })();
 </script>
+<style id="raysmart-hardware-scanner-style">
+.hwScannerSection{margin-top:13px}.hwScannerToggle{width:100%;min-height:67px;padding:12px 14px;display:grid;grid-template-columns:44px minmax(0,1fr) 18px;gap:12px;align-items:center;background:#f6fff9;border:2px solid #6cc99c;border-radius:17px;color:#166844;text-align:left;cursor:pointer;box-shadow:0 5px 14px #163e2211}
+.hwScannerToggleIcon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#e0f6e9;font-size:30px;font-weight:900;color:#159765}.hwScannerToggle strong,.hwScannerToggle small{display:block}.hwScannerToggle strong{font-size:14px;font-weight:950}.hwScannerToggle small{font-size:11px;color:#617e6c;margin-top:5px}.hwScannerChevron{font-size:24px;color:#269c67}
+.hwScannerPanel{margin-top:10px;padding:13px;border:1px solid #bee6cf;border-radius:15px;background:#fafffc}.hwScannerPanel[hidden]{display:none!important}.hwScannerGuide{font-size:12px;color:#526d60;line-height:1.65;margin-bottom:12px}.hwScannerLabel{display:block;font-size:13px;font-weight:950;color:#20694d;margin-bottom:7px}.hwScannerLabel span{font-size:11px;font-weight:800;color:#648473}
+.hwScannerInput{width:100%;height:52px;border:2px solid #92d9b4;border-radius:12px;background:#fff;padding:10px 12px;color:#173d31;font-size:16px;font-weight:900;outline:none;text-transform:uppercase}.hwScannerInput:focus{border-color:#169f66;box-shadow:0 0 0 3px #28b77922}
+.hwScannerActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.hwScannerActions button{min-height:42px;border:0;border-radius:11px;font-size:12px;font-weight:900}.hwScannerAdd{background:#e0f6e9;color:#16774d}.hwScannerFocus{background:#28b779;color:white}
+.hwScannerStatus{margin-top:10px;border-radius:10px;background:#edf8f2;color:#326349;padding:10px;font-size:12px;font-weight:850;line-height:1.5;overflow-wrap:anywhere}.hwScannerStatus.ok{background:#e5f7ec;color:#0f7043}.hwScannerStatus.bad{background:#fff0ed;color:#ae2d20}.hwScannerFoot{margin-top:8px;font-size:10px;color:#748478;line-height:1.55}
+</style>
 </head>
 <body>
 <div class="app">
@@ -707,6 +715,24 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       </span>
     </label>
   </div>
+  <section class="hwScannerSection" aria-label="무선 바코드 스캐너">
+    <button class="hwScannerToggle" id="hwScannerToggle" type="button" aria-expanded="false" aria-controls="hwScannerPanel">
+      <span class="hwScannerToggleIcon" aria-hidden="true">▥</span>
+      <span><strong>바코드 스캐너로 S/N 입력</strong><small>USB 거치대 연결 · 연속 스캔 지원</small></span>
+      <span class="hwScannerChevron" aria-hidden="true">⌄</span>
+    </button>
+    <div class="hwScannerPanel" id="hwScannerPanel" hidden>
+      <div class="hwScannerGuide">① 위에서 업체(iRay · Dell · Vieworks · i3System)를 선택하세요.<br>② 아래 입력칸을 누른 뒤 스캐너로 바코드를 찍으면 S/N이 자동으로 쌓입니다.</div>
+      <label class="hwScannerLabel" for="hwScannerInput">S/N 스캔 대기 <span id="hwScannerVendor">· 업체 미선택</span></label>
+      <input class="hwScannerInput" id="hwScannerInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="여기를 클릭하고 바코드를 스캔하세요" inputmode="text">
+      <div class="hwScannerActions">
+        <button id="hwScannerAdd" type="button" class="hwScannerAdd">직접 등록</button>
+        <button id="hwScannerFocus" type="button" class="hwScannerFocus">다음 스캔 준비</button>
+      </div>
+      <div class="hwScannerStatus" id="hwScannerStatus" role="status" aria-live="polite">스캐너는 키보드 입력 방식입니다. 스캔한 값은 목록과 Teams 공유에 함께 저장됩니다.</div>
+      <div class="hwScannerFoot">※ 스캔한 번호는 중복·업체별 S/N 형식을 검사합니다. 화면이 아닌 메모장에 입력되는 경우 입력칸을 다시 클릭하세요.</div>
+    </div>
+  </section>
   <input class="hiddenInput" id="captureInput" type="file" accept="image/*" capture="environment">
   <input class="hiddenInput" id="imageInput" type="file" accept="image/*" multiple>
   <div class="note" id="modeNote">※ 업체 미선택 시 앨범은 자동인식으로 처리합니다. 업체를 선택한 뒤 앨범을 열면 선택한 업체 방식으로 고정 인식하며, 기존 S/N 목록은 유지됩니다.</div>
@@ -918,6 +944,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{
 let selectedVendor='';
 let results=[];
+let scannedEntries=[]; // [{value,vendor}] hardware barcode scans, separate from photos/old entries
+let scannerCommitTimer=null;
+let scannerStartedAt=0;
+let scannerInputEvents=0;
 let photoItems=[];
 let stream=null;
 let busy=false;
@@ -1146,6 +1176,106 @@ function extractVieworksGs1(value){
   }
 
   return '';
+}
+
+function setHardwareScannerStatus(message,type=''){
+  const el=$('hwScannerStatus');
+  if(!el)return;
+  el.textContent=message;
+  el.className='hwScannerStatus'+(type?' '+type:'');
+}
+function refreshHardwareScannerVendor(){
+  const el=$('hwScannerVendor');
+  if(el)el.textContent=selectedVendor?`· ${vendorLabel(selectedVendor)}`:'· 업체 미선택';
+}
+function hardwareScannerFocus(){
+  if(!selectedVendor){setHardwareScannerStatus('먼저 iRay · Dell · Vieworks · i3System 중 업체를 선택해 주세요.','bad');return;}
+  const input=$('hwScannerInput');
+  if(input){input.focus();input.select();}
+  setHardwareScannerStatus(`${vendorLabel(selectedVendor)} · 스캔 대기 중입니다. 다음 바코드를 찍어 주세요.`);
+}
+function normalizeHardwareCode(raw,vendor){
+  const source=String(raw||'').trim();
+  if(vendor==='Vieworks'){
+    const gs1=extractVieworksGs1(source);
+    if(gs1)return gs1;
+  }
+  if(vendor==='i3system')return normalizeI3Serial(source);
+  // 장문 QR/DataMatrix를 앞 30자리로 잘라 잘못된 S/N을 저장하지 않습니다.
+  const plain=plainSerial(source);
+  if(plain.length>30)return '';
+  return formatSerialInput(source,vendor);
+}
+function addHardwareCode(){
+  clearTimeout(scannerCommitTimer);scannerCommitTimer=null;
+  const input=$('hwScannerInput');
+  const raw=input.value.trim();
+  if(!raw)return false;
+  const vendor=selectedVendor;
+  if(!vendor){setHardwareScannerStatus('먼저 업체를 선택해 주세요. 스캔한 코드는 입력칸에 남아 있습니다.','bad');return false;}
+  const value=normalizeHardwareCode(raw,vendor);
+  if(!value){setHardwareScannerStatus('스캔 결과가 S/N 형태가 아닙니다. 원본 바코드와 일치하는지 확인해 주세요.','bad');return false;}
+  const check=validateSerialFormat(value,vendor);
+  // Dell 출고용 스캐너는 Service Tag(7자리)만 저장하여 다른 코드의 오등록을 막습니다.
+  const invalidDell=vendor==='Dell' && !/^[A-Z0-9]{7}$/.test(value);
+  if(!check.ok||invalidDell){setHardwareScannerStatus(invalidDell?'Dell은 Service Tag 7자리만 등록해 주세요.':check.message,'bad');return false;}
+  if(results.includes(value)||photoItems.some(item=>item.serials.includes(value))||scannedEntries.some(x=>x.value===value)){
+    setHardwareScannerStatus(`중복 S/N · ${value} · 이미 목록에 있습니다.`,'bad');
+    input.value='';input.focus();return false;
+  }
+  scannedEntries.push({value,vendor});
+  results=unique([...results,value]);
+  legacyVendorAssignments[value]=vendor;
+  input.value='';scannerInputEvents=0;scannerStartedAt=0;
+  render();saveSession();
+  setHardwareScannerStatus(`✓ ${value} · ${vendorLabel(vendor)} 등록 완료 · 총 ${scannedEntries.length}건 스캔됨`,'ok');
+  setStatus(`${vendorLabel(vendor)} 스캐너 S/N ${value} 저장 · 전체 ${results.length}건`,'ok');
+  try{navigator.vibrate?.(60)}catch{}
+  input.focus();
+  return true;
+}
+function initHardwareScanner(){
+  const button=$('hwScannerToggle'), panel=$('hwScannerPanel'), input=$('hwScannerInput');
+  if(!button||!panel||!input)return;
+  button.addEventListener('click',()=>{
+    const opening=panel.hidden;
+    panel.hidden=!opening;
+    button.setAttribute('aria-expanded',opening?'true':'false');
+    if(!opening){clearTimeout(scannerCommitTimer);return;}
+    refreshHardwareScannerVendor();
+    hardwareScannerFocus();
+  });
+  $('hwScannerAdd').addEventListener('click',addHardwareCode);
+  $('hwScannerFocus').addEventListener('click',hardwareScannerFocus);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key==='Tab'){
+      if(input.value.trim()){
+        e.preventDefault();
+        addHardwareCode();
+      }
+    }
+  });
+  input.addEventListener('input',e=>{
+    clearTimeout(scannerCommitTimer);
+    if(!input.value.trim())return;
+    const now=Date.now();
+    if(!scannerStartedAt){scannerStartedAt=now;scannerInputEvents=0;}
+    scannerInputEvents++;
+    const eventCount=scannerInputEvents;
+    const length=input.value.trim().length;
+    // 많은 바코드 리더는 Enter를 보냅니다. 엔터가 없는 리더는 빠르게
+    // 연속 입력된 값(또는 붙여넣기)만 450ms 뒤 자동 등록합니다.
+    const fastBurst=(length>=6 && eventCount>=4 && (now-scannerStartedAt)<900);
+    const pasted=e.inputType==='insertFromPaste'||(eventCount===1 && length>=6);
+    if(fastBurst||pasted){
+      scannerCommitTimer=setTimeout(()=>{
+        if(!panel.hidden&&input.value.trim())addHardwareCode();
+      },450);
+    }
+    setHardwareScannerStatus('바코드 읽는 중… 완료되면 자동 저장됩니다.');
+  });
+  input.addEventListener('blur',()=>clearTimeout(scannerCommitTimer));
+  refreshHardwareScannerVendor();
 }
 
 function parseVieworksSnText(text){
@@ -2368,7 +2498,7 @@ function render(){
       const row=document.createElement('div');row.className='row';
       if(entry.legacy){
         displayRowNo++;
-        row.innerHTML=`<div class="no">${displayRowNo} · 기존</div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="기존 S/N" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
+        row.innerHTML=`<div class="no">${displayRowNo} · ${scannedEntries.some(x=>x.value===entry.value)?'스캔':'기존'}</div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="기존 S/N" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
         const input=row.querySelector('input');
         const save=row.querySelector('.saveEdit');
         const help=row.querySelector('.formatHelp');
@@ -2389,6 +2519,7 @@ function render(){
           if(!check.ok)return toast(check.message);
           if(results.some(x=>x!==original&&x===value))return toast('이미 등록된 코드예요');
           results=unique(results.map(x=>x===original?value:x));
+          scannedEntries.forEach(x=>{if(x.value===original)x.value=value;});
           if(legacyVendorAssignments[original]){
             legacyVendorAssignments[value]=legacyVendorAssignments[original];
             delete legacyVendorAssignments[original];
@@ -2397,7 +2528,12 @@ function render(){
           toast('수정 저장되었습니다');
           setStatus(`${original} → ${value} 수정 저장되었습니다.`,'ok');
         });
-        row.querySelector('.del').addEventListener('click',()=>{results=results.filter(x=>x!==entry.value);render();saveSession()});
+        row.querySelector('.del').addEventListener('click',()=>{
+          results=results.filter(x=>x!==entry.value);
+          scannedEntries=scannedEntries.filter(x=>x.value!==entry.value);
+          delete legacyVendorAssignments[entry.value];
+          render();saveSession();
+        });
       }else{
         displayRowNo++;
         row.innerHTML=`<div class="no"><button class="photoLink" type="button">${displayRowNo} · 사진 ${entry.photoIndex+1}</button></div><input class="value" value="${entry.value.replace(/"/g,'&quot;')}" aria-label="사진 ${entry.photoIndex+1} S/N ${entry.serialIndex+1}" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="saveEdit" type="button" disabled>저장</button><button class="del" type="button">×</button><div class="formatHelp">${vendorInputGuide(vendor)}</div>`;
@@ -2495,6 +2631,9 @@ function resetEverything(){
   photoItems.forEach(x=>{if(x?.url)URL.revokeObjectURL(x.url)});
   photoItems=[];
   results=[];
+  scannedEntries=[];
+  clearTimeout(scannerCommitTimer);
+  if($('hwScannerInput'))$('hwScannerInput').value='';
   legacyVendorAssignments={};
   selectedProducts={};
   selectedVendor='';
@@ -2517,6 +2656,7 @@ function resetEverything(){
   if($('progressText'))$('progressText').textContent='추출 준비 중…';
 
   try{
+    sessionStorage.removeItem('raySnScannedEntries');
     sessionStorage.removeItem('raySnResults');
     sessionStorage.removeItem('raySnLegacyVendorAssignments');
     sessionStorage.removeItem('raySnSelectedProducts');
@@ -2535,6 +2675,9 @@ function clearAllSnData(message='목록이 초기화되었습니다. 새로운 �
   photoItems.forEach(x=>{if(x?.url)URL.revokeObjectURL(x.url)});
   photoItems=[];
   results=[];
+  scannedEntries=[];
+  clearTimeout(scannerCommitTimer);
+  if($('hwScannerInput'))$('hwScannerInput').value='';
   legacyVendorAssignments={};
   selectedProducts={};
   resetFailedImages();
@@ -2554,6 +2697,7 @@ function clearAllSnData(message='목록이 초기화되었습니다. 새로운 �
   renderPreviews();
   render();
   try{
+    sessionStorage.removeItem('raySnScannedEntries');
     sessionStorage.removeItem('raySnResults');
     sessionStorage.removeItem('raySnLegacyVendorAssignments');
     sessionStorage.removeItem('raySnSelectedProducts');
@@ -2582,8 +2726,8 @@ function startShareAutoReset(){
     shareResetTimer=null;
   }
   shareResetRemaining=0;
-  const currentShareCount=unique(photoItems.flatMap(item=>item.serials)).length;
-  $('shareResetSummary').textContent=`총 ${currentShareCount}개의 S/N · 촬영 사진 ${photoItems.length}장`;
+  const currentShareCount=unique([...photoItems.flatMap(item=>item.serials),...scannedEntries.filter(x=>results.includes(x.value)).map(x=>x.value)]).length;
+  $('shareResetSummary').textContent=`총 ${currentShareCount}개의 S/N · 촬영 사진 ${photoItems.length}장 · 스캐너 ${scannedEntries.length}건`;
   openModal('shareResetModal');
   if(navigator.vibrate)navigator.vibrate(80);
 }
@@ -2910,6 +3054,7 @@ async function resumeSavedBatch(){
 function saveSession(){
   try{
     sessionStorage.setItem('raySnResults',JSON.stringify(results));
+    sessionStorage.setItem('raySnScannedEntries',JSON.stringify(scannedEntries));
     sessionStorage.setItem('raySnLegacyVendorAssignments',JSON.stringify(legacyVendorAssignments));
     sessionStorage.setItem('raySnSelectedProducts',JSON.stringify(selectedProducts));
     sessionStorage.setItem('raySnSelectedVendor',selectedVendor||'');
@@ -2920,6 +3065,12 @@ async function loadSession(){
   try{
     const x=JSON.parse(sessionStorage.getItem('raySnResults')||'[]');
     if(Array.isArray(x))results=unique(x);
+    const scanned=JSON.parse(sessionStorage.getItem('raySnScannedEntries')||'[]');
+    if(Array.isArray(scanned)){
+      scannedEntries=scanned.filter(x=>x && typeof x.value==='string' && ['iRay','Dell','Vieworks','i3system'].includes(x.vendor))
+        .map(x=>({value:clean(x.value),vendor:x.vendor}));
+      results=unique([...results,...scannedEntries.map(x=>x.value)]);
+    }
     const map=JSON.parse(sessionStorage.getItem('raySnLegacyVendorAssignments')||'{}');
     if(map&&typeof map==='object'&&!Array.isArray(map))legacyVendorAssignments=map;
     const products=JSON.parse(sessionStorage.getItem('raySnSelectedProducts')||'{}');
@@ -3370,8 +3521,14 @@ function buildGroupedShareText(){
     if(!groups.has(vendor))groups.set(vendor,[]);
     groups.get(vendor).push(...item.serials);
   });
+  // 사진과 달리 스캐너 데이터는 명시적으로 기록한 항목만 공유합니다.
+  // 과거 세션의 임의 results 값은 Teams에 합치지 않습니다.
+  scannedEntries.filter(x=>results.includes(x.value)).forEach(item=>{
+    if(!groups.has(item.vendor))groups.set(item.vendor,[]);
+    groups.get(item.vendor).push(item.value);
+  });
 
-  // Teams 공유는 이번 작업에서 사진에 연결된 S/N만 사용합니다.
+  // Teams 공유는 이번 작업에서 사진 또는 스캐너로 등록한 S/N만 사용합니다.
   // sessionStorage/results에 남아 있는 과거 값은 [기존 목록]으로 다시 붙이지 않습니다.
   // 수동 입력도 미인식 사진에 연결되어 저장된 경우 photoItems에 포함되므로 정상 공유됩니다.
 
@@ -3517,6 +3674,7 @@ function updateGalleryModeUI(){
 }
 
 function updateActionReadyStates(){
+  refreshHardwareScannerVendor();
   $('openCameraBtn')?.classList.toggle('ready',!!selectedVendor);
   $('shareBtn')?.classList.toggle('ready',results.length>0);
   updateGalleryModeUI();
@@ -3896,6 +4054,7 @@ window.addEventListener('pagehide',()=>{
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&stream)stopCamera();
 });
+initHardwareScanner();
 loadSession().then(()=>{
   const params=new URLSearchParams(location.search);
   if(params.get('resumeCapture')==='1'){
@@ -3930,7 +4089,6 @@ updateTeamsSelfUi();
 (function(){
   const active=localStorage.getItem('rayAdminLoggedIn')==='1';
   document.body.classList.toggle('adminUnlocked',active);
-updateActionReadyStates();
 })();
 </script>
 
