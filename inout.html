@@ -48,6 +48,12 @@
 .safety{padding:10px 12px;font-size:11px;line-height:1.45}
 .safety strong{margin-bottom:0}
 @media(max-width:480px){.mode button{min-height:78px;padding:12px 8px}.moreDetails .fields{grid-template-columns:1fr}.moreDetails .field{grid-column:1/-1}}
+
+/* SharePoint 공동 기록용 Power Apps 연결 (기존 기능 변경 없음) */
+.cloudLink{margin:0 0 15px;padding:14px;border:1px solid #c9dff0;border-radius:16px;background:linear-gradient(120deg,#edf7ff,#f4faff);box-shadow:0 5px 14px rgba(31,77,115,.06)}
+.cloudLink a{display:flex;justify-content:center;align-items:center;gap:9px;min-height:50px;border-radius:12px;background:#116ba6;color:#fff;font-size:15px;font-weight:950;text-align:center;text-decoration:none}
+.cloudLink a:focus-visible{outline:3px solid #7ac7f6;outline-offset:3px}
+.cloudLink p{margin:9px 2px 0;text-align:center;color:#496e8d;font-size:11px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -59,6 +65,10 @@
  </header>
  <div class="intro"><div class="kicker">MOBILE STOCK WORKFLOW</div><h1>QR로 빠르게 기록하기</h1><p>블루투스 스캐너 · 휴대폰 카메라 · 품번 직접 입력 지원</p></div>
  <div class="safety"><span aria-hidden="true">⚠️</span><div><strong>엑셀 연동 준비 단계</strong>이 화면은 시험용입니다. 기록은 <b>이 기기에만 임시 저장</b>되고 회사 원본 엑셀·SAP에는 자동 반영되지 않습니다.</div></div>
+ <section class="cloudLink" aria-label="회사 공동 기록 앱 연결">
+  <a id="powerAppsOpen" href="https://apps.powerapps.com/play/e/default-51a228f2-1bcf-4ad2-b3ed-64df4143ff66/a/2babdcb6-c77f-4e13-a1d7-de56a5a940a2?tenantId=51a228f2-1bcf-4ad2-b3ed-64df4143ff66&amp;hint=46d1e075-3bc4-49b6-9d83-7456f2d28420&amp;sourcetime=1793083040472" target="_blank" rel="noopener noreferrer" aria-label="Power Apps 공동 입출고 기록 새 창에서 열기">↗ Power Apps 공동 입출고 기록 열기</a>
+  <p>회사 계정으로 로그인해 Lists에 기록합니다. 아래 기존 입출고 임시 저장과는 별개입니다.</p>
+ </section>
  <div class="mode"><button type="button" id="inMode" class="active in" aria-pressed="true">📥 입고 등록<small>품번 · 입고수량 · 일자</small></button><button type="button" id="outMode" class="out" aria-pressed="false">📤 출고 등록<small>예약번호 · 출고수량 · 일자</small></button></div>
   <div id="editNotice" class="editNotice" role="status"><span id="editText">기록 수정 중</span><button type="button" id="cancelEdit">수정 취소</button></div>
  <section class="card" aria-label="자재 스캔"><div class="cardTitle"><span>▣</span> 자재 QR · 바코드 <small class="right" id="lookupSource">자재DB 연결 중</small></div>
