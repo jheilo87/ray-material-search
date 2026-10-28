@@ -8,28 +8,55 @@
 <style>
   *{box-sizing:border-box}
   body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:20px;background:linear-gradient(150deg,#edf6ff,#f8fbff);font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;color:#16334e}
-  .panel{width:min(100%,420px);padding:34px 25px;background:white;border:1px solid #dde9f4;border-radius:22px;box-shadow:0 14px 40px rgba(20,57,99,.08);text-align:center}
+  .panel{width:min(100%,420px);padding:34px 25px;background:#fff;border:1px solid #dde9f4;border-radius:22px;box-shadow:0 14px 40px rgba(20,57,99,.08);text-align:center}
   .brand{font-size:24px;font-weight:900;color:#07558d;margin-bottom:8px}
-  h1{font-size:19px;margin:12px 0 6px}p{font-size:13px;line-height:1.7;color:#5b7085;margin:0 0 20px}
-  a.button{display:block;background:#0877c9;color:white;text-decoration:none;padding:15px;border-radius:13px;font-size:16px;font-weight:850}
+  h1{font-size:19px;margin:12px 0 6px}
+  p{font-size:13px;line-height:1.7;color:#5b7085;margin:0 0 20px}
+  a.button{display:block;width:100%;text-align:center;background:#0877c9;color:#fff;text-decoration:none;padding:15px;border-radius:13px;font-size:16px;font-weight:850}
+  a.button.secondary{margin-top:10px;background:#fff;border:1px solid #bdd5e8;color:#16577d}
   a.button:focus-visible{outline:3px solid #82c5fb;outline-offset:3px}
-  .note{font-size:12px;color:#6a7e91;margin:15px 0 0}
+  .note{font-size:12px;color:#6a7e91;margin:15px 0 0;line-height:1.65}
+  [hidden]{display:none!important}
 </style>
 </head>
 <body>
- <main class="panel">
+<main class="panel">
   <div class="brand">RaySmart-PDA</div>
-  <h1>입출고 앱 연결 중</h1>
-  <p>회사 Microsoft 계정으로 Power Apps를 실행합니다.<br>자동 이동하지 않으면 아래 버튼을 눌러주세요.</p>
-  <a id="openPda" class="button" href="https://apps.powerapps.com/play/e/default-51a228f2-1bcf-4ad2-b3ed-64df4143ff66/a/2babdcb6-c77f-4e13-a1d7-de56a5a940a2?tenantId=51a228f2-1bcf-4ad2-b3ed-64df4143ff66&amp;hint=46d1e075-3bc4-49b6-9d83-7456f2d28420&amp;sourcetime=1793169246981">📦 RaySmart-PDA 실행</a>
-  <div class="note">별도의 로그인 화면이 표시될 수 있습니다.</div>
- </main>
- <script>
-  // INOUT 메뉴에서 이 파일을 열면 PDA 앱으로 즉시 이동합니다.
-  // 팝업 차단을 피하기 위해 현재 창에서 이동합니다.
-  // 메인 index.html에서 새 탭으로 열게 설정하면 PDA도 새 탭에서 실행됩니다.
-  const PDA_URL="https://apps.powerapps.com/play/e/default-51a228f2-1bcf-4ad2-b3ed-64df4143ff66/a/2babdcb6-c77f-4e13-a1d7-de56a5a940a2?tenantId=51a228f2-1bcf-4ad2-b3ed-64df4143ff66&hint=46d1e075-3bc4-49b6-9d83-7456f2d28420&sourcetime=1793169246981";
-  window.location.replace(PDA_URL);
- </script>
+  <h1 id="heading">입출고 앱 연결 중</h1>
+  <p id="message">Power Apps 앱 실행을 시도합니다.</p>
+  <!-- 모바일: 클릭 자체가 직접 앱을 여는 사용자 제스처가 되도록 전용 링크를 href에 둡니다. -->
+  <a id="openNative" class="button" href="ms-apps:///providers/Microsoft.PowerApps/apps/2babdcb6-c77f-4e13-a1d7-de56a5a940a2?tenantId=51a228f2-1bcf-4ad2-b3ed-64df4143ff66&amp;environmentId=default-51a228f2-1bcf-4ad2-b3ed-64df4143ff66&amp;restartApp=true">📦 Power Apps 앱으로 열기</a>
+  <!-- 모바일에서는 앱 설치/차단 문제에 대비해 웹 링크를 직접 선택할 수 있게 합니다. -->
+  <a id="openWeb" class="button secondary" href="https://apps.powerapps.com/play/e/default-51a228f2-1bcf-4ad2-b3ed-64df4143ff66/a/2babdcb6-c77f-4e13-a1d7-de56a5a940a2?tenantId=51a228f2-1bcf-4ad2-b3ed-64df4143ff66&amp;hint=46d1e075-3bc4-49b6-9d83-7456f2d28420&amp;sourcetime=1793169246981">브라우저에서 열기</a>
+  <div id="note" class="note">앱이 자동으로 열리지 않으면 위의 'Power Apps 앱으로 열기'를 눌러주세요.<br>Power Apps 설치 및 회사 계정 로그인이 필요합니다.</div>
+</main>
+<script>
+(function(){
+  'use strict';
+  // 2026-10-28 사용자 제공 RaySmart-PDA 실행 URL에서 확인한 Canvas App 정보
+  // 앱 ID: 2babdcb6-c77f-4e13-a1d7-de56a5a940a2
+  // 테넌트 ID: 51a228f2-1bcf-4ad2-b3ed-64df4143ff66
+  // 환경 ID: default-51a228f2-1bcf-4ad2-b3ed-64df4143ff66
+  const webLink=document.getElementById('openWeb').href;
+  const nativeLink=document.getElementById('openNative').href;
+  const ua=navigator.userAgent||'';
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(ua) || (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(!isMobile){
+    // PC에서는 기존 동작 그대로 Power Apps 웹 주소로 곧장 연결합니다.
+    document.getElementById('openNative').hidden=true;
+    document.getElementById('heading').textContent='브라우저에서 Power Apps 실행 중';
+    document.getElementById('message').textContent='자동으로 이동하지 않으면 아래 버튼을 눌러주세요.';
+    document.getElementById('note').textContent='회사 Microsoft 계정으로 로그인해 주세요.';
+    window.location.replace(webLink);
+    return;
+  }
+  document.getElementById('heading').textContent='Power Apps 앱 열기';
+  document.getElementById('message').textContent='휴대폰에 설치된 Power Apps 앱을 실행합니다.';
+  // 자동 실행을 허용하는 모바일 브라우저에서는 앱 실행.
+  // 일부 브라우저는 사용자 제스처 없는 외부 앱 링크를 차단하므로 항상 실제 클릭용 링크도 제공합니다.
+  // 앱 실행 성공 여부는 웹 페이지에서 안정적으로 판별할 수 없어 무작정 웹으로 재이동하지 않습니다.
+  try{ window.location.assign(nativeLink); }catch(_){ /* 클릭용 버튼 유지 */ }
+})();
+</script>
 </body>
 </html>
