@@ -2235,7 +2235,8 @@ const SUPPLEMENTAL_PRODUCTS={
     {partNo:'RA-07S-6124',name:'iRay, Mercu0810X1 DETECTOR'}
   ],
   Dell:[
-    {partNo:'RA-00S-6119',name:'DELL PRO SLIM QCS'}
+    {partNo:'RA-00S-6119',name:'DELL PRO SLIM QCS'},
+    {partNo:'RA-00S-6120',name:'DELL Workstation (Type B)'}
   ]
 };
 
@@ -2371,7 +2372,9 @@ async function loadProductCatalog(){
         return;
       }
     }catch{}
-    updateCatalogSyncState(`⚠️ material.xlsx를 불러오지 못했습니다. (${err?.message||'오류'})`,'warn');
+    // 엑셀이나 로컬 캐시가 없어도 별도 등록 품목은 언제나 사용 가능합니다.
+    productCatalog=applySupplementalProducts({iRay:[],Dell:[],Vieworks:[],i3system:[]});
+    updateCatalogSyncState(`⚠️ material.xlsx 연결 실패 · 기본 등록 품목만 표시 (${err?.message||'오류'})`,'warn');
     render();
   }
 }
