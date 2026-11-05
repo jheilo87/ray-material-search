@@ -779,7 +779,7 @@ main>.card:first-child::before{content:"";position:absolute;inset:0 0 auto;heigh
       <span class="hwScannerChevron" aria-hidden="true">⌄</span>
     </button>
     <div class="hwScannerPanel" id="hwScannerPanel" hidden>
-      <div class="hwScannerGuide">① 위에서 업체(iRay · Dell · Vieworks · i3System)를 선택하세요.<br>② 아래 입력칸을 누른 뒤 스캐너로 바코드를 찍으면 S/N이 자동으로 쌓입니다.</div>
+      <div class="hwScannerGuide">① 위에서 업체(iRay · Dell · Vieworks · i3System)를 선택하세요.<br>② 아래 입력칸을 누르고 바코드를 스캔하세요. Enter 없이도 S/N이 자동 등록되고 다음 스캔을 기다립니다.</div>
       <label class="hwScannerLabel" for="hwScannerInput">S/N 스캔 대기 <span id="hwScannerVendor">· 업체 미선택</span></label>
       <input class="hwScannerInput" id="hwScannerInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="여기를 클릭하고 바코드를 스캔하세요" inputmode="text">
       <div class="hwScannerActions">
@@ -1003,8 +1003,6 @@ let selectedVendor='';
 let results=[];
 let scannedEntries=[]; // [{value,vendor}] hardware barcode scans, separate from photos/old entries
 let scannerCommitTimer=null;
-let scannerStartedAt=0;
-let scannerInputEvents=0;
 let photoItems=[];
 let stream=null;
 let busy=false;
@@ -1283,7 +1281,7 @@ function addHardwareCode(){
   scannedEntries.push({value,vendor});
   results=unique([...results,value]);
   legacyVendorAssignments[value]=vendor;
-  input.value='';scannerInputEvents=0;scannerStartedAt=0;
+  input.value='';
   render();saveSession();
   setHardwareScannerStatus(`✓ ${value} · ${vendorLabel(vendor)} 등록 완료 · 총 ${scannedEntries.length}건 스캔됨`,'ok');
   setStatus(`${vendorLabel(vendor)} 스캐너 S/N ${value} 저장 · 전체 ${results.length}건`,'ok');
@@ -1305,7 +1303,7 @@ function initHardwareScanner(){
   $('hwScannerAdd').addEventListener('click',addHardwareCode);
   $('hwScannerFocus').addEventListener('click',hardwareScannerFocus);
   input.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key==='Tab'){
+    if(e.key==='Enter'||e.key==='Tab'||e.code==='NumpadEnter'||e.keyCode===13){
       if(input.value.trim()){
         e.preventDefault();
         addHardwareCode();
@@ -1315,23 +1313,23 @@ function initHardwareScanner(){
   input.addEventListener('input',e=>{
     clearTimeout(scannerCommitTimer);
     if(!input.value.trim())return;
-    const now=Date.now();
-    if(!scannerStartedAt){scannerStartedAt=now;scannerInputEvents=0;}
-    scannerInputEvents++;
-    const eventCount=scannerInputEvents;
-    const length=input.value.trim().length;
-    // 많은 바코드 리더는 Enter를 보냅니다. 엔터가 없는 리더는 빠르게
-    // 연속 입력된 값(또는 붙여넣기)만 450ms 뒤 자동 등록합니다.
-    const fastBurst=(length>=6 && eventCount>=4 && (now-scannerStartedAt)<900);
-    const pasted=e.inputType==='insertFromPaste'||(eventCount===1 && length>=6);
-    if(fastBurst||pasted){
-      scannerCommitTimer=setTimeout(()=>{
-        if(!panel.hidden&&input.value.trim())addHardwareCode();
-      },450);
-    }
-    setHardwareScannerStatus('바코드 읽는 중… 완료되면 자동 저장됩니다.');
+    // 스캐너 종류에 따라 키가 한 글자씩 들어오거나, 한 번에 붙여넣기처럼
+    // 들어오고, Enter/Tab 종료 신호가 없는 모델도 있습니다.
+    // 입력 속도·input 이벤트 횟수에 의존하지 않고 마지막 입력 후 일정 시간
+    // 새 문자가 없으면 자동 등록을 시도합니다. 완성되지 않은/형식이 틀린
+    // S/N은 기존 유효성 검사에서 차단하며 입력칸에 보존됩니다.
+    scannerCommitTimer=setTimeout(()=>{
+      scannerCommitTimer=null;
+      if(panel.hidden||!input.value.trim())return;
+      addHardwareCode();
+    },650);
+    setHardwareScannerStatus('바코드 읽는 중… 잠시 입력이 멈추면 자동 등록됩니다.');
   });
-  input.addEventListener('blur',()=>clearTimeout(scannerCommitTimer));
+  // 다른 칸으로 커서가 옮겨져도 마지막에 읽은 S/N을 잃지 않습니다.
+  // 타이머 콜백에서 panel.hidden을 확인하므로 닫힌 패널에서 등록되지는 않습니다.
+  input.addEventListener('blur',()=>{
+    if(!input.value.trim())clearTimeout(scannerCommitTimer);
+  });
   refreshHardwareScannerVendor();
 }
 
