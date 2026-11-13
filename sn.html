@@ -1160,17 +1160,27 @@ function parseIRaySnText(text=''){
   }
   return filterIRaySerials(candidates);
 }
+// i3 QR 데이터에 한글 품명/안내 문구가 섞여 있어도 DIB S/N만 분리합니다.
+// DIB가 없는 한글 QR 값은 절대로 S/N으로 대체하지 않습니다.
+function extractI3DibFromPayload(value){
+  const raw=String(value||'').toUpperCase();
+  const matches=[...raw.matchAll(/DIB[A-Z0-9]{4,20}(?![A-Z0-9])/g)];
+  if(matches.length)return matches[matches.length-1][0];
+  // 일부 QR·문자 인식기는 'DIB : 2747'처럼 접두어와 번호 사이에 공백을 넣습니다.
+  const separated=[...raw.matchAll(/DIB[\s:#-]+([A-Z0-9]{4,20})(?![A-Z0-9])/g)];
+  return separated.length?'DIB'+separated[separated.length-1][1]:'';
+}
 function normalizeI3Serial(value){
+  const direct=extractI3DibFromPayload(value);
+  if(direct)return direct;
   const plain=plainSerial(value);
 
-  // 실제 업무에서는 i3System S/N 중 마지막 DIB... 값만 사용합니다.
-  // 예: XID-24DC-DIB2747 → DIB2747
+  // 하이픈을 제외한 QR 전체값(XID24DCDIB2747)도 처리합니다.
   const dib=plain.match(/(DIB[A-Z0-9]{4,20})$/);
   if(dib)return dib[1];
 
-  // 직접 DIB 코드를 입력하는 도중에도 자연스럽게 편집할 수 있게 합니다.
+  // 수동 입력 도중에는 DIB 접두어를 그대로 유지합니다.
   if(plain.startsWith('DIB'))return plain.slice(0,23);
-
   return plain.slice(0,23);
 }
 function formatSerialInput(value,vendor=''){
@@ -1384,8 +1394,10 @@ function filterAutoSerialsByVendor(serials=[],vendor='Unknown'){
 function detectVendorFromSerialOnly(serials=[]){
   const vals=serials.map(x=>String(x||'').toUpperCase());
   if(vals.some(v=>/^ED[A-Z0-9]{16,}$/i.test(v)))return 'iRay';
-  if(vals.some(v=>/^[A-Z0-9]{7}$/i.test(v)))return 'Dell';
+  // DIB2747처럼 7자리인 i3 코드를 Dell Service Tag로 오인하지 않도록 먼저 판별합니다.
+  if(vals.some(v=>/^DIB[A-Z0-9]{4,20}$/.test(normalizeI3Serial(v))))return 'i3system';
   if(vals.some(v=>/^VPX[0-9]{5,}$/i.test(v)))return 'Vieworks';
+  if(vals.some(v=>/^[A-Z0-9]{7}$/i.test(v)))return 'Dell';
   return '';
 }
 async function detectPhotoVendor(source,serials=[]){
@@ -1815,44 +1827,67 @@ async function tryBarcode(source){
 
 
 async function extractI3Lightweight(source){
-  let bitmap=null;
-  let base=null;
+  let bitmap=null,base=null;
   try{
     bitmap=await sourceToBitmap(source);
-
-    // i3System은 QR/DataMatrix 안에서 DIB 번호만 찾으면 되므로
-    // 고해상도 전체 사진을 여러 번 분석하지 않고 최대 1200px 한 장만 검사합니다.
-    base=makeScanCanvas(bitmap,1200);
+    // QR이 작은 사진도 읽을 수 있도록 1200→1800px까지 한 장만 처리합니다.
+    // 항상 QR 원문에서 DIB 번호만 통과시키며, 한글/품명은 결과에 넣지 않습니다.
+    base=makeScanCanvas(bitmap,1800);
     const candidates=[];
-
-    // 1차: 휴대폰 기본 바코드 인식기
-    try{
-      candidates.push(...await tryNativeBarcode(base));
-    }catch{}
-
-    let serials=unique(
-      candidates
-        .map(normalizeI3Serial)
+    const pick=()=>unique(
+      candidates.map(extractI3DibFromPayload)
         .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
-    );
-    if(serials.length)return serials.slice(0,20);
+    ).slice(0,20);
 
-    // 2차: 기본 인식이 실패했을 때만 ZXing 1회.
-    // 크롭/회전/OCR은 하지 않아 메모리 사용을 최소화합니다.
+    // 1차: 휴대폰 QR/DataMatrix 기본 판독 + ZXing 보조 (원본 전체)
+    setLive('i3System QR코드 확인 중…','busy');
+    try{candidates.push(...await tryNativeBarcode(base))}catch{}
+    let serials=pick();
+    if(serials.length)return serials;
     if(window.ZXing){
-      try{
-        candidates.push(...tryZXingCanvas(base));
-      }catch{}
+      try{candidates.push(...tryZXingCanvas(base))}catch{}
+      serials=pick();
+      if(serials.length)return serials;
     }
 
-    serials=unique(
-      candidates
-        .map(normalizeI3Serial)
-        .filter(x=>/^DIB[A-Z0-9]{4,20}$/.test(x))
-    );
-    return serials.slice(0,20);
+    // 2차: 멀리 찍은 작은 QR도 읽을 수 있도록 4영역을 순차 확대합니다.
+    // 필요할 때만 처리하고 Canvas를 즉시 해제해 연속 촬영 시 메모리를 보호합니다.
+    setLive('i3System QR 확대 확인 중…','busy');
+    const w=base.width,h=base.height;
+    const regions=[
+      [0,0,.60,.60],[.40,0,.60,.60],
+      [0,.40,.60,.60],[.40,.40,.60,.60]
+    ];
+    for(const [rx,ry,rw,rh] of regions){
+      const crop=cropCanvas(base,Math.round(w*rx),Math.round(h*ry),
+        Math.round(w*rw),Math.round(h*rh),1.4);
+      try{
+        candidates.push(...await tryNativeBarcode(crop));
+        serials=pick();
+        if(serials.length)return serials;
+        if(window.ZXing){
+          candidates.push(...tryZXingCanvas(crop));
+          serials=pick();
+          if(serials.length)return serials;
+        }
+      }catch(e){console.warn('[i3 QR 확대 인식]',e)}
+      finally{releaseCanvas(crop)}
+    }
+
+    // QR에 한글 정보만 있고 DIB 값이 없다면, 사진에 실제 인쇄된 영문 DIB만
+    // 최종 보조로 확인합니다. OCR 일반 문구/한글은 절대로 등록하지 않습니다.
+    if(window.Tesseract){
+      setLive('i3 QR에서 DIB를 찾지 못해 인쇄된 DIB 번호 확인 중…','busy');
+      try{
+        const rec=await Tesseract.recognize(base,'eng');
+        const printed=extractI3DibFromPayload(rec?.data?.text||'');
+        if(printed)return [printed];
+      }catch(e){console.warn('[i3 인쇄 S/N 보조 인식]',e)}
+    }
+    setLive('i3 QR/라벨에서 DIB 번호를 찾지 못했습니다. 사진에서 직접 확인해 주세요.','bad');
+    return [];
   }catch(e){
-    console.error('[i3 경량 인식 오류]',e);
+    console.error('[i3 QR 인식 오류]',e);
     return [];
   }finally{
     releaseCanvas(base);
@@ -1962,8 +1997,9 @@ async function extractSerial(source){
   if(selectedVendor==='Auto'){
     const normalized=barcodes.map(code=>{
       const vieworksSn=extractVieworksGs1(code);
-      return vieworksSn || clean(code);
-    });
+      const i3Dib=extractI3DibFromPayload(code);
+      return vieworksSn || i3Dib || clean(code);
+    }).filter(Boolean);
     return unique(normalized).slice(0,20);
   }
 
